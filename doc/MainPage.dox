@@ -1,0 +1,26 @@
+/**
+@mainpage Documentation of biomassGasificationFoam
+
+\section about About BiomassGasification
+
+biomassGasificationFoam is a solver developed in an open-source C++ code OpenFOAM,
+for comprehensive simulation of the physical and thermochemical processes of biomass
+gasification and pyrolysis.
+It integrates models of drying, pyrolysis, gasification, combustion and complpex
+flow within a porous biomass.
+
+\section layout Directory structure
+
+OpenFOAM comprises of four main directories:
+ - \b biomassGasificationMedia: the libraries
+ - \b biomassGasificationFoam: solver
+ - \b testCase: case that shows the wide application of the program
+ - \b doc: documentation
+
+\section openfoam OpenFOAM
+
+For OpenFOAM's documentation see the C++ Source Guide:
+
+https://cpp.openfoam.org/v7/
+
+*/

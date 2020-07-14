@@ -1,0 +1,5 @@
+fieldPorosityModel.C
+
+LIB = $(FOAM_USER_LIBBIN)/libfieldPorosityModel
+
+

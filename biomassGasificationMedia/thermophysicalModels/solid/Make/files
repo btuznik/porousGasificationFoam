@@ -1,0 +1,13 @@
+/*rhoType/const/constRho.C
+
+rhoType/heterogeneousConst/heterogeneousConstRho.C
+
+reaction/Reactions/solidHeterogeneousReaction/solidHeterogeneousReaction.C
+reaction/Reactions/solidReaction/solidReaction.C
+reaction/heterogeneousReactions/makeSolidHeterogeneousReactionThermoReactions.C*/
+
+heatTransfer/heatTransferModel/heatTransferModel.C
+heatTransfer/const/const.C
+heatTransfer/cylinder/cylinder.C
+
+LIB = $(FOAM_USER_LIBBIN)/libHGSsolid
