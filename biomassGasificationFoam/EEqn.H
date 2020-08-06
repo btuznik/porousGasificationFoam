@@ -20,24 +20,24 @@ if (solveEnergy)
                 )
               : -dpdt
             )
-          - fvm::laplacian(turbulence->alphaEff(), he)
+            + thermophysicalTransport->divq(he)
          ==
             reaction->Qdot()
           + fvOptions(rho, he)
           + heatTransfer
         );
 
-        EEqn.relax();
+    EEqn.relax();
 
-        fvOptions.constrain(EEqn);
+    fvOptions.constrain(EEqn);
 
-        EEqn.solve();
+    EEqn.solve();
 
-        fvOptions.correct(he);
+    fvOptions.correct(he);
 
-        thermo.correct();
+    thermo.correct();
 
-        Info<< "min/max(T) = "
-            << min(T).value() << ", " << max(T).value() << endl;
-    }
+    Info<< "min/max(T) = "
+        << min(T).value() << ", " << max(T).value() << endl;
+   }
 }

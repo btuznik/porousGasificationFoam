@@ -36,7 +36,8 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
-#include "turbulentFluidThermoModel.H"
+#include "fluidThermoMomentumTransportModel.H"
+#include "psiReactionThermophysicalTransportModel.H"
 #include "psiReactionThermo.H"
 #include "CombustionModel.H"
 #include "multivariateScheme.H"
@@ -117,6 +118,7 @@ int main(int argc, char *argv[])
             if (pimple.turbCorr())
             {
                 turbulence->correct();
+                thermophysicalTransport->correct();
             }
         }
 

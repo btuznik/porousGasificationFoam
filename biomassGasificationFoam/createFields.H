@@ -50,15 +50,21 @@ pressureControl pressureControl(p, rho, pimple.dict(), false);
 mesh.setFluxRequired(p.name());
 
 Info << "Creating turbulence model.\n" << nl;
-autoPtr<compressible::turbulenceModel> turbulence
+autoPtr<compressible::momentumTransportModel> turbulence
 (
-    compressible::turbulenceModel::New
+    compressible::momentumTransportModel::New
     (
         rho,
         U,
         phi,
         thermo
     )
+);
+
+Info<< "Creating thermophysical transport model\n" << endl;
+autoPtr<psiReactionThermophysicalTransportModel> thermophysicalTransport
+(
+    psiReactionThermophysicalTransportModel::New(turbulence(), thermo)
 );
 
 Info << "Reading field Df\n" << endl;

@@ -53,13 +53,24 @@ mesh.setFluxRequired(p.name());
 
 
 Info << "Creating turbulence model.\n" << nl;
-autoPtr<compressible::turbulenceModel> turbulence
+autoPtr<compressible::momentumTransportModel> turbulence
 (
-    compressible::turbulenceModel::New
+    compressible::momentumTransportModel::New
     (
         rho,
         U,
         phi,
+        thermo
+    )
+);
+
+Info<< "Creating thermophysical transport model\n" << endl;
+autoPtr<rhoReactionThermophysicalTransportModel>
+thermophysicalTransport
+(
+    rhoReactionThermophysicalTransportModel::New
+    (
+        turbulence(),
         thermo
     )
 );
@@ -86,6 +97,8 @@ volScalarField dpdt
 
 Info<< "Creating field kinetic energy K\n" << endl;
 volScalarField K("K", 0.5*magSqr(U));
+
+dimensionedScalar initialMass = fvc::domainIntegrate(rho);
 
 
 multivariateSurfaceInterpolationScheme<scalar>::fieldTable fields;

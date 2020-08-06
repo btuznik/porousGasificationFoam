@@ -1,1 +1,0 @@
-../heterogeneousRadiationModels/heterogeneousP1/heterogeneousP1.H

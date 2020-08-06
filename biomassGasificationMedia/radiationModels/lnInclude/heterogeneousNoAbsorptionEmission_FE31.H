@@ -1,1 +1,0 @@
-../heterogeneousAbsorptionEmissionModels/heterogeneousNoAbsorptionEmission/FE31_templates/heterogeneousNoAbsorptionEmission_FE31.H

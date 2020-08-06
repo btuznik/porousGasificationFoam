@@ -41,6 +41,7 @@ namespace heterogeneousPyrolysisModels
 defineTypeNameAndDebug(heterogeneousPyrolysisModel, 0);
 defineRunTimeSelectionTable(heterogeneousPyrolysisModel, mesh);
 defineRunTimeSelectionTable(heterogeneousPyrolysisModel, noRadiation);
+defineRunTimeSelectionTable(heterogeneousPyrolysisModel, radiation);
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 // Something that reads from pyrolysis dictionary.
@@ -92,6 +93,38 @@ heterogeneousPyrolysisModel::heterogeneousPyrolysisModel
     const fvMesh& mesh,
     psiReactionThermo& gasThermo,
     volScalarField& whereIs
+)
+:
+    IOdictionary
+    (
+        IOobject
+        (
+            "pyrolysisProperties",
+            mesh.time().constant(),
+            mesh,
+            IOobject::MUST_READ,
+            IOobject::NO_WRITE
+        )
+    ),
+    mesh_(mesh),
+    time_(mesh.time()),
+    active_(lookup("active")),
+    infoOutput_(true),
+    coeffs_(subOrEmptyDict("pyrolysisCoeffs"))
+{
+    if (active_)
+    {
+        read();
+    }
+}
+
+heterogeneousPyrolysisModel::heterogeneousPyrolysisModel
+(
+    const word& modelType,
+    const fvMesh& mesh,
+    psiReactionThermo& gasThermo,
+    volScalarField& whereIs,
+    volScalarField& radiation
 )
 :
     IOdictionary

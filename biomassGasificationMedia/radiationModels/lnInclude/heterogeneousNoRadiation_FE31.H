@@ -1,1 +1,0 @@
-../heterogeneousRadiationModels/heterogeneousNoRadiation/FE31_templates/heterogeneousNoRadiation_FE31.H

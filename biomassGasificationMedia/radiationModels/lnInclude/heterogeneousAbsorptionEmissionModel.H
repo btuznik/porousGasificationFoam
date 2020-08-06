@@ -1,1 +1,0 @@
-../heterogeneousAbsorptionEmissionModels/heterogeneousAbsorptionEmissionModel/heterogeneousAbsorptionEmissionModel.H

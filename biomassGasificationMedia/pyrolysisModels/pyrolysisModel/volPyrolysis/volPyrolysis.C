@@ -49,6 +49,7 @@ namespace heterogeneousPyrolysisModels
 defineTypeNameAndDebug(volPyrolysis, 0);
 
 addToRunTimeSelectionTable(heterogeneousPyrolysisModel, volPyrolysis, noRadiation);
+addToRunTimeSelectionTable(heterogeneousPyrolysisModel, volPyrolysis, radiation);
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
@@ -261,7 +262,138 @@ volPyrolysis::volPyrolysis
         mesh_
     ),
     voidFraction_(whereIs),
+    radiation_(whereIs),        
+    whereIs_
+    (
+        IOobject
+        (
+            "whereIs",
+            time_.timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        mesh_,
+        scalar(1.0)
+    ),
+    whereIsNot_
+    (
+        IOobject
+        (
+            "whereIsNot",
+            time_.timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        mesh_,
+        scalar(0.0)
+    ),
+    HTmodel_(heatTransferModel::New(porosity_,porosityArch_)),
+    HTC_
+    (
+        IOobject
+        (
+            "HTCvol",
+            time_.timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh_,
+        dimensionedScalar("zero",dimEnergy/dimTime/dimTemperature/dimVolume , 0.0)
 
+    ),
+    surfF_(),
+    maxDT_(1.0)
+{
+
+    HTC_ = HTC();
+
+    forAll(rho_, cellI)
+    {
+    	if (porosity_[cellI] == 1)
+        {
+            whereIsNot_[cellI] = 1;
+            whereIs_[cellI] = 0;
+        }
+    }
+    if (active_)
+    {
+        read();
+    }
+
+    DynamicList<label> dSurfF;
+    forAll(whereIs_,cellI)
+    {
+    if (whereIs_[cellI] == 1)
+    {
+            bool surfC = false;
+            forAll(mesh_.cellCells()[cellI],cellJ)
+            {
+                    if (whereIs_[mesh_.cellCells()[cellI][cellJ]] == 0) surfC = true;
+            }
+            if (surfC) dSurfF.append(cellI);
+    }
+    }
+    surfF_ = dSurfF.shrink();
+}
+
+volPyrolysis::volPyrolysis
+(
+    const word& modelType,
+    const fvMesh& mesh,
+    psiReactionThermo& gasThermo,
+    volScalarField& whereIs,
+    volScalarField& radiation
+)
+:
+    heterogeneousPyrolysisModel(modelType, mesh),
+    gasThermo_(gasThermo),
+    equilibrium_(false),
+    rho_
+    (
+        IOobject
+        (
+         "rhos",
+         mesh_.time().timeName(),
+         mesh_,
+         IOobject::NO_READ,
+         IOobject::AUTO_WRITE
+        ),
+        mesh,
+        dimensionedScalar(dimMass/dimVolume, 0.0)
+     ),
+    Ts_
+    (
+         IOobject
+         (
+             "Ts",
+             time_.timeName(),
+             mesh_,
+             IOobject::MUST_READ,
+             IOobject::AUTO_WRITE
+         ),
+         mesh
+    ),
+    nNonOrthCorr_(-1),
+    maxDiff_(10),
+    porosity_(whereIs),
+    initialPorosity_(whereIs),
+    porosityArch_
+    (
+        IOobject
+        (
+            "porosityF0",
+            time_.timeName(),
+            mesh_,
+            IOobject::MUST_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh_
+    ),
+    voidFraction_(whereIs),
+    radiation_(radiation),
     whereIs_
     (
         IOobject

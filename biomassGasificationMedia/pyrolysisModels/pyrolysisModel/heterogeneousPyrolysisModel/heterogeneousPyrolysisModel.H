@@ -142,6 +142,21 @@ public:
              ),
              (modelType, mesh, gasThermo, whereIs)
         );
+        
+        declareRunTimeSelectionTable
+        (
+            autoPtr,
+            heterogeneousPyrolysisModel,
+            radiation,
+            (
+                const word& modelType,
+                const fvMesh& mesh,
+                psiReactionThermo& gasThermo,
+                volScalarField& whereIs,
+                volScalarField& radiation
+             ),
+             (modelType, mesh, gasThermo, whereIs, radiation)
+        );
 
     // Constructors
 
@@ -160,6 +175,16 @@ public:
             psiReactionThermo& gasThermo,
             volScalarField& whereIs
         );
+        
+        //- Constructor from type name, mesh, gas species list and radiation
+        heterogeneousPyrolysisModel
+        (
+            const word& modelType,
+            const fvMesh& mesh,
+            psiReactionThermo& gasThermo,
+            volScalarField& whereIs,
+            volScalarField& radiation
+        );
 
     // Selectors
 
@@ -169,6 +194,14 @@ public:
           const fvMesh& mesh,
           psiReactionThermo& gasThermo,
           volScalarField& whereIs
+        );
+        
+        static autoPtr<heterogeneousPyrolysisModel> New
+        (
+          const fvMesh& mesh,
+          psiReactionThermo& gasThermo,
+          volScalarField& whereIs,
+          volScalarField& radiation
         );
 
     //- Destructor

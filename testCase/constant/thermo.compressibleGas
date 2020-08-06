@@ -14,27 +14,11 @@ FoamFile
     object      thermo.compressibleGas;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+species
+(
+  N2
+);
 
-/*O2
-{
-    specie
-    {
-        molWeight       31.9988;
-    }
-    thermodynamics
-    {
-        Tlow            200;
-        Thigh           5000;
-        Tcommon         1000;
-        highCpCoeffs    ( 3.69758 0.00061352 -1.25884e-07 1.77528e-11 -1.13644e-15 -1233.93 3.18917 );
-        lowCpCoeffs     ( 3.21294 0.00112749 -5.75615e-07 1.31388e-09 -8.76855e-13 -1005.25 6.03474 );
-    }
-    transport
-    {
-        As              1.67212e-06;
-        Ts              170.672;
-    }
-}*/
 N2
 {
     specie

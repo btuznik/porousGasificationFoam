@@ -99,6 +99,9 @@ protected:
         volScalarField porosityArch_;
         /// void fraction
         volScalarField voidFraction_;
+        
+        //- radiation
+	volScalarField& radiation_;
 
     // Fields
 
@@ -144,6 +147,16 @@ public:
             const fvMesh& mesh,
             psiReactionThermo& gasThermo,
             volScalarField& whereIs
+        );
+        
+        //- Construct from type name, mesh, main region gas list and radiation
+        volPyrolysis
+        (
+            const word& modelType,
+            const fvMesh& mesh,
+            psiReactionThermo& gasThermo,
+            volScalarField& whereIs,
+            volScalarField& radiation
         );
 
     //- Destructor

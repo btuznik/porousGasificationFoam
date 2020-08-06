@@ -71,6 +71,48 @@ autoPtr<heterogeneousPyrolysisModel> heterogeneousPyrolysisModel::New(const fvMe
 
     return autoPtr<heterogeneousPyrolysisModel>(cstrIter()(modelType, mesh, gasThermo, whereIs));
 }
+
+autoPtr<heterogeneousPyrolysisModel> heterogeneousPyrolysisModel::New
+(
+	const fvMesh& mesh,
+	psiReactionThermo& gasThermo,
+	volScalarField& whereIs,
+	volScalarField& radiation
+)
+{
+    // get model name, but do not register the dictionary
+    const word modelType
+    (
+        IOdictionary
+        (
+            IOobject
+            (
+                "pyrolysisProperties",
+                mesh.time().constant(),
+                mesh,
+                IOobject::MUST_READ,
+                IOobject::NO_WRITE,
+                false
+            )
+        ).lookup("heterogeneousPyrolysisModel")
+    );
+
+    Info<< "Selecting heterogeneousPyrolysisModel " << modelType << endl;
+
+    radiationConstructorTable::iterator cstrIter =
+        radiationConstructorTablePtr_->find(modelType);
+
+    if (cstrIter == radiationConstructorTablePtr_->end())
+    {
+        FatalErrorIn("heterogeneousPyrolysisModel::New(const fvMesh&)")
+            << "Unknown heterogeneousPyrolysisModel type " << modelType
+            << nl << nl << "Valid heterogeneousPyrolisisModel types are:" << nl
+            << radiationConstructorTablePtr_->sortedToc()
+            << exit(FatalError);
+    }
+
+    return autoPtr<heterogeneousPyrolysisModel>(cstrIter()(modelType, mesh, gasThermo, whereIs, radiation));
+}
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace surfaceFilmModels
