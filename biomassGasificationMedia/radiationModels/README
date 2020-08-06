@@ -1,0 +1,8 @@
+w of7 radiationModels jest bezpośrednio w $FOAM_SRC (w fe31 jest inaczej tj.
+src/thermophysicalModels/radiation)
+zastosowałem konwencję z of7, dlatego powstała dodatkowa biblioteka równolegle
+do pozsotałych trzech w $FOAM_HGS
+
+motodologia:
+kopiowałem pliki z radiationModels z openfoama7 i dodawałem dodatkowe rzeczy
+na podstawie modeli z bgf dla fe31, które były w $FOAM_HGS/thermophysicalModels/radiation

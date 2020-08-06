@@ -1,0 +1,1 @@
+../heterogeneousRadiationModels/heterogeneousMeanTemp/heterogeneousMeanTemp.C
