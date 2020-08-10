@@ -36,7 +36,12 @@ namespace heterogeneousPyrolysisModels
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 
-autoPtr<heterogeneousPyrolysisModel> heterogeneousPyrolysisModel::New(const fvMesh& mesh, psiReactionThermo& gasThermo, volScalarField& whereIs)
+autoPtr<heterogeneousPyrolysisModel> heterogeneousPyrolysisModel::New
+(
+    const fvMesh& mesh,
+    psiReactionThermo& gasThermo,
+    solidReactingThermo& solidThermo,
+    volScalarField& whereIs)
 {
     // get model name, but do not register the dictionary
     const word modelType
@@ -69,15 +74,16 @@ autoPtr<heterogeneousPyrolysisModel> heterogeneousPyrolysisModel::New(const fvMe
             << exit(FatalError);
     }
 
-    return autoPtr<heterogeneousPyrolysisModel>(cstrIter()(modelType, mesh, gasThermo, whereIs));
+    return autoPtr<heterogeneousPyrolysisModel>(cstrIter()(modelType, mesh, gasThermo, solidThermo, whereIs));
 }
 
 autoPtr<heterogeneousPyrolysisModel> heterogeneousPyrolysisModel::New
 (
-	const fvMesh& mesh,
-	psiReactionThermo& gasThermo,
-	volScalarField& whereIs,
-	volScalarField& radiation
+    const fvMesh& mesh,
+    psiReactionThermo& gasThermo,
+    solidReactingThermo& solidThermo,
+    volScalarField& whereIs,
+    volScalarField& radiation
 )
 {
     // get model name, but do not register the dictionary
@@ -111,7 +117,7 @@ autoPtr<heterogeneousPyrolysisModel> heterogeneousPyrolysisModel::New
             << exit(FatalError);
     }
 
-    return autoPtr<heterogeneousPyrolysisModel>(cstrIter()(modelType, mesh, gasThermo, whereIs, radiation));
+    return autoPtr<heterogeneousPyrolysisModel>(cstrIter()(modelType, mesh, gasThermo, solidThermo, whereIs, radiation));
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

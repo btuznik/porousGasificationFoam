@@ -14,6 +14,9 @@ EXE_INC = \
     -I$(LIB_SRC)/combustionModels/lnInclude \
     -I$(FOAM_HGS)/pyrolysisModels/lnInclude \
     -I$(FOAM_HGS)/thermophysicalModels/solid/lnInclude \
+    -I$(FOAM_HGS)/thermophysicalModels/basicSolid/lnInclude \
+    -I$(FOAM_HGS)/thermophysicalModels/solidReactingThermo/lnInclude \
+    -I$(FOAM_HGS)/thermophysicalModels/solidChemistryModel/lnInclude \
     -I$(FOAM_HGS)/fieldPorosityModel/lnInclude
 
 EXE_LIBS = \
@@ -35,4 +38,7 @@ EXE_LIBS = \
     -lcombustionModels \
     -lHGSheterogeneousPyrolysisModels \
     -lfieldPorosityModel \
+    -lsolidThermophysicalModels \
+    -lsolidReactingThermo \
+    -lsolidChemistryModel \
     -lHGSsolid

@@ -148,7 +148,7 @@ Foam::tmp<Foam::volScalarField> volPyrolysis::heatTransfer()
     else
     {
         volScalarField Tgas = gasThermo_.T();
-        volScalarField HT(HTC_ * (Ts_-Tgas));
+        volScalarField HT(HTC_ * (Tsolid_-Tgas));
         Sh_ = HT * whereIs_;
     }
     return Sh_;
@@ -186,7 +186,7 @@ Foam::tmp<Foam::volScalarField> volPyrolysis::heatUpGasCalc() const
         else
         {
             volScalarField tempSh = hSh_();
-            volScalarField tempDiff = ((whereIs_*Ts_)+(whereIsNot_*Tgas));
+            volScalarField tempDiff = ((whereIs_*Tsolid_)+(whereIsNot_*Tgas));
             const speciesTable& gasTable = gasThermo_.composition().gasTable();
             forAll(gasTable,gasI)
             {
@@ -214,11 +214,14 @@ volPyrolysis::volPyrolysis
     const word& modelType,
     const fvMesh& mesh,
     psiReactionThermo& gasThermo,
+    solidReactingThermo& solidThermo,
     volScalarField& whereIs
 )
 :
     heterogeneousPyrolysisModel(modelType, mesh),
     gasThermo_(gasThermo),
+    solidThermo_(solidThermo),
+    //solidChemistry_(BasicSolidChemistryModel<solidReactingThermo>::New(solidThermo_)),
     equilibrium_(false),
     rho_
     (
@@ -233,7 +236,7 @@ volPyrolysis::volPyrolysis
         mesh,
         dimensionedScalar(dimMass/dimVolume, 0.0)
      ),
-    Ts_
+    Tsolid_
     (
          IOobject
          (
@@ -344,12 +347,14 @@ volPyrolysis::volPyrolysis
     const word& modelType,
     const fvMesh& mesh,
     psiReactionThermo& gasThermo,
+    solidReactingThermo& solidThermo,
     volScalarField& whereIs,
     volScalarField& radiation
 )
 :
     heterogeneousPyrolysisModel(modelType, mesh),
     gasThermo_(gasThermo),
+    solidThermo_(solidThermo),
     equilibrium_(false),
     rho_
     (
@@ -364,7 +369,7 @@ volPyrolysis::volPyrolysis
         mesh,
         dimensionedScalar(dimMass/dimVolume, 0.0)
      ),
-    Ts_
+    Tsolid_
     (
          IOobject
          (
@@ -483,13 +488,30 @@ Switch volPyrolysis::equilibrium() const
     return equilibrium_;
 }
 
-void volPyrolysis::preEvolveRegion()
-{}
+// Prepares computational domain for evolving pyrolysis.
+void volPyrolysis::preEvolveRegion() {
+    // Added for completeness
+    heterogeneousPyrolysisModel::preEvolveRegion();
+    // iterates over every cell and sets cells containing solid phase
+    // as reacting cell.
+    forAll(Tsolid_, cellI)
+    {
+        if ( active_ && whereIs_[cellI] != 0)
+        {
+            // sets this cell as reacting. //TODO
+        }
+        else
+        {
+            // sets this cell as non-reacting // TODO
+        }
+    }
 
+}
 
 void volPyrolysis::evolveRegion()
 {
     voidFraction_ = porosity_;
+    // Calculates heat transfer coefficient for cells without equlibrium.
     if (equilibrium_)
     {}
     else
@@ -504,7 +526,7 @@ void volPyrolysis::evolveRegion()
 /// Return const temperature of solid phase [K]
 const volScalarField& volPyrolysis::T() const
 {
-    return Ts_;
+    return Tsolid_;
 }
 
 void volPyrolysis::info() const

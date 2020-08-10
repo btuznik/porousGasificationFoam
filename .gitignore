@@ -1,0 +1,15 @@
+#Compilation files
+lnInclude/
+linux64GccDPInt32Opt/
+# Others
+NotatkiC++.md
+biomassGasificationFoam.cflags
+biomassGasificationFoam.config
+biomassGasificationFoam.creator
+biomassGasificationFoam.creator.user
+biomassGasificationFoam.cxxflags
+biomassGasificationFoam.files
+biomassGasificationFoam.includes
+*.gch
+# Doc
+html/

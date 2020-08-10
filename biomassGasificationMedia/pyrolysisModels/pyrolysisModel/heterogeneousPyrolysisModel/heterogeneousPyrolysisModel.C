@@ -45,13 +45,21 @@ defineRunTimeSelectionTable(heterogeneousPyrolysisModel, radiation);
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 // Something that reads from pyrolysis dictionary.
+void heterogeneousPyrolysisModel::readPyrolysisControls()
+{
+    reactionDeltaMin_ =
+        coeffs_.lookupOrDefault<scalar>("reactionDeltaMin", 0.0);
+}
+
 bool heterogeneousPyrolysisModel::read()
 {
+        readPyrolysisControls();
         return true;
 }
 
 bool heterogeneousPyrolysisModel::read(const dictionary& dict)
 {
+        readPyrolysisControls();
         return true;
 }
 
@@ -92,6 +100,7 @@ heterogeneousPyrolysisModel::heterogeneousPyrolysisModel
     const word& modelType,
     const fvMesh& mesh,
     psiReactionThermo& gasThermo,
+    solidReactingThermo& solidThermo,
     volScalarField& whereIs
 )
 :
@@ -123,6 +132,7 @@ heterogeneousPyrolysisModel::heterogeneousPyrolysisModel
     const word& modelType,
     const fvMesh& mesh,
     psiReactionThermo& gasThermo,
+    solidReactingThermo& solidThermo,
     volScalarField& whereIs,
     volScalarField& radiation
 )
@@ -162,15 +172,13 @@ void heterogeneousPyrolysisModel::evolve()
     if (active_)
     {
 
-        Info<< "\nEvolving pyrolysis" << endl;
-
+        Info<< "pre-evolving pyrolysis" << endl;
         // Pre-evolve
         preEvolveRegion();
-        Info<< "\nEvolving pyrolysis 2" << endl;
 
+        Info<< "Evolving pyrolysis" << endl;
         // Increment the region equations up to the new time level
         evolveRegion();
-        Info<< "\nEvolving pyrolysis 3" << endl;
 
         // Provide some feedback
         if (infoOutput_)
@@ -179,7 +187,6 @@ void heterogeneousPyrolysisModel::evolve()
             info();
             Info<< endl << decrIndent;
         }
-        Info<< "\nEvolving pyrolysis 4" << endl;
     }
 }
 

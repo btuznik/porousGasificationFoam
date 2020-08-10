@@ -1,8 +1,14 @@
+solidChemistryModel/basicSolidChemistryModel/basicSolidChemistryModel.C
+solidChemistryModel/BasicSolidChemistryModel/BasicSolidChemistryModels.C
 
-basicSolidChemistryModel/basicSolidChemistryModel.C
-basicSolidChemistryModel/basicSolidChemistryModelNew.C
-basicSolidChemistryModel/basicSolidChemistryModels.C
+solidChemistrySolver/chemistrySolver/chemistrySolvers.C
+reactions/makeReactions.C
 
-solidChemistrySolver/makeSolidChemistrySolvers.C
+reactions/makeLangmuirHinshelwoodReactions.C
+reactions/makeMichaelisMentenReactions.C
+reactions/fluxLimitedLangmuirHinshelwood/makefluxLimitedLangmuirHinshelwoodReactions.C
+reactions/surfaceArrheniusReactionRate/makesurfaceArrheniusReactions.C
 
-LIB = $(FOAM_LIBBIN)/libsolidChemistryModel
+functionObjects/specieReactionRates/specieReactionRates.C
+
+LIB = $(FOAM_USER_LIBBIN)/libsolidChemistryModel

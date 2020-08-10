@@ -5,6 +5,11 @@ autoPtr<psiReactionThermo> pThermo(psiReactionThermo::New(mesh));
 psiReactionThermo& thermo = pThermo();
 thermo.validate(args.executable(), "h", "e");
 
+Info<< "Reading solids' thermophysical properties\n" << endl;
+autoPtr<solidReactingThermo> sThermo(solidReactingThermo::New(mesh));
+solidReactingThermo& solidThermo = sThermo();
+solidThermo.validate(args.executable(), "h", "e");
+
 basicSpecieMixture& composition = thermo.composition();
 PtrList<volScalarField>& Y = composition.Y();
 

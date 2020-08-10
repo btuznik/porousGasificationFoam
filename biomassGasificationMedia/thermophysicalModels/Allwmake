@@ -4,4 +4,8 @@ makeType=${1:-libso}
 set -x
 
 wmake $makeType solid
+wmake $makeType basicSolid
+wmake $makeType solidReactingThermo
+# wmake $makeType solidChemistryModel
+
 

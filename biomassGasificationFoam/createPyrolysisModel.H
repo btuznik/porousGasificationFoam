@@ -4,7 +4,7 @@ typedef typename heterogeneousPyrolysisModels::heterogeneousPyrolysisModel pyrol
 
 autoPtr<pyrolysisModelType> pyrolysis
 (
-    pyrolysisModelType::New(mesh, thermo, porosityF)
+    pyrolysisModelType::New(mesh, thermo, solidThermo, porosityF)
 );
 
 pyrolysisModelType& pyrolysisZone = pyrolysis();

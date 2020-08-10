@@ -68,7 +68,6 @@ int main(int argc, char *argv[])
     if (!LTS)
     {
         #include "compressibleCourantNo.H"
-                    Info << "hello22" << endl;
         #include "setInitialDeltaT.H"
     }
 
@@ -94,6 +93,7 @@ int main(int argc, char *argv[])
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
+        pyrolysisZone.evolve();
         #include "rhoEqn.H"
 
         while (pimple.loop())

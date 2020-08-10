@@ -37,6 +37,8 @@ SourceFiles
 #define volPyrolysis_H
 
 #include "heterogeneousPyrolysisModel.H"
+#include "solidReactingThermo.H"
+#include "BasicSolidChemistryModel.H"
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
@@ -69,8 +71,14 @@ private:
 
 protected:
 
-    ///- thermophysical properties of gaseous species.
+    ///- Thermophysical properties of gaseous species.
     psiReactionThermo& gasThermo_;
+
+    ///- Thermophysical properties of solid phase
+    solidReactingThermo& solidThermo_;
+
+    ///- Solid chemistry model
+   // autoPtr<BasicSolidChemistryModel<solidReactingThermo>> solidChemistry_;
 
     /// Switch for equilibrium/nonequilibrium model
     Switch equilibrium_;
@@ -81,7 +89,7 @@ protected:
         /// Density of solid region[kg/m3]
         volScalarField rho_;
         /// Non-const access to solid's temperature
-        volScalarField Ts_;
+        volScalarField Tsolid_;
 
         // Solution parameters
 
@@ -101,7 +109,7 @@ protected:
         volScalarField voidFraction_;
         
         //- radiation
-	volScalarField& radiation_;
+        volScalarField& radiation_;
 
     // Fields
 
@@ -146,6 +154,7 @@ public:
             const word& modelType,
             const fvMesh& mesh,
             psiReactionThermo& gasThermo,
+            solidReactingThermo& solidThermo,
             volScalarField& whereIs
         );
         
@@ -155,6 +164,7 @@ public:
             const word& modelType,
             const fvMesh& mesh,
             psiReactionThermo& gasThermo,
+            solidReactingThermo& solidThermo,
             volScalarField& whereIs,
             volScalarField& radiation
         );

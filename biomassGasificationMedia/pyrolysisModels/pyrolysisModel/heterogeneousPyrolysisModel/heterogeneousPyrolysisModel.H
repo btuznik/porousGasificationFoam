@@ -44,6 +44,7 @@ SourceFiles
 #include "runTimeSelectionTables.H"
 #include "volFieldsFwd.H"
 #include "psiReactionThermo.H"
+#include "solidReactingThermo.H"
 #include "heatTransferModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -94,6 +95,9 @@ protected:
         /// Model coefficients dictionary
         dictionary coeffs_;
 
+        //-  Numerical control parameter
+        scalar reactionDeltaMin_;
+
     // Protected Member Functions
 
         ///- Read control parameters
@@ -105,6 +109,9 @@ protected:
 private:
 
     // Private Member Functions
+
+        //- Read pyrolysis controls
+        void readPyrolysisControls();
 
         ///- Disallow default bitwise copy construct
         heterogeneousPyrolysisModel(const heterogeneousPyrolysisModel&);
@@ -138,9 +145,10 @@ public:
                 const word& modelType,
                 const fvMesh& mesh,
                 psiReactionThermo& gasThermo,
+                solidReactingThermo& solidThermo,
                 volScalarField& whereIs
              ),
-             (modelType, mesh, gasThermo, whereIs)
+             (modelType, mesh, gasThermo, solidThermo, whereIs)
         );
         
         declareRunTimeSelectionTable
@@ -152,10 +160,11 @@ public:
                 const word& modelType,
                 const fvMesh& mesh,
                 psiReactionThermo& gasThermo,
+                solidReactingThermo& solidThermo,
                 volScalarField& whereIs,
                 volScalarField& radiation
              ),
-             (modelType, mesh, gasThermo, whereIs, radiation)
+             (modelType, mesh, gasThermo, solidThermo, whereIs, radiation)
         );
 
     // Constructors
@@ -173,6 +182,7 @@ public:
             const word& modelType,
             const fvMesh& mesh,
             psiReactionThermo& gasThermo,
+            solidReactingThermo& solidThermo,
             volScalarField& whereIs
         );
         
@@ -182,6 +192,7 @@ public:
             const word& modelType,
             const fvMesh& mesh,
             psiReactionThermo& gasThermo,
+            solidReactingThermo& solidThermo,
             volScalarField& whereIs,
             volScalarField& radiation
         );
@@ -193,6 +204,7 @@ public:
         (
           const fvMesh& mesh,
           psiReactionThermo& gasThermo,
+          solidReactingThermo& solidThermo,
           volScalarField& whereIs
         );
         
@@ -200,6 +212,7 @@ public:
         (
           const fvMesh& mesh,
           psiReactionThermo& gasThermo,
+          solidReactingThermo& solidThermo,
           volScalarField& whereIs,
           volScalarField& radiation
         );

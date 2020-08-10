@@ -1,15 +1,21 @@
 EXE_INC = \
-    -I$(LIB_SRC)/finiteVolume/lnInclude \
-    -I$(LIB_SRC)/thermophysicalModels/specie/lnInclude \
-    -I$(LIB_SRC)/thermophysicalModels/solidSpecie/lnInclude \
-    -I$(LIB_SRC)/ODE/lnInclude \
-    -I$(LIB_SRC)/thermophysicalModels/chemistryModel/lnInclude  \
+    -I$(FOAM_HGS)/thermophysicalModels/solidReactingThermo/lnInclude \
+    -I$(FOAM_HGS)/thermophysicalModels/basicSolid/lnInclude \
+    -I$(LIB_SRC)/thermophysicalModels/reactionThermo/lnInclude \
     -I$(LIB_SRC)/thermophysicalModels/basic/lnInclude \
-    -I$(LIB_SRC)/thermophysicalModels/solidThermo/lnInclude \
-    -I$(LIB_SRC)/thermophysicalModels/reactionThermo/lnInclude
+    -I$(LIB_SRC)/thermophysicalModels/specie/lnInclude \
+    -I$(LIB_SRC)/thermophysicalModels/functions/Polynomial \
+    -I$(LIB_SRC)/ODE/lnInclude \
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I$(LIB_SRC)/meshTools/lnInclude
 
 LIB_LIBS = \
-    -lchemistryModel \
+    -L$(FOAM_USER_LIBBIN) \
+    -lfluidThermophysicalModels \
+    -lreactionThermophysicalModels \
+    -lsolidThermophysicalModels \
+    -lsolidReactingThermo \
+    -lspecie \
+    -lODE \
     -lfiniteVolume \
-    -lODE\
-    -lreactionThermophysicalModels
+    -lmeshTools
