@@ -44,7 +44,7 @@ License
 
 #include "MichaelisMentenReactionRate.H"
 
-#include "forCommonGases.H"
+#include "forCommonSolids.H"
 #include "forCommonLiquids.H"
 #include "forPolynomials.H"
 

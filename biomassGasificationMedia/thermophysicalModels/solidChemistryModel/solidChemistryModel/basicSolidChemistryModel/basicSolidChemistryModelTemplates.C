@@ -83,7 +83,6 @@ Foam::autoPtr<ChemistryModel> Foam::basicSolidChemistryModel::New
           : "standard"
         )
     );
-    Info << "DSDS" << endl;
     dictionary chemistryTypeDictNew;
     chemistryTypeDictNew.add("solver", solverName);
     chemistryTypeDictNew.add("method", methodName);
@@ -100,7 +99,7 @@ Foam::autoPtr<ChemistryModel> Foam::basicSolidChemistryModel::New
 
     typename cstrTableType::iterator cstrIter =
         cstrTable->find(chemSolverCompThermoName);
-
+        Info << "basicSolidNew" << endl;
     if (cstrIter == cstrTable->end())
     {
         FatalErrorInFunction
@@ -166,7 +165,7 @@ Foam::autoPtr<ChemistryModel> Foam::basicSolidChemistryModel::New
 
         FatalErrorInFunction << exit(FatalError);
     }
-
+    Info << "basicSolidNew" << endl;
     return autoPtr<ChemistryModel>(cstrIter()(thermo));
 }
 

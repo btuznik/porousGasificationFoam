@@ -27,7 +27,7 @@ License
 
 #include "surfaceArrheniusReactionRate.H"
 
-#include "forCommonGases.H"
+#include "forCommonSolids.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

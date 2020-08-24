@@ -41,6 +41,7 @@ SourceFiles
 #include "scalarField.H"
 #include "volFields.H"
 #include "basicSolidThermo.H"
+#include "basicThermo.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -98,6 +99,7 @@ public:
 
         //- Construct from thermo
         basicSolidChemistryModel(const basicSolidThermo& thermo);
+        basicSolidChemistryModel(const basicThermo& thermo);
 
         //- Construct as copy (not implemented)
         basicSolidChemistryModel(const basicSolidChemistryModel&);

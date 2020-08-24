@@ -22,18 +22,18 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::chemistrySolver
+    Foam::solidChemistrySolver
 
 Description
     An abstract base class for solving chemistry
 
 SourceFiles
-    chemistrySolver.C
+    solidChemistrySolver.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef chemistrySolver_H
-#define chemistrySolver_H
+#ifndef solidChemistrySolver_H
+#define solidChemistrySolver_H
 
 #include "IOdictionary.H"
 #include "scalarField.H"
@@ -44,11 +44,11 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                      Class chemistrySolver Declaration
+                      Class solidChemistrySolver Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class ChemistryModel>
-class chemistrySolver
+class solidChemistrySolver
 :
     public ChemistryModel
 {
@@ -58,11 +58,11 @@ public:
     // Constructors
 
         //- Construct from thermo
-        chemistrySolver(const typename ChemistryModel::reactionThermo& thermo);
+        solidChemistrySolver(const typename ChemistryModel::reactionThermo& thermo);
 
 
     //- Destructor
-    virtual ~chemistrySolver();
+    virtual ~solidChemistrySolver();
 
 
     // Member Functions
@@ -87,7 +87,7 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #ifdef NoRepository
-    #include "chemistrySolver.C"
+    #include "solidChemistrySolver.C"
 #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

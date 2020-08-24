@@ -301,7 +301,8 @@ Foam::StandardChemistryModel<ReactionThermo, ThermoType>::tc() const
     const scalarField& rho = trho();
 
     const scalarField& T = this->thermo().T();
-    const scalarField& p = this->thermo().p();
+    const scalarField& p = this->thermo().T();
+    //const scalarField& p = this->thermo().p();
 
     const label nReaction = reactions_.size();
 
@@ -402,7 +403,8 @@ Foam::StandardChemistryModel<ReactionThermo, ThermoType>::calculateRR
     const scalarField& rho = trho();
 
     const scalarField& T = this->thermo().T();
-    const scalarField& p = this->thermo().p();
+    const scalarField& p = this->thermo().T();
+    //const scalarField& p = this->thermo().p();
 
     scalar pf, cf, pr, cr;
     label lRef, rRef;
@@ -460,7 +462,8 @@ void Foam::StandardChemistryModel<ReactionThermo, ThermoType>::calculate()
     const scalarField& rho = trho();
 
     const scalarField& T = this->thermo().T();
-    const scalarField& p = this->thermo().p();
+    //const scalarField& p = this->thermo().p();
+    const scalarField& p = this->thermo().T();
 
     forAll(rho, celli)
     {
@@ -504,7 +507,8 @@ Foam::scalar Foam::StandardChemistryModel<ReactionThermo, ThermoType>::solve
     const scalarField& rho = trho();
 
     const scalarField& T = this->thermo().T();
-    const scalarField& p = this->thermo().p();
+    //const scalarField& p = this->thermo().p();
+    const scalarField& p = this->thermo().T();
 
     scalarField c0(nSpecie_);
 

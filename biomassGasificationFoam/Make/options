@@ -20,8 +20,6 @@ EXE_INC = \
     -I$(FOAM_HGS)/fieldPorosityModel/lnInclude
 
 EXE_LIBS = \
-    -L$(FOAM_HGS)/lib \
-    -L$(FOAM_USER_LIBBIN) \
     -lfiniteVolume \
     -lfvOptions \
     -lmeshTools \
@@ -36,6 +34,7 @@ EXE_LIBS = \
     -lchemistryModel \
     -lODE \
     -lcombustionModels \
+     -L$(FOAM_USER_LIBBIN) \
     -lHGSheterogeneousPyrolysisModels \
     -lfieldPorosityModel \
     -lsolidThermophysicalModels \

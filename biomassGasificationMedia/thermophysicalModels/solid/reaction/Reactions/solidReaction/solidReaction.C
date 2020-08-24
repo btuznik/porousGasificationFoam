@@ -107,12 +107,12 @@ Foam::label Foam::solidReaction::componentIndex
             );
             componentName = componentName(0, i);
         }
-        if (components_.contains(componentName))
+        if (components_.found(componentName))
         {
             isGas = false;
             return (components_[componentName]);
         }
-        else if (pyrolisisGases_.contains(componentName))
+        else if (pyrolisisGases_.found(componentName))
         {
             isGas = true;
             return (pyrolisisGases_[componentName]);

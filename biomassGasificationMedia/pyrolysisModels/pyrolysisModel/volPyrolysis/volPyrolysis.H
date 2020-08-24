@@ -78,7 +78,8 @@ protected:
     solidReactingThermo& solidThermo_;
 
     ///- Solid chemistry model
-   // autoPtr<BasicSolidChemistryModel<solidReactingThermo>> solidChemistry_;
+    //autoPtr<BasicSolidChemistryModel<psiReactionThermo>> solidChemistry_;
+    autoPtr<BasicSolidChemistryModel<solidReactingThermo>> solidChemistry_;
 
     /// Switch for equilibrium/nonequilibrium model
     Switch equilibrium_;

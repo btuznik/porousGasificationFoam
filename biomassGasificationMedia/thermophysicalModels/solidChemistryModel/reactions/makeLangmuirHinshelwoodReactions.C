@@ -27,7 +27,7 @@ License
 
 #include "LangmuirHinshelwoodReactionRate.H"
 
-#include "forCommonGases.H"
+#include "forCommonSolids.H"
 #include "forCommonLiquids.H"
 #include "forPolynomials.H"
 

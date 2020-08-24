@@ -27,7 +27,7 @@ License
 
 #include "fluxLimitedLangmuirHinshelwoodReactionRate.H"
 
-#include "forCommonGases.H"
+#include "forCommonSolids.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

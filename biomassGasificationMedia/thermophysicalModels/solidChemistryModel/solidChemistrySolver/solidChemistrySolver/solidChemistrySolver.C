@@ -23,12 +23,12 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "chemistrySolver.H"
+#include "solidChemistrySolver.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 template<class ChemistryModel>
-Foam::chemistrySolver<ChemistryModel>::chemistrySolver
+Foam::solidChemistrySolver<ChemistryModel>::solidChemistrySolver
 (
     const typename ChemistryModel::reactionThermo& thermo
 )
@@ -40,7 +40,7 @@ Foam::chemistrySolver<ChemistryModel>::chemistrySolver
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
 template<class ChemistryModel>
-Foam::chemistrySolver<ChemistryModel>::~chemistrySolver()
+Foam::solidChemistrySolver<ChemistryModel>::~solidChemistrySolver()
 {}
 
 

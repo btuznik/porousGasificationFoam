@@ -22,20 +22,20 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::ode
+    Foam::solidOde
 
 Description
     An ODE solver for chemistry
 
 SourceFiles
-    ode.C
+    solidOde.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef ode_H
-#define ode_H
+#ifndef solidOde_H
+#define solidOde_H
 
-#include "chemistrySolver.H"
+#include "solidChemistrySolver.H"
 #include "ODESolver.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -44,13 +44,13 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                            Class ode Declaration
+                            Class solidOde Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class ChemistryModel>
-class ode
+class solidOde
 :
-    public chemistrySolver<ChemistryModel>
+    public solidChemistrySolver<ChemistryModel>
 {
     // Private Data
 
@@ -65,17 +65,17 @@ class ode
 public:
 
     //- Runtime type information
-    TypeName("ode");
+    TypeName("solidOde");
 
 
     // Constructors
 
         //- Construct from thermo
-        ode(const typename ChemistryModel::reactionThermo& thermo);
+        solidOde(const typename ChemistryModel::reactionThermo& thermo);
 
 
     //- Destructor
-    virtual ~ode();
+    virtual ~solidOde();
 
 
     // Member Functions
@@ -100,7 +100,7 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #ifdef NoRepository
-    #include "ode.C"
+    #include "solidOde.C"
 #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

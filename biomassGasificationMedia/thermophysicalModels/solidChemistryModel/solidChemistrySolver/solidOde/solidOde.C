@@ -23,17 +23,17 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "ode.H"
+#include "solidOde.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 template<class ChemistryModel>
-Foam::ode<ChemistryModel>::ode
+Foam::solidOde<ChemistryModel>::solidOde
 (
     const typename ChemistryModel::reactionThermo& thermo
 )
 :
-    chemistrySolver<ChemistryModel>(thermo),
+    solidChemistrySolver<ChemistryModel>(thermo),
     coeffsDict_(this->subDict("odeCoeffs")),
     odeSolver_(ODESolver::New(*this, coeffsDict_)),
     cTp_(this->nEqns())
@@ -43,14 +43,14 @@ Foam::ode<ChemistryModel>::ode
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
 template<class ChemistryModel>
-Foam::ode<ChemistryModel>::~ode()
+Foam::solidOde<ChemistryModel>::~solidOde()
 {}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class ChemistryModel>
-void Foam::ode<ChemistryModel>::solve
+void Foam::solidOde<ChemistryModel>::solve
 (
     scalar& p,
     scalar& T,

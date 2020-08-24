@@ -44,7 +44,7 @@ template<class ReactionThermo>
 Foam::autoPtr<Foam::BasicSolidChemistryModel<ReactionThermo>>
 Foam::BasicSolidChemistryModel<ReactionThermo>::New(const ReactionThermo& thermo)
 {
-    Info << "DSDSD" << endl;
+    Info << "sadadadadas" << endl;
     return basicSolidChemistryModel::New<BasicSolidChemistryModel<ReactionThermo>>
     (
         thermo

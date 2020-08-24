@@ -221,7 +221,7 @@ volPyrolysis::volPyrolysis
     heterogeneousPyrolysisModel(modelType, mesh),
     gasThermo_(gasThermo),
     solidThermo_(solidThermo),
-    //solidChemistry_(BasicSolidChemistryModel<solidReactingThermo>::New(solidThermo_)),
+    solidChemistry_(BasicSolidChemistryModel<solidReactingThermo>::New(solidThermo_)),
     equilibrium_(false),
     rho_
     (

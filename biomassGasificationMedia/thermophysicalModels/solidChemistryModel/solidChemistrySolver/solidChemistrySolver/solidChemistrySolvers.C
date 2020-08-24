@@ -23,16 +23,16 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "noChemistrySolver.H"
-#include "EulerImplicit.H"
-#include "ode.H"
+#include "solidOde.H"
 
 #include "StandardChemistryModel.H"
 
-
+#include "psiReactionThermo.H"
+#include "rhoReactionThermo.H"
 #include "solidReactingThermo.H"
 
-#include "forCommonGases.H"
+#include "forCommonSolids.H"
+#include "forSolids.H"
 #include "forCommonLiquids.H"
 #include "forPolynomials.H"
 #include "makeChemistrySolver.H"
@@ -59,8 +59,12 @@ License
 
 namespace Foam
 {
-    forCommonGases(defineChemistrySolvers, solidReactingThermo);
-    forCommonGases(makeChemistrySolvers, noChemistrySolver, solidReactingThermo);;
+    forSolids(defineChemistrySolvers, solidReactingThermo);
+    forCommonGases(defineChemistrySolvers, psiReactionThermo);
+
+    forSolids(makeChemistrySolvers, solidOde, solidReactingThermo);
+    forCommonGases(makeChemistrySolvers, solidOde, psiReactionThermo);
+
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
