@@ -103,6 +103,12 @@ public:
 
     // Member functions
 
+        //- Return the instantiated type name
+        static word typeName()
+        {
+            return "exponential<" + thermo::typeName() + '>';
+        }
+
         //- Thermal conductivity [W/mK]
         inline scalar K(const scalar T) const;
 

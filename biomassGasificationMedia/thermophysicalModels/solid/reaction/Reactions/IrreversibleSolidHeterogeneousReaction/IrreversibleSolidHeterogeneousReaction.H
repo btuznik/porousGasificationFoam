@@ -91,7 +91,7 @@ public:
         //- Construct from Istream
         IrreversibleSolidHeterogeneousReaction
         (
-	    const PtrList<volScalarField>& gasPhaseGases,
+	        const PtrList<volScalarField>& gasPhaseGases,
             const speciesTable& components,
             Istream& is,
             const speciesTable& pyrolysisGases

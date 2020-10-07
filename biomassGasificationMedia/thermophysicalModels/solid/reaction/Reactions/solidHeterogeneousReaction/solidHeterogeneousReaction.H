@@ -66,8 +66,8 @@ private:
 
     // Private data
 
-	//- List of gas species from gas phase available for gasification reactions
-	const PtrList<volScalarField>& gasPhaseGases_;
+	    //- List of gas species from gas phase available for gasification reactions
+	    const PtrList<volScalarField>& gasPhaseGases_;
 
         //- List of solid names present in reaction system
         const speciesTable& components_;
@@ -78,26 +78,26 @@ private:
         //- Solid components index for the left-hand-side of the reaction
         List<label> slhs_;
 
-	//- Solid mass coefficients for left-hand-side of the reaction
-	List<scalar> slhsSto_;
+	    //- Solid mass coefficients for left-hand-side of the reaction
+	    List<scalar> slhsSto_;
 	
-	//- Gas components index for the left-hand-side of the reaction
-	List<label> glhs_;
+	    //- Gas components index for the left-hand-side of the reaction
+	    List<label> glhs_;
 
-	//- Gas stoichmietry coefficients for left-hand-side of the reaction
-	List<scalar> glhsSto_;
+	    //- Gas stoichmietry coefficients for left-hand-side of the reaction
+	    List<scalar> glhsSto_;
 	
         //- Solid components index for the right-hand-side of the reaction
         List<label> srhs_;
 
-	//- Solid mass coefficients for left-hand-side of the reaction
-	List<scalar> srhsSto_;
+	    //- Solid mass coefficients for left-hand-side of the reaction
+	    List<scalar> srhsSto_;
 	
         //- Specie index for the right-hand-side of the reaction
         List<label> grhs_;
 
-	//- Gas stoichmietry coefficients for right-hand-side of the reaction
-	List<scalar> grhsSto_;
+	    //- Gas stoichmietry coefficients for right-hand-side of the reaction
+	    List<scalar> grhsSto_;
 	
     // Private Member Functions
 
@@ -108,10 +108,10 @@ private:
         label componentIndex(bool& isGas, token t);
 
         //- Disallow default bitwise copy construct
-        solidHeterogeneousReaction(const solidHeterogeneousReaction&);
+        //solidHeterogeneousReaction(const solidHeterogeneousReaction&);
 
         //- Disallow default bitwise assignment
-        void operator=(const solidHeterogeneousReaction&);
+        //void operator=(const solidHeterogeneousReaction&);
 
 
 public:
@@ -127,7 +127,7 @@ public:
             solidHeterogeneousReaction,
             Istream,
             (
-		const PtrList<volScalarField>& gasPhaseGases,
+		        const PtrList<volScalarField>& gasPhaseGases,
                 const speciesTable& components,
                 Istream& is,
                 const speciesTable& pyrolysisGases
@@ -141,7 +141,7 @@ public:
         //- Class used for the read-construction of PtrLists of reaction
         class iNew
         {
-	    const PtrList<volScalarField>& gasPhaseGases_;
+	        const PtrList<volScalarField>& gasPhaseGases_;
             const speciesTable& components_;
             speciesTable pyrolisisGases_;
 
@@ -150,11 +150,11 @@ public:
             iNew
             (
                 const PtrList<volScalarField>& gasPhaseGases,
-		const speciesTable& components,
+		        const speciesTable& components,
                 Istream& pyrolisisGases
             )
             :
-		gasPhaseGases_(gasPhaseGases),
+		        gasPhaseGases_(gasPhaseGases),
                 components_(components),
                 pyrolisisGases_(pyrolisisGases)
             {}
@@ -165,7 +165,7 @@ public:
                 (
                     solidHeterogeneousReaction::New
                     (
-			gasPhaseGases_,
+			            gasPhaseGases_,
                         components_,
                         is,
                         pyrolisisGases_
@@ -180,11 +180,11 @@ public:
         //- Construct from components
         solidHeterogeneousReaction
         (
-	    const PtrList<volScalarField>& gasPhaseGases,
+	        const PtrList<volScalarField>& gasPhaseGases,
             const speciesTable& components,
             const speciesTable& pyrolisisGases,
             const List<label>& slhs,
-	    const List<label>& glhs,
+	        const List<label>& glhs,
             const List<label>& srhs,
             const List<label>& grhs
         );
@@ -193,7 +193,7 @@ public:
         solidHeterogeneousReaction
         (
             const solidHeterogeneousReaction&,
-	    const PtrList<volScalarField>& gasPhaseGases,
+	        const PtrList<volScalarField>& gasPhaseGases,
             const speciesTable& components,
             const speciesTable& pyrolisisGases
         );
@@ -201,7 +201,7 @@ public:
         //- Construct from Istream
         solidHeterogeneousReaction
         (
-	    const PtrList<volScalarField>& gasPhaseGases,
+	        const PtrList<volScalarField>& gasPhaseGases,
             const speciesTable& components,
             Istream& is,
             const speciesTable& pyrolisisGases
@@ -222,7 +222,7 @@ public:
         //- Return a pointer to a new patchField created on freestore from input
         static autoPtr<solidHeterogeneousReaction> New
         (
-	    const PtrList<volScalarField>& gasPhaseGases,
+	        const PtrList<volScalarField>& gasPhaseGases,
             const speciesTable& components,
             Istream&,
             const speciesTable& pyrolisisGases
@@ -239,13 +239,13 @@ public:
         // Access
 
             inline const List<label>& slhs() const;
-	    inline const List<scalar>& slhsSto() const;
-	    inline const List<label>& glhs() const;
-	    inline const List<scalar>& glhsSto() const;
+	        inline const List<scalar>& slhsSto() const;
+	        inline const List<label>& glhs() const;
+	        inline const List<scalar>& glhsSto() const;
             inline const List<label>& srhs() const;
-	    inline const List<scalar>& srhsSto() const;
+	        inline const List<scalar>& srhsSto() const;
             inline const List<label>& grhs() const;
-	    inline const List<scalar>& grhsSto() const;
+	        inline const List<scalar>& grhsSto() const;
 
             inline const speciesTable& pyrolisisGases() const;
 

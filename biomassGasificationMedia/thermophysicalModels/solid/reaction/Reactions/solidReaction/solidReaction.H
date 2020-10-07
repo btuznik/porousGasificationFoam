@@ -1,4 +1,3 @@
-
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
@@ -89,10 +88,10 @@ private:
         label componentIndex(bool& isGas, Istream& is);
 
         //- Disallow default bitwise copy construct
-        solidReaction(const solidReaction&);
+        //solidReaction(const solidReaction&);
 
         //- Disallow default bitwise assignment
-        void operator=(const solidReaction&);
+        //void operator=(const solidReaction&);
 
 
 public:

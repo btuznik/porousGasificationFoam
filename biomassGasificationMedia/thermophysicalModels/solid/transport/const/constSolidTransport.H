@@ -92,6 +92,12 @@ public:
 
     // Member functions
 
+        //- Return the instantiated type name
+        static word typeName()
+        {
+            return "const<" + thermo::typeName() + '>';
+        }
+
         //- Thermal conductivity [W/mK]
         inline scalar K(const scalar T) const;
 

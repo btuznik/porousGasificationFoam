@@ -82,6 +82,11 @@ public:
 
 
     // Member functions
+        //- Return the instantiated type name
+        static word typeName()
+        {
+            return "heterogeneousConstRho";
+        }
 
         //- Return density [kg/m3]
         inline scalar rho(scalar T) const;
