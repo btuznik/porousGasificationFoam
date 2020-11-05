@@ -47,7 +47,10 @@ Description
 #include "localEulerDdtScheme.H"
 #include "fvcSmooth.H"
 #include "fieldPorosityModel.H"
+#include "BasicSolidChemistryModel.H"
 #include "heterogeneousPyrolysisModel.H"
+#include "heterogeneousRadiationModel.H"
+#include "HGSSolidThermo.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 int main(int argc, char *argv[])
@@ -63,6 +66,8 @@ int main(int argc, char *argv[])
     #include "createFieldRefs.H"
     #include "createPorosity.H"
     #include "createPyrolysisModel.H"
+    #include "readPyrolysisTimeControls.H"
+    //#include "createHeterogeneousRadiationModel.H"
 
     turbulence->validate();
     if (!LTS)
@@ -91,10 +96,17 @@ int main(int argc, char *argv[])
 
         runTime++;
 
+        #include "solidRegionDiffusionNo.H"
+
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
+        //#include "radiation.H"
         pyrolysisZone.evolve();
+
         #include "rhoEqn.H"
+
+        // new trick with pressure and everything else coupling
+        p_thermo = rho/psi;
 
         while (pimple.loop())
         {

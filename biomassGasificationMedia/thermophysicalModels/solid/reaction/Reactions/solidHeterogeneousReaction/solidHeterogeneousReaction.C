@@ -180,97 +180,97 @@ void Foam::solidHeterogeneousReaction::setLRhs(Istream& is)
 
     while (is && proceed)
     {
-	token t(is);
+        token t(is);
 
-	if (t.isPunctuation())
-	{
+        if (t.isPunctuation())
+        {
             if (t == token::BEGIN_LIST)
             {
                 proceed = false;
-		is.putBack(t);
+                is.putBack(t);
             }
-	    if (t == token::ASSIGN)
-	    {
-		LHS = false;
-	    }
-	}
-	else if (t.isNumber())
-	{
-	    number = true;
-	    stoich = t.number();
-	}
-	else
-	{
-	    index = componentIndex(isGas,t);
-	    isComponent = true;
-	}
+            if (t == token::ASSIGN)
+            {
+                LHS = false;
+            }
+        }
+        else if (t.isNumber())
+        {
+            number = true;
+            stoich = t.number();
+        }
+        else
+        {
+            index = componentIndex(isGas,t);
+            isComponent = true;
+        }
 
-	if (isComponent)
-	{
-	    if (LHS)
-	    {
-		if(isGas)
-		{
+        if (isComponent)
+        {
+            if (LHS)
+            {
+                if (isGas)
+                {
                     forAll(gasPhaseGases_,i)
-                            {
-                                if (pyrolisisGases_[index] == gasPhaseGases_[i].name())
-                                {
-                                        dglhs.append(i);
-                                }
-                            }
-		    if (number)
-		    {
-			dglhsSto.append(stoich);
-		    }
-		    else
-		    {
-			dglhsSto.append(1.0);
-		    }
-		}
-		else
-		{
-		    if(number)
-		    {
-			dslhsSto.append(stoich);
-		    }
-		    else
-		    {
-			dslhsSto.append(1.0);
-		    }
-		    dslhs.append(index);
-		}
-	    }
-	    else
-	    {
-		if(isGas)
-		{
-		    dgrhs.append(index);
-		    if (number)
-		    {
-			dgrhsSto.append(stoich);
-		    }
-		    else
-		    {
-			dgrhsSto.append(1.0);
-		    }
-		}
-		else
-		{
-		    if(number)
-		    {
-			dsrhsSto.append(stoich);
-		    }
-		    else
-		    {
-			dsrhsSto.append(1.0);
-		    }
-		    dsrhs.append(index);
-		}
-	    }
+                    {
+                        if (pyrolisisGases_[index] == gasPhaseGases_[i].name())
+                        {
+                            dglhs.append(i);
+                        }
+                    }
+                    if (number)
+                    {
+                        dglhsSto.append(stoich);
+                    }
+                    else
+                    {
+                        dglhsSto.append(1.0);
+                    }
+                }
+                else
+                {
+                    if(number)
+                    {
+                        dslhsSto.append(stoich);
+                    }
+                    else
+                    {
+                        dslhsSto.append(1.0);
+                    }
+                    dslhs.append(index);
+                }
+            }
+            else
+            {
+                if(isGas)
+                {
+                    dgrhs.append(index);
+                    if (number)
+                    {
+                        dgrhsSto.append(stoich);
+                    }
+                    else
+                    {
+                        dgrhsSto.append(1.0);
+                    }
+                }
+                else
+                {
+                    if(number)
+                    {
+                        dsrhsSto.append(stoich);
+                    }
+                    else
+                    {
+                        dsrhsSto.append(1.0);
+                    }
+                    dsrhs.append(index);
+                }
+            }
             number = false;
-    	    isGas = false;
-    	    isComponent = false;
-	}
+            isGas = false;
+            isComponent = false;
+        }
     }
 
     slhs_ = dslhs.shrink();

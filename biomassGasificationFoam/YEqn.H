@@ -21,7 +21,7 @@ tmp<fv::convectionScheme<scalar>> mvConvection
 
             fvScalarMatrix YiEqn
             (
-                fvm::ddt(rho, Yi)
+                fvm::ddt(porosityF * rho, Yi)
               + mvConvection->fvmDiv(phi, Yi)
               - fvm::laplacian(turbulence->muEff(), Yi)
              ==
@@ -39,6 +39,21 @@ tmp<fv::convectionScheme<scalar>> mvConvection
 
             Yi.max(0.0);
             Yt += Yi;
+
+            Info<< " gas  "<<Y[i].name()<< " Srho min/max   = "
+                << min(pyrolysisZone.Srho(i)()).value() << ", "
+                << max(pyrolysisZone.Srho(i)()).value()
+                //TODO//<< " RR min/max   = " << min(reaction->RR(i)).value() << ", "
+                //<< max(reaction->RR(i)).value()<< " min Y = "
+                << min(Y[i]).value() <<" max Y = " << max(Y[i]).value() << endl;
+        }
+    }
+
+    forAll(Y, i)
+    {
+        if (Y[i].name() != inertSpecie)
+        {
+            Y[i] = Y[i]/(Yt+Y[inertIndex]);
         }
     }
 

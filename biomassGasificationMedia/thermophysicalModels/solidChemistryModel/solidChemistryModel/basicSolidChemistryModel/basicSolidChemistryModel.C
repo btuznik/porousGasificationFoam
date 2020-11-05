@@ -42,13 +42,13 @@ void Foam::basicSolidChemistryModel::correct()
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::basicSolidChemistryModel::basicSolidChemistryModel(const basicSolidThermo& thermo)
+Foam::basicSolidChemistryModel::basicSolidChemistryModel(const HGSSolidThermo& thermo)
 :
     IOdictionary
     (
         IOobject
         (
-            thermo.phasePropertyName("chemistryProperties"),
+            "chemistryProperties",
             thermo.db().time().constant(),
             thermo.db(),
             IOobject::MUST_READ_IF_MODIFIED,
@@ -63,39 +63,7 @@ Foam::basicSolidChemistryModel::basicSolidChemistryModel(const basicSolidThermo&
     (
         IOobject
         (
-            thermo.phasePropertyName("deltaTChem"),
-            mesh().time().constant(),
-            mesh(),
-            IOobject::NO_READ,
-            IOobject::NO_WRITE
-        ),
-        mesh(),
-        dimensionedScalar(dimTime, deltaTChemIni_)
-    )
-{}
-
-Foam::basicSolidChemistryModel::basicSolidChemistryModel(const basicThermo& thermo)
-:
-    IOdictionary
-    (
-        IOobject
-        (
-            thermo.phasePropertyName("chemistryProperties"),
-            thermo.db().time().constant(),
-            thermo.db(),
-            IOobject::MUST_READ_IF_MODIFIED,
-            IOobject::NO_WRITE
-        )
-    ),
-    mesh_(thermo.T().mesh()),
-    chemistry_(lookup("chemistry")),
-    deltaTChemIni_(lookup<scalar>("initialChemicalTimeStep")),
-    deltaTChemMax_(lookupOrDefault("maxChemicalTimeStep", great)),
-    deltaTChem_
-    (
-        IOobject
-        (
-            thermo.phasePropertyName("deltaTChem"),
+            "deltaTChem",
             mesh().time().constant(),
             mesh(),
             IOobject::NO_READ,

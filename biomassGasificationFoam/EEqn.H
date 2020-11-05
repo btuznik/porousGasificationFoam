@@ -1,14 +1,19 @@
 if (solveEnergy)
 {
+    ddtKinEn = fvc::ddt(porosityF*rho, K);
+    divPhiKinEn = fvc::div(phi, K);
+
     if (pyrolysisZone.equilibrium())
     {}
     else
     {
         volScalarField& he = thermo.he();
-        heatTransfer = pyrolysisZone.heatTransfer();
+        volScalarField heatUpGas = pyrolysisZone.heatUpGas()();
+        heatTransfer = pyrolysisZone.heatTransfer()();
+
         fvScalarMatrix EEqn
         (
-            fvm::ddt(rho, he) + mvConvection->fvmDiv(phi, he)
+            fvm::ddt(porosityF * rho, he) + mvConvection->fvmDiv(phi, he)
           + fvc::ddt(rho, K) + fvc::div(phi, K)
           + (
                 he.name() == "e"
@@ -22,9 +27,12 @@ if (solveEnergy)
             )
             + thermophysicalTransport->divq(he)
          ==
-            reaction->Qdot()
-          + fvOptions(rho, he)
-          + heatTransfer
+            reaction->Qdot()*(1.-porosityF)
+            - (ddtKinEn + divPhiKinEn)
+            + fvOptions(rho, he)
+            + heatTransfer
+            + heatUpGas
+            //+ radiation->Shs(thermo)
         );
 
     EEqn.relax();
@@ -37,7 +45,9 @@ if (solveEnergy)
 
     thermo.correct();
 
-    Info<< "min/max(T) = "
+    Info<< "min/max(T gas) = "
         << min(T).value() << ", " << max(T).value() << endl;
+    Info<< " rho gas min/max = " << min(rho).value() << ", " << max(rho).value() << endl;
+            Info<< " Sh gas min/max = " << min(reaction->Qdot()).value() << ", " << max(reaction->Qdot()).value() << endl;
    }
 }

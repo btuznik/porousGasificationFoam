@@ -23,119 +23,596 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "StandardChemistryModel.H"
+#include "ODESolidHeterogeneousChemistryModel.H"
 #include "multiComponentMixture.H"
 #include "UniformField.H"
 #include "extrapolatedCalculatedFvPatchFields.H"
+#include "reactingSolidHeterogeneousMixture.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-template<class ReactionThermo, class ThermoType>
-Foam::StandardChemistryModel<ReactionThermo, ThermoType>::StandardChemistryModel
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::ODESolidHeterogeneousChemistryModel
 (
-    const ReactionThermo& thermo
+    const SolidThermo& solidThermo,
+    PtrList<volScalarField>& gasPhaseGases
 )
 :
-    BasicSolidChemistryModel<ReactionThermo>(thermo),
+    BasicSolidChemistryModel<SolidThermo>(solidThermo),
     ODESystem(),
-    Y_(this->thermo().composition().Y()),
-    specieThermos_
+    mesh_(solidThermo.mesh()),
+    gasPhaseGases_(gasPhaseGases),
+    Ys_(this->solidThermo().composition().Y()),
+    solidThermo_
     (
-        dynamic_cast<const multiComponentMixture<ThermoType>&>
-            (this->thermo()).specieThermos()
+        static_cast<const reactingSolidHeterogeneousMixture<SolidThermoType>&>
+            (this->solidThermo().composition()).solidData()
+    ),
+    gasThermo_(
+        dynamic_cast<const multiComponentMixture<GasThermoType>&>
+        (mesh_.lookupObject <psiReactionThermo> ("thermophysicalProperties")).specieThermos()
+    ),
+    pyrolisisGases_
+    (
+        mesh_.lookupObject<dictionary>
+            ("chemistryProperties").lookup("species")
     ),
     reactions_
     (
-        dynamic_cast<const multiComponentMixture<ThermoType>&>
-        (
-            this->thermo()
-        ).species(),
-        specieThermos_,
-        this->mesh(),
-        *this
+        static_cast<const reactingSolidHeterogeneousMixture<SolidThermoType>&>
+            (this->solidThermo().composition())
     ),
-
-    nSpecie_(Y_.size()),
+    nGases_(pyrolisisGases_.size()),
+    nSpecie_(Ys_.size()+ nGases_),
+    nSolids_(Ys_.size()),
     nReaction_(reactions_.size()),
     Treact_
     (
-        BasicSolidChemistryModel<ReactionThermo>::template lookupOrDefault<scalar>
+        BasicSolidChemistryModel<SolidThermo>::template lookupOrDefault<scalar>
         (
             "Treact",
             0
         )
     ),
+    RRs_(nSolids_),
+    RRg_(nGases_),
     RR_(nSpecie_),
     c_(nSpecie_),
-    dcdt_(nSpecie_)
-{
-    // Create the fields for the chemistry sources
-    forAll(RR_, fieldi)
-    {
-        RR_.set
+    dcdt_(nSpecie_),
+    shReactionHeat_
+    (
+        IOobject
         (
-            fieldi,
-            new volScalarField::Internal
+            "shReactionHeat",
+            mesh_.time().timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE,
+            false
+        ),
+            mesh_,
+            dimensionedScalar("zero", dimEnergy/dimTime/dimVolume, 0.0)
+    ),
+    coeffs_(nSpecie_ + 2),
+    Ys0_(nSolids_),
+    cellCounter_(0),
+    reactingCells_(mesh_.nCells(), true),
+    V_
+    (
+        IOobject
+        (
+            "V_",
+            mesh_.time().timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        mesh_,
+    dimensionedScalar("zero",dimVolume,0.0)
+    ),
+    solidReactionEnergyFromEnthalpy_
+    (
+        mesh_.lookupObject<dictionary>
+            ("chemistryProperties").lookupOrDefault("solidReactionEnergyFromEnthalpy",true)
+    ),
+    stoichiometricReactions_
+    (
+        mesh_.lookupObject<dictionary>
+            ("chemistryProperties").lookupOrDefault("stoichiometricReactions",false)
+    ),
+    solidReactionDeltaEnergy_(0.0),
+    showRRR_
+    (
+        mesh_.lookupObject<dictionary>
+            ("chemistryProperties").lookupOrDefault("showRelativeReactionRates",false)
+    ),
+    rhoG_
+    (
+        mesh_.lookupObject<volScalarField>("rho")
+    )
+{
+    // create the fields for the chemistry sources
+    Info << "gases in gas phase: " << gasPhaseGases_.size() << " \n" << endl;
+
+    forAll(gasPhaseGases_,i)
+    {
+        Info << gasPhaseGases_[i].name() << " \n";
+    }
+
+    Info << "gases from pyrolysis: " << endl;
+
+    forAll(pyrolisisGases_,i)
+    {
+        Info << pyrolisisGases_[i] << " \n";
+    }
+
+    forAll(RRs_, fieldI)
+    {
+        RRs_.set
+        (
+            fieldI,
+            new scalarField(mesh_.nCells(), 0.0)
+        );
+
+
+        IOobject header
+        (
+            Ys_[fieldI].name() + "0",
+            mesh_.time().timeName(),
+            mesh_,
+            IOobject::NO_READ
+        );
+
+        // check if field exists and can be read
+        if (header.typeHeaderOk<volScalarField>(true))
+        {
+            Ys0_.set
+            (
+                fieldI,
+                new volScalarField
+                (
+                    IOobject
+                    (
+                        Ys_[fieldI].name() + "0",
+                        mesh_.time().timeName(),
+                        mesh_,
+                        IOobject::MUST_READ,
+                        IOobject::AUTO_WRITE
+                    ),
+                    mesh_
+                )
+            );
+        }
+        else
+        {
+            volScalarField Y0Default
             (
                 IOobject
                 (
-                    "RR." + Y_[fieldi].name(),
-                    this->mesh().time().timeName(),
-                    this->mesh(),
-                    IOobject::NO_READ,
+                    "Y0Default",
+                    mesh_.time().timeName(),
+                    mesh_,
+                    IOobject::MUST_READ,
                     IOobject::NO_WRITE
                 ),
-                thermo.T().mesh(),
-                dimensionedScalar(dimMass/dimVolume/dimTime, 0)
-            )
-        );
+                mesh_
+            );
+
+            Ys0_.set
+            (
+                fieldI,
+                new volScalarField
+                (
+                    IOobject
+                    (
+                        Ys_[fieldI].name() + "0",
+                        mesh_.time().timeName(),
+                        mesh_,
+                        IOobject::NO_READ,
+                        IOobject::AUTO_WRITE
+                    ),
+                    Y0Default
+                )
+            );
+
+            // Calculate inital values of Ysi0 = rho*delta*Yi
+            Ys0_[fieldI] = this->solidThermo().rho() * Ys_[fieldI] * dimensionedScalar("tmp",dimVol/dimMass,1.);
+            Ys0_[fieldI].ref() *= mesh_.V();
+        }
     }
 
-    Info<< "StandardChemistryModel: Number of species = " << nSpecie_
+    V_.ref() = mesh_.V();
+
+    forAll(RRg_, fieldI)
+    {
+        RRg_.set(fieldI, new scalarField(mesh_.nCells(), 0.0));
+    }
+
+    Info<< "ODESolidHeterogeneousChemistryModel: Number of solids = " << nSolids_
         << " and reactions = " << nReaction_ << endl;
+
+    Info<< "Number of gases from pyrolysis = " << nGases_ << endl;
+
+    forAll(reactions_, i)
+    {
+        Info<< indent << "Reaction " << i << nl << reactions_[i] << nl;
+    }
+
+    Info << "solidReactionEnergyFromEnthalpy " << solidReactionEnergyFromEnthalpy_ << nl;
+    Info << "stoichiometricReactions " << stoichiometricReactions_ << nl;
+
+    gasDictionary_.resize(nGases_);
+    forAll(gasDictionary_,gasI)
+    {
+        forAll(gasPhaseGases_,gasJ)
+        {
+            if (gasPhaseGases_[gasJ].name() == pyrolisisGases_[gasI])
+            {
+                gasDictionary_[gasI] = gasJ;
+            }
+        }
+    }
 }
 
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-template<class ReactionThermo, class ThermoType>
-Foam::StandardChemistryModel<ReactionThermo, ThermoType>::
-~StandardChemistryModel()
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::
+~ODESolidHeterogeneousChemistryModel()
 {}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
+void Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::
+setCellReacting(const label cellI, const bool active)
+{
+    reactingCells_[cellI] = active;
+}
 
-template<class ReactionThermo, class ThermoType>
-void Foam::StandardChemistryModel<ReactionThermo, ThermoType>::omega
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
+Foam::scalarField  Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::omega
 (
-    const scalar p,
-    const scalar T,
     const scalarField& c,
-    const label li,
-    scalarField& dcdt
+    const scalar T,
+    const scalar p,
+    scalarField& rR,
+    const bool updateC0
 ) const
 {
+    scalar pf, cf, pr, cr;
+    label lRef, rRef;
 
-    dcdt = Zero;
+    const label cellI = cellCounter_;
+    label nEq = nEqns();
+
+    if (not solidReactionEnergyFromEnthalpy_)
+    {
+    nEq = nEqns()+1;
+    }
+
+    scalarField om(nEq,0.0);
 
     forAll(reactions_, i)
     {
-        const Reaction<ThermoType>& R = reactions_[i];
+        const solidHeterogeneousReaction& R = reactions_[i];
 
-        R.omega(p, T, c, li, dcdt);
+        scalar omegai = omega
+        (
+            R, c, T, 0.0, pf, cf, lRef, pr, cr, rRef
+        );
+
+    scalar massCoefficient = 1;
+
+    scalar substrates = 0;
+    scalar products = 0;
+
+    scalar solidSubstrates = 0;
+    scalar solidProducts = 0;
+
+        scalar massStream = 0;
+
+        if (stoichiometricReactions_)
+        {
+            forAll(R.grhs(), g)
+            {
+                label gi = gasDictionary_[R.grhs()[g]];
+                products += gasThermo_[gi].W()*R.grhsSto()[g];
+            }
+
+            forAll(R.glhs(), g)
+            {
+                label gi = R.glhs()[g];
+                substrates += gasThermo_[gi].W()*R.glhsSto()[g];
+            }
+
+            forAll(R.slhs(), s)
+            {
+                solidSubstrates += R.slhsSto()[s];
+            }
+
+            forAll(R.srhs(), s)
+            {
+                solidProducts += R.srhsSto()[s];
+            }
+
+            if ((substrates + solidSubstrates  == 0) || (products + solidProducts == 0))
+            {
+                FatalErrorIn("omega")
+                    << "Reaction:\n" << R
+                    << "\nis not really a reaction" << exit(FatalError);
+            }
+
+            if (solidSubstrates > solidProducts)
+            {
+                scalar sr = solidProducts/solidSubstrates;
+                massCoefficient = 1./(products-substrates);
+
+                forAll(R.slhs(), s)
+                {
+                    label si = R.slhs()[s];
+                    om[si] -= omegai*R.slhsSto()[s]/solidSubstrates;
+                    massStream -= omegai*R.slhsSto()[s]/solidSubstrates;
+                    if (updateC0)
+                    {
+                Ys0_[si][cellI] = this->solidThermo().rho()[cellI] *Ys_[si][cellI] * V_[cellI];
+                    }
+                }
+
+                forAll(R.srhs(), s)
+                {
+                    label si = R.srhs()[s];
+                    om[si] += sr*omegai*R.srhsSto()[s]/solidProducts;
+                    if (updateC0)
+                    {
+                Ys0_[si][cellI] = this->solidThermo().rho()[cellI] *Ys_[si][cellI] * V_[cellI];
+                    }
+                }
+
+                forAll(R.grhs(), g)
+                {
+                    om[R.grhs()[g] + nSolids_] +=  (1.0 - sr)*omegai*massCoefficient*gasThermo_[gasDictionary_[R.grhs()[g]]].W()*R.grhsSto()[g];
+                }
+
+                forAll(R.glhs(), g)
+                {
+                    label gi = R.glhs()[g];
+                    om[gi + nSolids_] -=  (1.0 - sr)*massCoefficient*omegai*gasThermo_[gi].W()*R.glhsSto()[g];
+                    massStream -= (1.0 - sr)*massCoefficient*omegai*gasThermo_[gi].W()*R.glhsSto()[g];
+                }
+
+                if (not solidReactionEnergyFromEnthalpy_)
+                {
+                    om[nEqns()] += omegai*R.heatReact();
+                }
+            }
+            else if (solidSubstrates < solidProducts)
+            {
+                if (solidSubstrates > 0)
+                {
+                    scalar sr = solidProducts/solidSubstrates;
+                    massCoefficient = 1./(products-substrates);
+
+                    forAll(R.slhs(), s)
+                    {
+                        label si = R.slhs()[s];
+                        om[si] -= omegai*R.slhsSto()[s]/solidSubstrates;
+                        massStream -= omegai*R.slhsSto()[s]/solidSubstrates;
+                        if (updateC0)
+                        {
+                    Ys0_[si][cellI] = this->solidThermo().rho()[cellI] *Ys_[si][cellI] * V_[cellI];
+                        }
+                    }
+
+                    forAll(R.srhs(), s)
+                    {
+                        label si = R.srhs()[s];
+                        om[si] += omegai*R.srhsSto()[s]/solidSubstrates;
+
+                        if (updateC0)
+                        {
+                    Ys0_[si][cellI] = this->solidThermo().rho()[cellI] *Ys_[si][cellI] * V_[cellI];
+                        }
+                    }
+
+                    forAll(R.grhs(), g)
+                    {
+                        om[R.grhs()[g] + nSolids_] +=  (1.0 - sr)*omegai*massCoefficient*gasThermo_[gasDictionary_[R.grhs()[g]]].W()*R.grhsSto()[g];
+                    }
+
+                    forAll(R.glhs(), g)
+                    {
+                        label gi = R.glhs()[g];
+                        om[gi + nSolids_] -=  (1.0 - sr)*omegai*massCoefficient*gasThermo_[gi].W()*R.glhsSto()[g];
+                        massStream -= (1.0 - sr)*omegai*massCoefficient*gasThermo_[gi].W()*R.glhsSto()[g];
+                    }
+
+                    if (not solidReactionEnergyFromEnthalpy_)
+                    {
+                        om[nEqns()] += omegai*R.heatReact();
+                    }
+                }
+                else
+                {
+                    scalar sr = products/substrates;
+                    forAll(R.grhs(), g)
+                    {
+                        om[R.grhs()[g] + nSolids_] +=  sr*omegai*gasThermo_[gasDictionary_[R.grhs()[g]]].W()*R.grhsSto()[g]/products;
+                    }
+
+                    forAll(R.glhs(), g)
+                    {
+                        label gi = R.glhs()[g];
+                        om[gi + nSolids_] -=  omegai*gasThermo_[gi].W()*R.glhsSto()[g]/substrates;
+                        massStream -= omegai*gasThermo_[gi].W()*R.glhsSto()[g]/substrates;
+                    }
+
+                    forAll(R.srhs(), s)
+                    {
+                        label si = R.srhs()[s];
+                        om[si] += omegai*(1-sr)*R.srhsSto()[s]/solidProducts;
+
+                        if (updateC0)
+                        {
+                    Ys0_[si][cellI] = this->solidThermo().rho()[cellI] *Ys_[si][cellI] * V_[cellI];
+                        }
+                    }
+                    if (not solidReactionEnergyFromEnthalpy_)
+                    {
+                        om[nEqns()] += omegai*R.heatReact();
+                    }
+                }
+            }
+            else
+            {
+                if (products == substrates)
+                {
+
+                    forAll(R.slhs(), s)
+                    {
+                        label si = R.slhs()[s];
+                        om[si] -= omegai*R.slhsSto()[s]/solidSubstrates;
+                        massStream -= omegai*R.slhsSto()[s]/solidSubstrates;
+                        if (updateC0)
+                        {
+                    Ys0_[si][cellI] = this->solidThermo().rho()[cellI] *Ys_[si][cellI] * V_[cellI];
+
+                        }
+                    }
+
+                    forAll(R.srhs(), s)
+                    {
+                        label si = R.srhs()[s];
+                        om[si] += omegai*R.srhsSto()[s]/solidProducts;
+                        if (updateC0)
+                        {
+                    Ys0_[si][cellI] = this->solidThermo().rho()[cellI] *Ys_[si][cellI] * V_[cellI];
+                        }
+                    }
+                    if (products > 0)
+                    {
+                        forAll(R.grhs(), g)
+                        {
+                            om[R.grhs()[g] + nSolids_] +=  omegai*massCoefficient*gasThermo_[gasDictionary_[R.grhs()[g]]].W()*R.grhsSto()[g]/products;
+                        }
+
+                        forAll(R.glhs(), g)
+                        {
+                            label gi = R.glhs()[g];
+                            om[gi + nSolids_] -=  omegai*massCoefficient*gasThermo_[gi].W()*R.glhsSto()[g]/substrates;
+                            massStream -= omegai*massCoefficient*gasThermo_[gi].W()*R.glhsSto()[g]/substrates;
+                        }
+                    }
+
+                    if (not solidReactionEnergyFromEnthalpy_)
+                    {
+                        om[nEqns()] += omegai*R.heatReact();
+                    }
+
+                }
+                else
+                {
+                    FatalErrorIn("omega")
+                        << "Reaction:\n" << R
+                        << "\ntype is not implemented" << exit(FatalError);
+                }
+            }
+        }
+        else
+        {
+            forAll(R.grhs(), g)
+            {
+                products += R.grhsSto()[g];
+            }
+
+            forAll(R.glhs(), g)
+            {
+                substrates += R.glhsSto()[g];
+            }
+
+            forAll(R.slhs(), s)
+            {
+                solidSubstrates += R.slhsSto()[s];
+            }
+
+            forAll(R.srhs(), s)
+            {
+                solidProducts += R.srhsSto()[s];
+            }
+
+            if ((substrates + solidSubstrates  == 0) || (products + solidProducts == 0))
+            {
+                FatalErrorIn("omega")
+                    << "Reaction:\n" << R
+                    << "\nis not really a reaction" << exit(FatalError);
+            }
+
+            scalar totalSubstrates = substrates + solidSubstrates;
+            Info << "substrates: " << substrates << endl;
+            Info << "solidSubstrates: "  << solidSubstrates << endl;
+            Info << "products: " << products << endl;
+            Info << "solidProducts: " << solidProducts << endl;
+
+            if ((totalSubstrates > 0) and (totalSubstrates == products + solidProducts))
+            {
+                forAll(R.slhs(), s)
+                {
+                    label si = R.slhs()[s];
+                    om[si] -= omegai*R.slhsSto()[s]/totalSubstrates;
+                    massStream -= omegai*R.slhsSto()[s]/totalSubstrates;
+                    if (updateC0)
+                    {
+                Ys0_[si][cellI] = this->solidThermo().rho()[cellI] *Ys_[si][cellI] * V_[cellI];
+
+                    }
+                }
+
+                forAll(R.srhs(), s)
+                {
+                    label si = R.srhs()[s];
+                    om[si] += omegai*R.srhsSto()[s]/totalSubstrates;
+                    if (updateC0)
+                    {
+                Ys0_[si][cellI] = this->solidThermo().rho()[cellI] *Ys_[si][cellI] * V_[cellI];
+                    }
+                }
+
+                forAll(R.grhs(), g)
+                {
+                    om[R.grhs()[g] + nSolids_] +=  omegai*R.grhsSto()[gasDictionary_[R.grhs()[g]]]/totalSubstrates;
+                }
+
+                forAll(R.glhs(), g)
+                {
+                    label gi = R.glhs()[g];
+                    om[gi + nSolids_] -= omegai*R.glhsSto()[g]/totalSubstrates;
+                    massStream -= omegai*R.glhsSto()[g]/totalSubstrates;
+                }
+                if (not solidReactionEnergyFromEnthalpy_)
+                {
+                    om[nEqns()] += omegai*R.heatReact();
+                }
+            }
+            else
+            {
+                    FatalErrorIn("omega")
+                        << "Reaction:\n" << R
+                        << "\nviolates mass conservation" << exit(FatalError);
+            }
+        }
+        rR[i] = mag(massStream);
     }
+    return om;
 }
 
-
-template<class ReactionThermo, class ThermoType>
-Foam::scalar Foam::StandardChemistryModel<ReactionThermo, ThermoType>::omegaI
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
+scalar Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::omega
 (
-    const label index,
-    const scalar p,
-    const scalar T,
+    const solidHeterogeneousReaction& R,
     const scalarField& c,
-    const label li,
+    const scalar T,
+    const scalar p,
     scalar& pf,
     scalar& cf,
     label& lRef,
@@ -144,14 +621,56 @@ Foam::scalar Foam::StandardChemistryModel<ReactionThermo, ThermoType>::omegaI
     label& rRef
 ) const
 {
-    const Reaction<ThermoType>& R = reactions_[index];
-    scalar w = R.omega(p, T, c, li, pf, cf, lRef, pr, cr, rRef);
-    return(w);
+    scalarField c1(nSpecie_, 0.0);
+
+    label cellI = cellCounter_;
+
+    for (label i=0; i<nSpecie_; i++)
+    {
+        c1[i] = max(0.0, c[i]);
+    }
+
+    scalar kf = R.kf(T, 0.0, c1);
+
+    const label Nl = R.slhs().size();
+    if (Nl > 0)
+    {
+        if ( R.glhs().size() > 0 )
+        {
+            for (label s=0; s < Nl; s++)
+            {
+            label si = R.slhs()[s];
+                kf *= pow(Ys_[si][cellI],R.nReact()[s]);
+            }
+            forAll(R.glhs(),i)
+            {
+                kf *= pow(gasPhaseGases_[R.glhs()[i]].internalField()[cellI],R.nReact()[Nl+i]);
+            }
+        }
+        else
+        {
+            for (label s=0; s<Nl; s++)
+            {
+                label si = R.slhs()[s];
+                kf *= pow(Ys_[si][cellI],R.nReact()[s]);
+            }
+        }
+        kf *= this->solidThermo().rho()[cellI];
+    }
+    else
+    {
+        forAll(R.glhs(),i)
+        {
+            kf *= pow(gasPhaseGases_[R.glhs()[i]].internalField()[cellI],R.nReact()[i]);
+        }
+        kf *= rhoG_[cellI];
+    }
+    return kf;
 }
 
 
-template<class ReactionThermo, class ThermoType>
-void Foam::StandardChemistryModel<ReactionThermo, ThermoType>::derivatives
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
+void Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::derivatives
 (
     const scalar time,
     const scalarField& c,
@@ -159,130 +678,211 @@ void Foam::StandardChemistryModel<ReactionThermo, ThermoType>::derivatives
     scalarField& dcdt
 ) const
 {
-    const scalar T = c[nSpecie_];
-    const scalar p = c[nSpecie_ + 1];
+    scalar T = c[nSpecie_];
 
-    forAll(c_, i)
+    dcdt = 0.0;
+    scalarField rR(nReaction_,0.0);
+
+    scalarField omegaPreq(omega(c,T,0,rR));
+    if (solidReactionEnergyFromEnthalpy_)
     {
-        c_[i] = max(c[i], 0);
+    dcdt = omegaPreq;
+    }
+    else
+    {
+    forAll(dcdt,i)
+    {
+        dcdt[i] = omegaPreq[i];
+    }
     }
 
-    omega(p, T, c_, li, dcdt);
-
-    // Constant pressure
-    // dT/dt = ...
-    scalar rho = 0;
-    scalar cSum = 0;
-    for (label i = 0; i < nSpecie_; i++)
+    //Total mass concentration
+    scalar cTot = 0.0;
+    for (label i=0; i<nSolids_; i++)
     {
-        const scalar W = specieThermos_[i].W();
-        cSum += c_[i];
-        rho += W*c_[i];
+        cTot += c[i];
     }
-    scalar cp = 0;
-    for (label i=0; i<nSpecie_; i++)
-    {
-        cp += c_[i]*specieThermos_[i].cp(p, T);
-    }
-    cp /= rho;
 
-    scalar dT = 0;
-    for (label i = 0; i < nSpecie_; i++)
-    {
-        const scalar hi = specieThermos_[i].ha(p, T);
-        dT += hi*dcdt[i];
-    }
-    dT /= rho*cp;
+    scalar newCp = 0.0;
+    scalar newhi = 0.0;
 
-    dcdt[nSpecie_] = -dT;
+    if (solidReactionEnergyFromEnthalpy_)
+    {
+    for (label i=0; i<nSolids_; i++)
+    {
+            scalar dYidt = dcdt[i];
+            scalar Yi = c[i];
+            newCp += Yi*solidThermo_[i].Cp(T);
+            newhi -= dYidt*solidThermo_[i].hf();
+    }
+    }
+    else
+    {
+    for (label i=0; i<nSolids_; i++)
+    {
+            scalar Yi = c[i];
+            newCp += Yi*solidThermo_[i].Cp(T);
+    }
+            newhi += omegaPreq[nEqns()];
+    }
+
+
+    scalar dTdt = newhi/newCp;
+    scalar dtMag = min(500.0, mag(dTdt));
+    dcdt[nSpecie_] = dTdt*dtMag/(mag(dTdt) + 1.0e-10);
 
     // dp/dt = ...
-    dcdt[nSpecie_ + 1] = 0;
+    dcdt[nSpecie_ + 1] = 0.0;
 }
 
 
-template<class ReactionThermo, class ThermoType>
-void Foam::StandardChemistryModel<ReactionThermo, ThermoType>::jacobian
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
+void Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::jacobian
 (
     const scalar t,
     const scalarField& c,
     const label li,
     scalarField& dcdt,
-    scalarSquareMatrix& J
+    scalarSquareMatrix& dfdc
 ) const
 {
-    const scalar T = c[nSpecie_];
-    const scalar p = c[nSpecie_ + 1];
+    label cellI = cellCounter_;
 
-    forAll(c_, i)
+    scalar T = c[nSpecie_];
+
+    scalarField c2(nSpecie_, 0.0);
+    scalarField rR(nReaction_, 0.0);
+
+    for (label i=0; i<nSolids_; i++)
     {
-        c_[i] = max(c[i], 0);
+        c2[i] = max(c[i], 0.0);
     }
 
-    J = Zero;
-    dcdt = Zero;
-
-    // To compute the species derivatives of the temperature term,
-    // the enthalpies of the individual species is needed
-    scalarField hi(nSpecie_);
-    scalarField cpi(nSpecie_);
-    for (label i = 0; i < nSpecie_; i++)
+    for (label i=0; i<nEqns(); i++)
     {
-        hi[i] = specieThermos_[i].ha(p, T);
-        cpi[i] = specieThermos_[i].cp(p, T);
-    }
-    scalar omegaI = 0;
-    List<label> dummy;
-    forAll(reactions_, ri)
-    {
-        const Reaction<ThermoType>& R = reactions_[ri];
-        scalar kfwd, kbwd;
-        R.dwdc(p, T, c_, li, J, dcdt, omegaI, kfwd, kbwd, false, dummy);
-        R.dwdT(p, T, c_, li, omegaI, kfwd, kbwd, J, false, dummy, nSpecie_);
-    }
-
-    // The species derivatives of the temperature term are partially computed
-    // while computing dwdc, they are completed hereunder:
-    scalar cpMean = 0;
-    scalar dcpdTMean = 0;
-    for (label i=0; i<nSpecie_; i++)
-    {
-        cpMean += c_[i]*cpi[i]; // J/(m^3 K)
-        dcpdTMean += c_[i]*specieThermos_[i].dcpdT(p, T);
-    }
-    scalar dTdt = 0.0;
-    for (label i=0; i<nSpecie_; i++)
-    {
-        dTdt += hi[i]*dcdt[i]; // J/(m^3 s)
-    }
-    dTdt /= -cpMean; // K/s
-
-    for (label i = 0; i < nSpecie_; i++)
-    {
-        J(nSpecie_, i) = 0;
-        for (label j = 0; j < nSpecie_; j++)
+        for (label j=0; j<nEqns(); j++)
         {
-            J(nSpecie_, i) += hi[j]*J(j, i);
+            dfdc[i][j] = 0.0;
         }
-        J(nSpecie_, i) += cpi[i]*dTdt; // J/(mol s)
-        J(nSpecie_, i) /= -cpMean;    // K/s/(mol/m3)
     }
 
-    // ddT of dTdt
-    J(nSpecie_, nSpecie_) = 0;
-    for (label i = 0; i < nSpecie_; i++)
+    scalarField omegaPreq(omega(c2,T,0.0,rR));
+    if (solidReactionEnergyFromEnthalpy_)
     {
-        J(nSpecie_, nSpecie_) += cpi[i]*dcdt[i] + hi[i]*J(i, nSpecie_);
+        dcdt = omegaPreq;
     }
-    J(nSpecie_, nSpecie_) += dTdt*dcpdTMean;
-    J(nSpecie_, nSpecie_) /= -cpMean;
-    J(nSpecie_, nSpecie_) += dTdt/T;
+    else
+    {
+        forAll(dcdt,i)
+        {
+            dcdt[i] = omegaPreq[i];
+        }
+    }
+
+    for (label ri=0; ri<reactions_.size(); ri++)
+    {
+        const solidHeterogeneousReaction& R = reactions_[ri];
+
+        scalar kf0 = R.kf(T, 0.0, c2);
+
+        forAll(R.slhs(), j)
+        {
+            label sj = R.slhs()[j];
+            scalar kf = kf0;
+            forAll(R.slhs(), i)
+            {
+
+                label si = R.slhs()[i];
+                scalar exp = R.nReact()[0];
+                if (i == j)
+                {
+                    if (exp < 1.0)
+                    {
+                        if (c2[si]>SMALL)
+                        {
+                            kf *= exp*pow(c2[si] + VSMALL, exp - 1.0);
+                        }
+                        else
+                        {
+                            kf = 0.0;
+                        }
+                    }
+                    else
+                    {
+                        kf *= exp*pow(c2[si], exp - 1.0);
+                    }
+        if (R.glhs().size() > 0)
+        {
+            forAll(R.glhs(),i)
+            {
+            kf *= gasPhaseGases_[R.glhs()[i]].internalField()[cellI];
+            }
+                }
+        }
+                else
+                {
+                    Info<< "Solid reactions have only elements on slhs"
+                        << endl;
+                    kf = 0.0;
+                }
+            }
+
+            forAll(R.slhs(), i)
+            {
+                label si = R.slhs()[i];
+                dfdc[si][sj] -= kf;
+            }
+            forAll(R.srhs(), i)
+            {
+                label si = R.srhs()[i];
+                dfdc[si][sj] += kf;
+            }
+        }
+    }
+
+    // calculate the dcdT elements numerically
+    scalar delta = 1.0e-8;
+
+    scalarField dcdT0(dcdt);
+    omegaPreq = omega(c2,T - delta ,0,rR);
+    if (solidReactionEnergyFromEnthalpy_)
+    {
+        dcdT0 = omegaPreq;
+    }
+    else
+    {
+        forAll(dcdT0,i)
+        {
+            dcdT0[i] = omegaPreq[i];
+        }
+    }
+
+
+    scalarField dcdT1(dcdt);
+    omegaPreq = omega(c2,T + delta,0,rR);
+    if (solidReactionEnergyFromEnthalpy_)
+    {
+        dcdT1 = omegaPreq;
+    }
+    else
+    {
+        forAll(dcdT1,i)
+        {
+            dcdT1[i] = omegaPreq[i];
+        }
+    }
+
+    for (label i=0; i<nEqns(); i++)
+    {
+        dfdc[i][nSpecie_] = 0.5*(dcdT1[i] - dcdT0[i])/delta;
+    }
+
 }
 
 
-template<class ReactionThermo, class ThermoType>
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
 Foam::tmp<Foam::volScalarField>
-Foam::StandardChemistryModel<ReactionThermo, ThermoType>::tc() const
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::tc() const
 {
     tmp<volScalarField> ttc
     (
@@ -295,61 +895,111 @@ Foam::StandardChemistryModel<ReactionThermo, ThermoType>::tc() const
         )
     );
 
-    scalarField& tc = ttc.ref();
-
-    tmp<volScalarField> trho(this->thermo().rho());
-    const scalarField& rho = trho();
-
-    const scalarField& T = this->thermo().T();
-    const scalarField& p = this->thermo().T();
-    //const scalarField& p = this->thermo().p();
-
-    const label nReaction = reactions_.size();
-
-    scalar pf, cf, pr, cr;
-    label lRef, rRef;
-
-    if (this->chemistry_)
-    {
-        forAll(rho, celli)
-        {
-            const scalar rhoi = rho[celli];
-            const scalar Ti = T[celli];
-            const scalar pi = p[celli];
-
-            scalar cSum = 0;
-
-            for (label i=0; i<nSpecie_; i++)
-            {
-                c_[i] = rhoi*Y_[i][celli]/specieThermos_[i].W();
-                cSum += c_[i];
-            }
-
-            forAll(reactions_, i)
-            {
-                const Reaction<ThermoType>& R = reactions_[i];
-
-                R.omega(pi, Ti, c_, celli, pf, cf, lRef, pr, cr, rRef);
-
-                forAll(R.rhs(), s)
-                {
-                    tc[celli] += R.rhs()[s].stoichCoeff*pf*cf;
-                }
-            }
-
-            tc[celli] = nReaction*cSum/tc[celli];
-        }
-    }
-
-    ttc.ref().correctBoundaryConditions();
 
     return ttc;
 }
 
-
-template<class ReactionThermo, class ThermoType>
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
 Foam::tmp<Foam::volScalarField>
-Foam::StandardChemistryModel<ReactionThermo, ThermoType>::Qdot() const
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::gasHs
+(
+    const volScalarField& p,
+    const volScalarField& T,
+    const label index
+) const
+{
+
+    tmp<volScalarField> tHs
+    (
+        new volScalarField
+        (
+            IOobject
+            (
+                "Hs_" + pyrolisisGases_[index],
+                this->mesh_.time().timeName(),
+                this->mesh_,
+                IOobject::NO_READ,
+                IOobject::NO_WRITE
+            ),
+            this->mesh_,
+            dimensionedScalar("zero", dimEnergy/dimMass, 0.0),
+            zeroGradientFvPatchScalarField::typeName
+        )
+    );
+
+    volScalarField& gasHs = tHs.ref();
+
+    const GasThermoType& mixture = gasThermo_[index];
+
+    forAll(gasHs.internalField(), cellI)
+    {
+        gasHs[cellI] = mixture.Hs(p[cellI], T[cellI]);
+    }
+
+    return tHs;
+}
+
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
+Foam::tmp<Foam::volScalarField>
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::Sh() const
+{
+    tmp<volScalarField> tSh
+    (
+        new volScalarField
+        (
+            IOobject
+            (
+                "Sh",
+                this->mesh_.time().timeName(),
+                this->mesh_,
+                IOobject::NO_READ,
+                IOobject::AUTO_WRITE,
+                false
+            ),
+            this->mesh_,
+            dimensionedScalar("zero", dimEnergy/dimTime/dimVolume, 0.0),
+            zeroGradientFvPatchScalarField::typeName
+        )
+    );
+
+    if (this->chemistry_)
+    {
+        scalarField& Sh = tSh.ref();
+
+        if (solidReactionEnergyFromEnthalpy_)
+        {
+            forAll(Ys_, i)
+            {
+            forAll(Sh, cellI)
+            {
+                scalar hf = solidThermo_[i].hf();
+                Sh[cellI] -= hf*RRs_[i][cellI];
+            }
+            }
+            forAll(Sh, cellI)
+            {
+            forAll(pyrolisisGases_, i)
+            {
+                scalar Hc = gasThermo_[gasDictionary_[i]].Hf();
+                Sh[cellI] -= Hc*RRg_[i][cellI];
+            }
+            }
+        }
+        else
+        {
+            forAll(Sh,cellI)
+            {
+            Sh[cellI] = shReactionHeat_[cellI];
+            }
+        }
+    }
+    return tSh;
+}
+
+
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
+Foam::tmp<Foam::volScalarField>
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::Qdot() const
 {
     tmp<volScalarField> tQdot
     (
@@ -365,11 +1015,11 @@ Foam::StandardChemistryModel<ReactionThermo, ThermoType>::Qdot() const
     {
         scalarField& Qdot = tQdot.ref();
 
-        forAll(Y_, i)
+        forAll(Ys_, i)
         {
             forAll(Qdot, celli)
             {
-                const scalar hi = specieThermos_[i].Hf();
+                const scalar hi = 0;
                 Qdot[celli] -= hi*RR_[i][celli];
             }
         }
@@ -378,10 +1028,49 @@ Foam::StandardChemistryModel<ReactionThermo, ThermoType>::Qdot() const
     return tQdot;
 }
 
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
+Foam::tmp<Foam::volScalarField>
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::RRpor(const volScalarField T) const
+{
+    tmp<volScalarField> tRRpor
+    (
+        new volScalarField
+        (
+            IOobject
+            (
+                "RRpor",
+                this->mesh_.time().timeName(),
+                this->mesh_,
+                IOobject::NO_READ,
+                IOobject::AUTO_WRITE,
+                false
+            ),
+            this->mesh_,
+            dimensionedScalar("zero", dimless/dimTime, 0.0),
+            zeroGradientFvPatchScalarField::typeName
+        )
+    );
 
-template<class ReactionThermo, class ThermoType>
+    if (this->chemistry_)
+    {
+        scalarField& RRpor = tRRpor.ref();
+
+        forAll(Ys_, i)
+        {
+            forAll(RRpor, cellI)
+            {
+                scalar rho = solidThermo_[i].rho(T[cellI]);
+                RRpor[cellI] -= RRs_[i][cellI]/rho;
+            }
+        }
+
+    }
+    return tRRpor;
+}
+
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
 Foam::tmp<Foam::DimensionedField<Foam::scalar, Foam::volMesh>>
-Foam::StandardChemistryModel<ReactionThermo, ThermoType>::calculateRR
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::calculateRR
 (
     const label ri,
     const label si
@@ -397,173 +1086,274 @@ Foam::StandardChemistryModel<ReactionThermo, ThermoType>::calculateRR
         )
     );
 
-    volScalarField::Internal& RR = tRR.ref();
 
-    tmp<volScalarField> trho(this->thermo().rho());
-    const scalarField& rho = trho();
-
-    const scalarField& T = this->thermo().T();
-    const scalarField& p = this->thermo().T();
-    //const scalarField& p = this->thermo().p();
-
-    scalar pf, cf, pr, cr;
-    label lRef, rRef;
-
-    forAll(rho, celli)
-    {
-        const scalar rhoi = rho[celli];
-        const scalar Ti = T[celli];
-        const scalar pi = p[celli];
-
-        for (label i=0; i<nSpecie_; i++)
-        {
-            const scalar Yi = Y_[i][celli];
-            c_[i] = rhoi*Yi/specieThermos_[i].W();
-        }
-
-        const Reaction<ThermoType>& R = reactions_[ri];
-        const scalar omegai = R.omega
-        (
-            pi, Ti, c_, celli, pf, cf, lRef, pr, cr, rRef
-        );
-
-        forAll(R.lhs(), s)
-        {
-            if (si == R.lhs()[s].index)
-            {
-                RR[celli] -= R.lhs()[s].stoichCoeff*omegai;
-            }
-        }
-
-        forAll(R.rhs(), s)
-        {
-            if (si == R.rhs()[s].index)
-            {
-                RR[celli] += R.rhs()[s].stoichCoeff*omegai;
-            }
-        }
-
-        RR[celli] *= specieThermos_[si].W();
-    }
 
     return tRR;
 }
 
 
-template<class ReactionThermo, class ThermoType>
-void Foam::StandardChemistryModel<ReactionThermo, ThermoType>::calculate()
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
+void Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::calculate()
 {
-    if (!this->chemistry_)
+
+    const volScalarField rho
+    (
+        IOobject
+        (
+            "rho",
+            this->time().timeName(),
+            this->mesh(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE,
+            false
+        ),
+        this->solidThermo().rho()
+    );
+
+    if (this->mesh().changing())
     {
-        return;
+        forAll(RRs_, i)
+        {
+            RRs_[i].setSize(rho.size());
+        }
+        forAll(RRg_, i)
+        {
+            RRg_[i].setSize(rho.size());
+        }
     }
 
-    tmp<volScalarField> trho(this->thermo().rho());
-    const scalarField& rho = trho();
-
-    const scalarField& T = this->thermo().T();
-    //const scalarField& p = this->thermo().p();
-    const scalarField& p = this->thermo().T();
-
-    forAll(rho, celli)
+    forAll(RRs_, i)
     {
-        const scalar rhoi = rho[celli];
-        const scalar Ti = T[celli];
-        const scalar pi = p[celli];
+        RRs_[i] = 0.0;
+    }
+    forAll(RRg_, i)
+    {
+        RRg_[i] = 0.0;
+    }
 
-        for (label i=0; i<nSpecie_; i++)
+    if (this->chemistry_)
+    {
+        forAll(rho, celli)
         {
-            const scalar Yi = Y_[i][celli];
-            c_[i] = rhoi*Yi/specieThermos_[i].W();
-        }
+            cellCounter_ = celli;
 
-        omega(pi, Ti, c_, celli, dcdt_);
+            const scalar delta = this->mesh().V()[celli];
 
-        for (label i=0; i<nSpecie_; i++)
-        {
-            RR_[i][celli] = dcdt_[i]*specieThermos_[i].W();
+            if (reactingCells_[celli])
+            {
+                scalar rhoi = rho[celli];
+                scalar Ti = this->solidThermo().T()[celli];
+
+                scalarField c(nSpecie_, 0.0);
+                for (label i=0; i<nSolids_; i++)
+                {
+                    c[i] = rhoi*Ys_[i][celli]*delta;
+                }
+        // it is not seen from outside the class so no need to wrap it
+                scalarField rR(nReaction_, 0.0);
+                const scalarField dcdt = omega(c, Ti, 0.0, rR, true);
+                forAll(RRs_, i)
+                {
+                    RRs_[i][celli] = dcdt[i]/delta;
+                }
+
+                forAll(RRg_, i)
+                {
+                    RRg_[i][celli] = dcdt[nSolids_ + i]/delta;
+                }
+            }
         }
     }
 }
 
 
-template<class ReactionThermo, class ThermoType>
-template<class DeltaTType>
-Foam::scalar Foam::StandardChemistryModel<ReactionThermo, ThermoType>::solve
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
+Foam::scalar
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::solve
 (
-    const DeltaTType& deltaT
+    const scalar t0,
+    const scalar deltaT
 )
 {
-    BasicSolidChemistryModel<ReactionThermo>::correct();
+    const volScalarField rho
+    (
+        IOobject
+        (
+            "rho",
+            this->time().timeName(),
+            this->mesh(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE,
+            false
+        ),
+        this->solidThermo().rho()
+    );
 
-    scalar deltaTMin = great;
+    if (this->mesh().changing())
+    {
+        forAll(RRs_, i)
+        {
+            RRs_[i].setSize(rho.size());
+        }
+        forAll(RRg_, i)
+        {
+            RRg_[i].setSize(rho.size());
+        }
+    }
+
+    forAll(RRs_, i)
+    {
+        RRs_[i] = 0.0;
+    }
+    forAll(RRg_, i)
+    {
+        RRg_[i] = 0.0;
+    }
+
+    forAll(shReactionHeat_,cellI)
+    {
+    shReactionHeat_[cellI] = 0.0;
+    }
 
     if (!this->chemistry_)
     {
-        return deltaTMin;
+        return GREAT;
     }
 
-    tmp<volScalarField> trho(this->thermo().rho());
-    const scalarField& rho = trho();
-
-    const scalarField& T = this->thermo().T();
-    //const scalarField& p = this->thermo().p();
-    const scalarField& p = this->thermo().T();
-
-    scalarField c0(nSpecie_);
+    scalar deltaTMin = GREAT;
 
     forAll(rho, celli)
     {
-        scalar Ti = T[celli];
-
-        if (Ti > Treact_)
+        if (reactingCells_[celli])
         {
-            const scalar rhoi = rho[celli];
-            scalar pi = p[celli];
+            cellCounter_ = celli;
 
-            for (label i=0; i<nSpecie_; i++)
+            scalar rhoi = rho[celli];
+            scalar rhoiG = rhoG_[celli];
+
+            scalar Ti = this->solidThermo().T()[celli];
+
+            scalarField c(nSpecie_, 0.0);
+            scalarField c0(nSpecie_, 0.0);
+            scalarField dc(nSpecie_, 0.0);
+            scalarField rR(nReaction_, 0.0);
+
+        scalarField omegaPreq(omega(c0,Ti,0.0,rR));
+            if (showRRR_ && gSum(rR) > 0)
             {
-                c_[i] = rhoi*Y_[i][celli]/specieThermos_[i].W();
-                c0[i] = c_[i];
+                Info << "relative reaction rates: " << rR/gSum(rR) << endl;
             }
 
-            // Initialise time progress
-            scalar timeLeft = deltaT[celli];
-
-            // Calculate the chemical source terms
-            while (timeLeft > small)
+            for (label i=0; i<nSolids_; i++)
             {
-                scalar dt = timeLeft;
-                this->solve(pi, Ti, c_, celli, dt, this->deltaTChem_[celli]);
+                c[i] = rhoi*Ys_[i][celli];
+            }
+            for (label i=0; i < nGases_; i++)
+            {
+                c[nSolids_ + i] = rhoiG*gasPhaseGases_[i][celli];
+            }
+            c0 = c;
+
+            scalar t = t0;
+            scalar tauC = this->deltaTChem_[celli];
+            scalar dt = min(deltaT, tauC);
+            scalar timeLeft = deltaT;
+
+            // calculate the source terms
+            while (timeLeft > SMALL)
+            {
+                tauC = this->solve(c, Ti, 0.0, celli, t, dt);
+
+                t += dt;
+                // update the temperature
+                scalar cTot = 0.0;
+
+                //Total mass density
+                for (label i=0; i<nSolids_; i++)
+                {
+                    cTot += c[i];
+                }
+
+                scalar newCp = 0.0;
+                scalar newhi = 0.0;
+                scalar invRho = 0.0;
+                scalarList dcdt = (c - c0)/dt;
+
+                if (solidReactionEnergyFromEnthalpy_)
+                {
+                    for (label i=0; i<nSolids_; i++)
+                    {
+                    scalar dYi = dcdt[i];
+                    scalar Yi = c[i];
+                    newhi -= dYi*solidThermo_[i].hf();
+                    newCp += Yi*solidThermo_[i].Cp(Ti);
+                    invRho += Yi/solidThermo_[i].rho(Ti);
+                    }
+                }
+                else
+                {
+                    for (label i=0; i<nSolids_; i++)
+                    {
+                        scalar Yi = c[i];
+                        newCp += Yi*solidThermo_[i].Cp(Ti);
+                        invRho += Yi/solidThermo_[i].rho(Ti);
+                    }
+                    newhi += omegaPreq[nEqns()];
+                }
+
+                scalar dTi = (newhi/newCp)*dt;
+
+                Ti += dTi;
+
                 timeLeft -= dt;
+                this->deltaTChem_[celli] = tauC;
+                dt = min(timeLeft, tauC);
+                dt = max(dt, SMALL);
             }
 
-            deltaTMin = min(this->deltaTChem_[celli], deltaTMin);
+            deltaTMin = min(tauC, deltaTMin);
+            dc = c - c0;
 
-            this->deltaTChem_[celli] =
-                min(this->deltaTChem_[celli], this->deltaTChemMax_);
-
-            for (label i=0; i<nSpecie_; i++)
+            forAll(RRs_, i)
             {
-                RR_[i][celli] =
-                    (c_[i] - c0[i])*specieThermos_[i].W()/deltaT[celli];
+                RRs_[i][celli] = dc[i]/deltaT;
             }
+
+            forAll(RRg_, i)
+            {
+                RRg_[i][celli] = dc[nSolids_ + i]/deltaT;
+            }
+
+        if (not solidReactionEnergyFromEnthalpy_)
+        {
+                shReactionHeat_[celli] = omegaPreq[nEqns()];
+        }
+
+            // Update Ys0_
+        omegaPreq = omega(c0,Ti,0.0,rR,true);
+        if (solidReactionEnergyFromEnthalpy_)
+        {
+            dc = omegaPreq;
         }
         else
         {
-            for (label i=0; i<nSpecie_; i++)
+            forAll(dc,i)
             {
-                RR_[i][celli] = 0;
+                dc[i] = omegaPreq[i];
             }
         }
+        }
     }
+
+    // Don't allow the time-step to change more than a factor of 2
+    deltaTMin = min(deltaTMin, 2*deltaT);
 
     return deltaTMin;
 }
 
-
-template<class ReactionThermo, class ThermoType>
-Foam::scalar Foam::StandardChemistryModel<ReactionThermo, ThermoType>::solve
+/*
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
+Foam::scalar Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::solve
 (
     const scalar deltaT
 )
@@ -575,16 +1365,16 @@ Foam::scalar Foam::StandardChemistryModel<ReactionThermo, ThermoType>::solve
         2*deltaT
     );
 }
+*/
 
-
-template<class ReactionThermo, class ThermoType>
-Foam::scalar Foam::StandardChemistryModel<ReactionThermo, ThermoType>::solve
+/*template<class SolidThermo, class SolidThermoType, class GasThermoType>
+Foam::scalar Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::solve
 (
     const scalarField& deltaT
 )
 {
     return this->solve<scalarField>(deltaT);
-}
+}*/
 
 
 // ************************************************************************* //

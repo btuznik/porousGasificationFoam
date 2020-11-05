@@ -35,43 +35,44 @@ namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#define defineChemistrySolver(Model, ReactionThermo, ThermoPhysics)            \
+#define defineChemistrySolver(Model, SolidThermo, SolidThermoPhysics, GasThermoPhysics)    \
                                                                                \
-    typedef Model<ReactionThermo, ThermoPhysics>                               \
-        Model##ReactionThermo##ThermoPhysics;                                  \
+    typedef Model<SolidThermo, SolidThermoPhysics, GasThermoPhysics>                       \
+        Model##SolidThermo##SolidThermoPhysics##GasThermoPhysics;                          \
                                                                                \
     defineTemplateTypeNameAndDebugWithName                                     \
     (                                                                          \
-        Model##ReactionThermo##ThermoPhysics,                                  \
+        Model##SolidThermo##SolidThermoPhysics##GasThermoPhysics,                          \
         (                                                                      \
-            word(Model##ReactionThermo##ThermoPhysics::typeName_()) + "<"      \
-          + ReactionThermo::typeName + "," + ThermoPhysics::typeName() + ">"   \
+            word(Model##SolidThermo##SolidThermoPhysics##GasThermoPhysics::typeName_()) + "<"  \
+          + SolidThermo::typeName + "," + SolidThermoPhysics::typeName() + ","            \
+          + GasThermoPhysics::typeName() + ">"                                    \
         ).c_str(),                                                             \
         0                                                                      \
     );
 
 
-#define makeChemistrySolver(Solver, Model, ReactionThermo, ThermoPhysics)      \
+#define makeChemistrySolver(Solver, Model, SolidThermo, SolidThermoPhysics, GasThermoPhysics) \
                                                                                \
-    typedef Solver<Model<ReactionThermo, ThermoPhysics>>                       \
-        Solver##Model##ReactionThermo##ThermoPhysics;                          \
+    typedef Solver<Model<SolidThermo, SolidThermoPhysics, GasThermoPhysics>>               \
+        Solver##Model##SolidThermo##SolidThermoPhysics##GasThermoPhysics;                  \
                                                                                \
     defineTemplateTypeNameAndDebugWithName                                     \
     (                                                                          \
-        Solver##Model##ReactionThermo##ThermoPhysics,                          \
+        Solver##Model##SolidThermo##SolidThermoPhysics##GasThermoPhysics,                  \
         (                                                                      \
-            word(Solver##Model##ReactionThermo##ThermoPhysics::typeName_())    \
-          + "<" + word(Model<ReactionThermo, ThermoPhysics>::typeName_())      \
-          + "<" + word(ReactionThermo::typeName_()) + ","                      \
-          + ThermoPhysics::typeName() + ">>"                                   \
+            word(Solver##Model##SolidThermo##SolidThermoPhysics##GasThermoPhysics::typeName_()) \
+          + "<" + word(Model<SolidThermo, SolidThermoPhysics, GasThermoPhysics>::typeName_())   \
+          + "<" + word(SolidThermo::typeName_()) + "," + SolidThermoPhysics::typeName() + "," \
+          + GasThermoPhysics::typeName() + ">>"                                   \
         ).c_str(),                                                             \
         0                                                                      \
     );                                                                         \
                                                                                \
-    BasicSolidChemistryModel<ReactionThermo>::                                      \
+    BasicSolidChemistryModel<SolidThermo>::                                    \
         addthermoConstructorToTable                                            \
-        <Solver##Model##ReactionThermo##ThermoPhysics>                         \
-        add##Solver##Model##ReactionThermo##ThermoPhysics##\
+        <Solver##Model##SolidThermo##SolidThermoPhysics##GasThermoPhysics>                 \
+        add##Solver##Model##SolidThermo##SolidThermoPhysics##GasThermoPhysics##\
 thermoConstructorToTable_;
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

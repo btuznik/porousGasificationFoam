@@ -52,7 +52,7 @@ class fvMesh;
                      class BasicSolidChemistryModel Declaration
 \*---------------------------------------------------------------------------*/
 
-template<class ReactionThermo>
+template<class SolidThermo>
 class BasicSolidChemistryModel
 :
     public basicSolidChemistryModel
@@ -62,7 +62,7 @@ protected:
     // Protected data
 
         //- Thermo
-        const ReactionThermo& thermo_;
+        const SolidThermo& solidThermo_;
 
 
 public:
@@ -72,7 +72,7 @@ public:
 
 
     //- Thermo type
-    typedef ReactionThermo reactionThermo;
+    typedef SolidThermo reactionThermo;
 
 
     //- Declare run-time constructor selection tables
@@ -81,21 +81,25 @@ public:
         autoPtr,
         BasicSolidChemistryModel,
         thermo,
-        (const ReactionThermo& thermo),
-        (thermo)
+        (
+            const SolidThermo& thermo,
+            PtrList<volScalarField>& gasPhaseGases
+        ),
+        (thermo, gasPhaseGases)
     );
 
 
     // Constructors
 
         //- Construct from thermo
-        BasicSolidChemistryModel(const ReactionThermo& thermo);
-
+        BasicSolidChemistryModel(const SolidThermo& thermo);
 
     //- Selector
-    static autoPtr<BasicSolidChemistryModel<ReactionThermo>> New
+    static autoPtr<BasicSolidChemistryModel<SolidThermo>> New
     (
-        const ReactionThermo& thermo
+        const SolidThermo& thermo,
+        PtrList<volScalarField>& gasPhaseGases,
+        const word thermoName
     );
 
 
@@ -105,8 +109,47 @@ public:
 
     // Member Functions
 
-        //- Return const access to the thermo package
-        inline const ReactionThermo& thermo() const;
+        //- Return access to the solid thermo package
+        //inline SolidThermo& solidThermo();
+
+        //- Return access to the solid's thermo package
+        inline const SolidThermo& solidThermo() const;
+
+        //- Return total solids mass source term [kg/m3/s]
+        virtual tmp<volScalarField> RRs() const = 0;
+
+        //- Return total gases mass source term [kg/m3/s]
+        virtual tmp<volScalarField> RRg() const = 0;
+
+        //- Return chemical source terms for solids [kg/m3/s]
+        virtual tmp<volScalarField> RRs(const label i) const = 0;
+
+        //- Return chemical source terms for gases [kg/m3/s]
+        virtual tmp<volScalarField> RRg(const label i) const = 0;
+
+        //- Return sensible enthalpy for gas i [J/Kg]
+        virtual tmp<volScalarField> gasHs
+        (
+            const volScalarField& p,
+            const volScalarField& T,
+            const label i
+        ) const = 0;
+
+        //- Return source for enthalpy equation [kg/m/s3]
+        virtual tmp<volScalarField> Sh() const = 0;
+
+        //- Return specie Table for gases
+        virtual const speciesTable& gasTable() const = 0;
+
+        //- Set reacting status of cell, cellI
+        virtual void setCellReacting(const label cellI, const bool active) = 0;
+
+        //- Calculates the reaction rates
+        virtual void calculate() = 0;
+
+        //- Return source for porosity equation [1/s]
+        virtual tmp<volScalarField> RRpor(const volScalarField T) const = 0;
+
 };
 
 

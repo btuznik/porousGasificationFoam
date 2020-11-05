@@ -28,74 +28,241 @@ License
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-template<class ReactionThermo, class ThermoType>
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
+inline Foam::PtrList<Foam::scalarField>&
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::RRs()
+{
+    return RRs_;
+}
+
+
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
+inline Foam::PtrList<Foam::scalarField>&
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::RRg()
+{
+    return RRg_;
+}
+
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
+inline Foam::tmp<Foam::volScalarField>
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::RRg() const
+{
+    tmp<volScalarField> tRRg
+    (
+        new volScalarField
+        (
+            IOobject
+            (
+                "RRg",
+                this->time().timeName(),
+                this->mesh(),
+                IOobject::NO_READ,
+                IOobject::NO_WRITE
+            ),
+            this->mesh(),
+            dimensionedScalar("zero", dimMass/dimVolume/dimTime, 0.0),
+            zeroGradientFvPatchScalarField::typeName
+        )
+    );
+
+    if (this->chemistry_)
+    {
+        for (label i=0; i < nGases_; i++)
+        {
+            tRRg.ref().primitiveFieldRef() += RRg_[i];
+        }
+        tRRg.ref().correctBoundaryConditions();
+    }
+    return tRRg;
+}
+
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
+inline Foam::tmp<Foam::volScalarField>
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::RRs() const
+{
+    tmp<volScalarField> tRRs
+    (
+        new volScalarField
+        (
+            IOobject
+            (
+                "RRs",
+                this->time().timeName(),
+                this->mesh(),
+                IOobject::NO_READ,
+                IOobject::NO_WRITE
+            ),
+            this->mesh(),
+            dimensionedScalar("zero", dimMass/dimVolume/dimTime, 0.0),
+            zeroGradientFvPatchScalarField::typeName
+        )
+    );
+
+    if (this->chemistry_)
+    {
+        for (label i=0; i < nSolids_; i++)
+        {
+            tRRs.ref().primitiveFieldRef() += RRs_[i];
+        }
+        tRRs.ref().correctBoundaryConditions();
+    }
+    return tRRs;
+}
+
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
+inline Foam::tmp<Foam::volScalarField>
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::RRs
+(
+    const label i
+) const
+{
+    tmp<volScalarField> tRRs
+    (
+        new volScalarField
+        (
+            IOobject
+            (
+                "RRs(" + Ys_[i].name() + ')',
+                this->time().timeName(),
+                this->mesh(),
+                IOobject::NO_READ,
+                IOobject::NO_WRITE
+            ),
+            this->mesh(),
+            dimensionedScalar("zero", dimMass/dimVolume/dimTime, 0.0),
+            zeroGradientFvPatchScalarField::typeName
+        )
+    );
+
+    if (this->chemistry_)
+    {
+        tRRs.ref().primitiveFieldRef() = RRs_[i];
+        tRRs.ref().correctBoundaryConditions();
+    }
+    return tRRs;
+}
+
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
+inline Foam::tmp<Foam::volScalarField>
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::RRg
+(
+    const label i
+) const
+{
+    tmp<volScalarField> tRRg
+    (
+        new volScalarField
+        (
+            IOobject
+            (
+                "RRg(" + this->pyrolisisGases_[i] + ')',
+                this->time().timeName(),
+                this->mesh(),
+                IOobject::NO_READ,
+                IOobject::NO_WRITE
+            ),
+            this->mesh(),
+            dimensionedScalar("zero", dimMass/dimVolume/dimTime, 0.0),
+            zeroGradientFvPatchScalarField::typeName
+        )
+    );
+
+    if (this->chemistry_)
+    {
+        tRRg.ref().primitiveFieldRef() = RRg_[i];
+        tRRg.ref().correctBoundaryConditions();
+    }
+    return tRRg;
+}
+
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
 inline Foam::label
-Foam::StandardChemistryModel<ReactionThermo, ThermoType>::nEqns() const
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::nEqns() const
 {
     // nEqns = number of species + temperature + pressure
     return nSpecie_ + 2;
 }
 
 
-template<class ReactionThermo, class ThermoType>
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
 inline Foam::PtrList<Foam::DimensionedField<Foam::scalar, Foam::volMesh>>&
-Foam::StandardChemistryModel<ReactionThermo, ThermoType>::RR()
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::RR()
 {
     return RR_;
 }
 
 
-template<class ReactionThermo, class ThermoType>
-inline const Foam::PtrList<Foam::Reaction<ThermoType>>&
-Foam::StandardChemistryModel<ReactionThermo, ThermoType>::reactions() const
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
+inline const Foam::PtrList<Foam::solidHeterogeneousReaction>&
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::reactions() const
 {
     return reactions_;
 }
 
-
-template<class ReactionThermo, class ThermoType>
-inline const Foam::PtrList<ThermoType>&
-Foam::StandardChemistryModel<ReactionThermo, ThermoType>::specieThermos() const
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
+inline const Foam::PtrList<GasThermoType>&
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::gasThermo() const
 {
-    return specieThermos_;
+    return gasThermo_;
+}
+
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
+inline const Foam::speciesTable&
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::gasTable() const
+{
+    return pyrolisisGases_;
 }
 
 
-template<class ReactionThermo, class ThermoType>
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
+inline const Foam::PtrList<SolidThermoType>&
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::specieThermos() const
+{
+    return solidThermo_;
+}
+
+
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
 inline Foam::label
-Foam::StandardChemistryModel<ReactionThermo, ThermoType>::nSpecie() const
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::nSpecie() const
 {
     return nSpecie_;
 }
 
-
-template<class ReactionThermo, class ThermoType>
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
 inline Foam::label
-Foam::StandardChemistryModel<ReactionThermo, ThermoType>::nReaction() const
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::nGases() const
+{
+    return nGases_;
+}
+
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
+inline Foam::label
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::nReaction() const
 {
     return nReaction_;
 }
 
 
-template<class ReactionThermo, class ThermoType>
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
 inline Foam::scalar
-Foam::StandardChemistryModel<ReactionThermo, ThermoType>::Treact() const
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::Treact() const
 {
     return Treact_;
 }
 
 
-template<class ReactionThermo, class ThermoType>
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
 inline Foam::scalar&
-Foam::StandardChemistryModel<ReactionThermo, ThermoType>::Treact()
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::Treact()
 {
     return Treact_;
 }
 
 
-template<class ReactionThermo, class ThermoType>
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
 inline const Foam::DimensionedField<Foam::scalar, Foam::volMesh>&
-Foam::StandardChemistryModel<ReactionThermo, ThermoType>::RR
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::RR
 (
     const label i
 ) const
@@ -103,9 +270,9 @@ Foam::StandardChemistryModel<ReactionThermo, ThermoType>::RR
     return RR_[i];
 }
 
-template<class ReactionThermo, class ThermoType>
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
 Foam::DimensionedField<Foam::scalar, Foam::volMesh>&
-Foam::StandardChemistryModel<ReactionThermo, ThermoType>::RR
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::RR
 (
     const label i
 )
@@ -113,5 +280,18 @@ Foam::StandardChemistryModel<ReactionThermo, ThermoType>::RR
     return RR_[i];
 }
 
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
+inline Foam::scalarField&
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::coeffs()
+{
+    return coeffs_;
+}
 
+
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
+inline const Foam::scalarField&
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::coeffs() const
+{
+    return coeffs_;
+}
 // ************************************************************************* //

@@ -117,10 +117,10 @@ public:
 
 
     // Constructors
-	
-	//-Null constructor
-	heterogeneousP1(const volScalarField& T);
-	
+
+        //-Null constructor
+        heterogeneousP1(const volScalarField& T);
+
         //- Construct from components
         heterogeneousP1
         (

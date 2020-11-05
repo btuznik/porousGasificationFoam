@@ -25,46 +25,43 @@ License
 
 #include "solidOde.H"
 
-#include "StandardChemistryModel.H"
+#include "ODESolidHeterogeneousChemistryModel.H"
 
+#include "HGSSolidThermo.H"
 #include "psiReactionThermo.H"
-#include "rhoReactionThermo.H"
-#include "solidReactingThermo.H"
 
-#include "forCommonSolids.H"
-#include "forSolids.H"
-#include "forCommonLiquids.H"
-#include "forPolynomials.H"
+#include "solidThermoPhysicsTypes.H"
+
 #include "makeChemistrySolver.H"
+
+#include "forCommonGases.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#define defineChemistrySolvers(ReactionThermo, ThermoPhysics)                  \
+#define defineChemistrySolvers(SolidThermo, SolidThermoPhysics, GasThermoPhysics) \
     defineChemistrySolver                                                      \
     (                                                                          \
-        StandardChemistryModel,                                                \
-        ReactionThermo,                                                        \
-        ThermoPhysics                                                          \
+        ODESolidHeterogeneousChemistryModel,                                   \
+        SolidThermo,                                                           \
+        SolidThermoPhysics,                                                    \
+        GasThermoPhysics                                                       \
     );                                                                         \
 
-#define makeChemistrySolvers(Solver, ReactionThermo, ThermoPhysics)            \
+#define makeChemistrySolvers(Solver, SolidThermo, SolidThermoPhysics, GasThermoPhysics) \
     makeChemistrySolver                                                        \
     (                                                                          \
         Solver,                                                                \
-        StandardChemistryModel,                                                \
-        ReactionThermo,                                                        \
-        ThermoPhysics                                                          \
+        ODESolidHeterogeneousChemistryModel,                                   \
+        SolidThermo,                                                           \
+        SolidThermoPhysics,                                                    \
+        GasThermoPhysics                                                       \
     );                                                                         \
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    forSolids(defineChemistrySolvers, solidReactingThermo);
-    forCommonGases(defineChemistrySolvers, psiReactionThermo);
-
-    forSolids(makeChemistrySolvers, solidOde, solidReactingThermo);
-    forCommonGases(makeChemistrySolvers, solidOde, psiReactionThermo);
-
+    forCommonGases(defineChemistrySolvers, HGSSolidThermo, constSolidThermoPhysics);
+    forCommonGases(makeChemistrySolvers, solidOde, HGSSolidThermo, constSolidThermoPhysics);
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

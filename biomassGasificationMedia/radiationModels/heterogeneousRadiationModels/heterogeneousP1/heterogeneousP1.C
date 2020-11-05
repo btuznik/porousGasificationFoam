@@ -46,6 +46,196 @@ namespace radiationModels
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+Foam::radiationModels::heterogeneousP1::heterogeneousP1
+(
+    const volScalarField& T
+)
+:
+  heterogeneousRadiationModel(typeName, T),
+  G_
+  (
+      IOobject
+      (
+          "G",
+          mesh_.time().timeName(),
+          mesh_,
+          IOobject::MUST_READ,
+          IOobject::AUTO_WRITE
+      ),
+      mesh_
+  ),
+  qr_
+  (
+      IOobject
+      (
+          "qr",
+          mesh_.time().timeName(),
+          mesh_,
+          IOobject::NO_READ,
+          IOobject::AUTO_WRITE
+      ),
+      mesh_,
+      dimensionedScalar(dimMass/pow3(dimTime), 0)
+  ),
+  a_
+  (
+      IOobject
+      (
+          "a",
+          mesh_.time().timeName(),
+          mesh_,
+          IOobject::NO_READ,
+          IOobject::AUTO_WRITE
+      ),
+      mesh_,
+      dimensionedScalar(dimless/dimLength, 0)
+  ),
+  as_
+  (
+      IOobject
+      (
+          "as",
+          mesh_.time().timeName(),
+          mesh_,
+          IOobject::NO_READ,
+          IOobject::AUTO_WRITE
+      ),
+      mesh_,
+      dimensionedScalar(dimless/dimLength, 0)
+  ),
+  borderAs_
+  (
+      IOobject
+      (
+          "borderAs",
+          mesh_.time().timeName(),
+          mesh_,
+          IOobject::NO_READ,
+          IOobject::AUTO_WRITE
+      ),
+      mesh_,
+      dimensionedScalar(dimless/dimLength, 0)
+  ),
+  e_
+  (
+      IOobject
+      (
+          "e",
+          mesh_.time().timeName(),
+          mesh_,
+          IOobject::NO_READ,
+          IOobject::NO_WRITE
+      ),
+      mesh_,
+      dimensionedScalar(dimless/dimLength, 0)
+  ),
+  es_
+  (
+      IOobject
+      (
+          "es",
+          mesh_.time().timeName(),
+          mesh_,
+          IOobject::NO_READ,
+          IOobject::NO_WRITE
+      ),
+      mesh_,
+      dimensionedScalar("es", dimless/dimLength, 0)
+  ),
+  borderEs_
+  (
+      IOobject
+      (
+          "borderEs",
+          mesh_.time().timeName(),
+          mesh_,
+          IOobject::NO_READ,
+          IOobject::NO_WRITE
+      ),
+      mesh_,
+      dimensionedScalar("borderEs", dimless/dimLength, 0)
+  ),
+  E_
+  (
+      IOobject
+      (
+          "E",
+          mesh_.time().timeName(),
+          mesh_,
+          IOobject::NO_READ,
+          IOobject::NO_WRITE
+      ),
+      mesh_,
+      dimensionedScalar(dimMass/dimLength/pow3(dimTime), 0)
+  ),
+  surfToVol_
+  (
+      IOobject
+      (
+          "surfToVol",
+          mesh_.time().timeName(),
+          mesh_,
+          IOobject::NO_READ,
+          IOobject::NO_WRITE
+      ),
+      mesh_,
+      dimensionedScalar(dimless/dimLength, 1.)
+  ),
+  porosityF_(volScalarField::null()),
+  surfL_(List<label>::null()),
+  surfF_
+  (
+      IOobject
+      (
+          "surfF",
+          mesh_.time().timeName(),
+          mesh_,
+          IOobject::NO_READ,
+          IOobject::NO_WRITE
+      ),
+      mesh_,
+      scalar(0.0)
+  ),
+  whereIs_
+  (
+      IOobject
+      (
+          "whereIs",
+          mesh_.time().timeName(),
+          mesh_,
+          IOobject::NO_READ,
+          IOobject::NO_WRITE
+      ),
+      mesh_,
+      scalar(1.0)
+  ),
+  whereIsNot_
+  (
+      IOobject
+      (
+          "whereIsNot",
+          mesh_.time().timeName(),
+          mesh_,
+          IOobject::NO_READ,
+          IOobject::NO_WRITE
+      ),
+      mesh_,
+      scalar(0.0)
+  ),
+  solidSh_
+  (
+      IOobject
+      (
+          "radiationSolidSh",
+          mesh_.time().timeName(),
+          mesh_,
+          IOobject::NO_READ,
+          IOobject::NO_WRITE
+      ),
+      mesh_,
+      dimensionedScalar(dimMass/dimLength/pow3(dimTime), 0)
+  )
+{}
 
 Foam::radiationModels::heterogeneousP1::heterogeneousP1
 (

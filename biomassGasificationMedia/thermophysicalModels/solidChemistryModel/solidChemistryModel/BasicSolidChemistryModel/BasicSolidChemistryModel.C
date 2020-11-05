@@ -8,7 +8,7 @@
 License
     This file is part of OpenFOAM.
 
-    OpenFOAM is free software: you can redistribute it and/or modify it
+    OpenFOAM is free basftware: you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
@@ -27,36 +27,39 @@ License
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-template<class ReactionThermo>
-Foam::BasicSolidChemistryModel<ReactionThermo>::BasicSolidChemistryModel
+template<class SolidThermo>
+Foam::BasicSolidChemistryModel<SolidThermo>::BasicSolidChemistryModel
 (
-    const ReactionThermo& thermo
+    const SolidThermo& thermo
 )
 :
     basicSolidChemistryModel(thermo),
-    thermo_(thermo)
+    solidThermo_(thermo)
 {}
 
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 
-template<class ReactionThermo>
-Foam::autoPtr<Foam::BasicSolidChemistryModel<ReactionThermo>>
-Foam::BasicSolidChemistryModel<ReactionThermo>::New(const ReactionThermo& thermo)
+template<class SolidThermo>
+Foam::autoPtr<Foam::BasicSolidChemistryModel<SolidThermo>>
+Foam::BasicSolidChemistryModel<SolidThermo>::New
+(
+    const SolidThermo& thermo,
+    PtrList<volScalarField>& gasPhaseGases,
+    const word thermoName
+)
 {
-    Info << "sadadadadas" << endl;
-    return basicSolidChemistryModel::New<BasicSolidChemistryModel<ReactionThermo>>
+    return basicSolidChemistryModel::New<BasicSolidChemistryModel<SolidThermo>>
     (
-        thermo
+        thermo,
+        gasPhaseGases,
+        thermoName
     );
 }
-
-
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-template<class ReactionThermo>
-Foam::BasicSolidChemistryModel<ReactionThermo>::~BasicSolidChemistryModel()
+template<class SolidThermo>
+Foam::BasicSolidChemistryModel<SolidThermo>::~BasicSolidChemistryModel()
 {}
-
 
 // ************************************************************************* //

@@ -30,10 +30,11 @@ License
 template<class ChemistryModel>
 Foam::solidOde<ChemistryModel>::solidOde
 (
-    const typename ChemistryModel::reactionThermo& thermo
+    const HGSSolidThermo& thermo,
+    PtrList<volScalarField>& gasPhaseGases
 )
 :
-    solidChemistrySolver<ChemistryModel>(thermo),
+    solidChemistrySolver<ChemistryModel>(thermo, gasPhaseGases),
     coeffsDict_(this->subDict("odeCoeffs")),
     odeSolver_(ODESolver::New(*this, coeffsDict_)),
     cTp_(this->nEqns())
@@ -48,18 +49,18 @@ Foam::solidOde<ChemistryModel>::~solidOde()
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
 template<class ChemistryModel>
-void Foam::solidOde<ChemistryModel>::solve
+Foam::scalar Foam::solidOde<ChemistryModel>::solve
 (
-    scalar& p,
-    scalar& T,
     scalarField& c,
+    const scalar T,
+    const scalar p,
     const label li,
-    scalar& deltaT,
-    scalar& subDeltaT
+    const scalar t0,
+    const scalar dt
 ) const
 {
+
     // Reset the size of the ODE system to the simplified size when mechanism
     // reduction is active
     if (odeSolver_->resize())
@@ -69,7 +70,7 @@ void Foam::solidOde<ChemistryModel>::solve
 
     const label nSpecie = this->nSpecie();
 
-    // Copy the concentration, T and P to the total solve-vector
+    // Copy the concentration,T and P to the total solve-vector
     for (int i=0; i<nSpecie; i++)
     {
         cTp_[i] = c[i];
@@ -77,14 +78,25 @@ void Foam::solidOde<ChemistryModel>::solve
     cTp_[nSpecie] = T;
     cTp_[nSpecie+1] = p;
 
-    odeSolver_->solve(0, deltaT, cTp_, li, subDeltaT);
+    scalar dtEst = dt;
 
+    odeSolver_->solve
+    (
+        t0,
+        t0 + dt,
+        cTp_,
+        li,
+        dtEst
+    );
     for (int i=0; i<nSpecie; i++)
     {
         c[i] = max(0.0, cTp_[i]);
     }
-    T = cTp_[nSpecie];
-    p = cTp_[nSpecie+1];
+
+   // T = cTp_[nSpecie];
+  //  p = cTp_[nSpecie+1];
+
+    return dtEst;
 }
 
 

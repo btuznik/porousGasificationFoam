@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::StandardChemistryModel
+    Foam::ODESolidHeterogeneousChemistryModel
 
 Description
     Extends base chemistry model by adding a thermo package, and ODE functions.
@@ -31,15 +31,16 @@ Description
 
 SourceFiles
     StandardChemistryModelI.H
-    StandardChemistryModel.C
+    ODESolidHeterogeneousChemistryModel.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef StandardChemistryModel_H
-#define StandardChemistryModel_H
+#ifndef ODESolidHeterogeneousChemistryModel_H
+#define ODESolidHeterogeneousChemistryModel_H
 
 #include "BasicSolidChemistryModel.H"
-#include "ReactionList.H"
+#include "solidHeterogeneousReaction.H"
+#include "psiReactionThermo.H"
 #include "ODESystem.H"
 #include "volFields.H"
 
@@ -52,13 +53,13 @@ namespace Foam
 class fvMesh;
 
 /*---------------------------------------------------------------------------*\
-                      Class StandardChemistryModel Declaration
+                      Class ODESolidHeterogeneousChemistryModel Declaration
 \*---------------------------------------------------------------------------*/
 
-template<class ReactionThermo, class ThermoType>
-class StandardChemistryModel
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
+class ODESolidHeterogeneousChemistryModel
 :
-    public BasicSolidChemistryModel<ReactionThermo>,
+    public BasicSolidChemistryModel<SolidThermo>,
     public ODESystem
 {
     // Private Member Functions
@@ -71,28 +72,52 @@ class StandardChemistryModel
 
 protected:
 
-    typedef ThermoType thermoType;
+    typedef SolidThermoType thermoType;
 
 
     // Protected data
 
-        //- Reference to the field of specie mass fractions
-        const PtrList<volScalarField>& Y_;
+        //- Mesh reference
+        const fvMesh& mesh_;
 
-        //- Thermodynamic data of the species
-        const PtrList<ThermoType>& specieThermos_;
+        //- List of gas species present in gas phase of reaction system
+        PtrList<volScalarField>& gasPhaseGases_;
+
+        //- Reference to the field of specie mass fractions
+        const PtrList<volScalarField>& Ys_;
+
+        //- Thermodynamic data of solids
+        const PtrList<SolidThermoType>& solidThermo_;
+
+        //- Thermodynamic data of gases
+       const PtrList<GasThermoType> gasThermo_;
+
+        //- List of gas species present in reaction system
+        speciesTable pyrolisisGases_;
 
         //- Reactions
-        const ReactionList<ThermoType> reactions_;
+        const PtrList<solidHeterogeneousReaction>& reactions_;
+
+        //- Number of gas species
+       label nGases_;
 
         //- Number of species
         label nSpecie_;
+
+        //- Number of solid components
+        label nSolids_;
 
         //- Number of reactions
         label nReaction_;
 
         //- Temperature below which the reaction rates are assumed 0
         scalar Treact_;
+
+        //- List of reaction rate per solid [kg/m3/s]
+        PtrList<scalarField> RRs_;
+
+        //- List of reaction rate per gas [kg/m3/s]
+        PtrList<scalarField> RRg_;
 
         //- List of reaction rate per specie [kg/m^3/s]
         PtrList<volScalarField::Internal> RR_;
@@ -103,6 +128,12 @@ protected:
         //- Temporary rate-of-change of concentration field
         mutable scalarField dcdt_;
 
+        //- Sh based on reaction heat
+        volScalarField shReactionHeat_;
+
+        //- ODE coefficients
+        scalarField coeffs_;
+
 
     // Protected Member Functions
 
@@ -110,36 +141,84 @@ protected:
         //  (e.g. for multi-chemistry model)
         inline PtrList<volScalarField::Internal>& RR();
 
+        //- Write access to source terms for solids
+        inline PtrList<scalarField>& RRs();
+
+        //- Write access to source terms for gases
+        inline PtrList<scalarField>& RRg();
+
+private:
+
+        //- List of accumulative solid concentrations
+        mutable PtrList<volScalarField> Ys0_;
+
+        //- Cell counter
+        label cellCounter_;
+
+        //- List of active reacting cells
+        List<bool> reactingCells_;
+
+        //- cellVolume
+        volScalarField V_;
+
+        //- choose source of information about solid chemistry reaction energy
+        Switch solidReactionEnergyFromEnthalpy_;
+
+        //- choose source of information about solid chemistry reaction energy
+        Switch stoichiometricReactions_;
+
+        //- change of energy in time while heat of reaction approach is chosen
+        scalar solidReactionDeltaEnergy_;
+
+        //- show the relative reaction ratios
+        Switch showRRR_;
+
+        //- dictionary for gasName communication
+        List<label> gasDictionary_;
+
+        const volScalarField& rhoG_;
+       // Private members
+
+            //- Set reacting status of cell, cellI
+            void setCellReacting(const label cellI, const bool active);
 
 public:
 
     //- Runtime type information
-    TypeName("standard");
-
+    TypeName("ODESolidHeterogeneousChemistryModel");
 
     // Constructors
 
         //- Construct from thermo
-        StandardChemistryModel(const ReactionThermo& thermo);
+        ODESolidHeterogeneousChemistryModel(const SolidThermo& thermo, PtrList<volScalarField>& gasPhaseGases);
 
         //- Disallow default bitwise copy construction
-        StandardChemistryModel(const StandardChemistryModel&);
+        ODESolidHeterogeneousChemistryModel(const ODESolidHeterogeneousChemistryModel&);
 
 
     //- Destructor
-    virtual ~StandardChemistryModel();
+    virtual ~ODESolidHeterogeneousChemistryModel();
 
 
     // Member Functions
 
         //- The reactions
-        inline const PtrList<Reaction<ThermoType>>& reactions() const;
+        inline const PtrList<solidHeterogeneousReaction>& reactions() const;
+
+        //- Thermodynamic data of gases
+        inline const PtrList<GasThermoType>& gasThermo() const;
+
+        //- Gases table
+        inline const speciesTable& gasTable() const;
 
         //- Thermodynamic data of the species
-        inline const PtrList<ThermoType>& specieThermos() const;
+        inline const PtrList<SolidThermoType>& specieThermos() const;
 
         //- The number of species
         virtual inline label nSpecie() const;
+
+        //- The number of solids
+        inline label nGases() const;
 
         //- The number of reactions
         virtual inline label nReaction() const;
@@ -151,25 +230,23 @@ public:
         inline scalar& Treact();
 
         //- dc/dt = omega, rate of change in concentration, for each species
-        virtual void omega
+        virtual scalarField omega
         (
-            const scalar p,
-            const scalar T,
             const scalarField& c,
-            const label li,
-            scalarField& dcdt
+            const scalar T,
+            const scalar p,
+            scalarField& rR,
+            const bool updateC0 = false
         ) const;
 
-
-        //- Return the reaction rate for iReaction and the reference
-        //  species and characteristic times
-        virtual scalar omegaI
+        //- Return the reaction rate for reaction r and the reference
+        //  species and charateristic times
+        virtual scalar omega
         (
-            label iReaction,
-            const scalar p,
-            const scalar T,
+            const solidHeterogeneousReaction& r,
             const scalarField& c,
-            const label li,
+            const scalar T,
+            const scalar p,
             scalar& pf,
             scalar& cf,
             label& lRef,
@@ -184,6 +261,18 @@ public:
 
         // Chemistry model functions (overriding abstract functions in
         // basicChemistryModel.H)
+
+            //- Return const access to the chemical source terms for solids
+            inline tmp<volScalarField> RRs(const label i) const;
+
+            //- Return const access to the chemical source terms for gases
+            inline tmp<volScalarField> RRg(const label i) const;
+
+            //- Return total solid source term
+            inline tmp<volScalarField> RRs() const;
+
+            //- Return total gas source term
+            inline tmp<volScalarField> RRg() const;
 
             //- Return const access to the chemical source terms for specie, i
             inline const volScalarField::Internal& RR
@@ -204,25 +293,49 @@ public:
                 const label speciei
             ) const;
 
-            //- Solve the reaction system for the given time step
+            //- Return sensible enthalpy for gas i [J/Kg]
+            virtual tmp<volScalarField> gasHs
+            (
+                const volScalarField& p,
+                const volScalarField& T,
+                const label i
+            ) const;
+
+           /* //- Solve the reaction system for the given time step
             //  and return the characteristic time
             virtual scalar solve(const scalar deltaT);
+            */
+            //- Solve the reaction system for the given start time and time
+            //  step and return the characteristic time
+            virtual scalar solve(const scalar t0, const scalar deltaT);
 
             //- Solve the reaction system for the given time step
             //  and return the characteristic time
-            virtual scalar solve(const scalarField& deltaT);
+          //  virtual scalar solve(const scalarField& deltaT);
 
             //- Return the chemical time scale
             virtual tmp<volScalarField> tc() const;
 
+            //- Return source for enthalpy equation [kg/m/s3]
+            virtual tmp<volScalarField> Sh() const;
+
             //- Return the heat release rate [kg/m/s^3]
             virtual tmp<volScalarField> Qdot() const;
+
+            //- Return source for porosity equation [1/s]
+            virtual tmp<volScalarField> RRpor(const volScalarField T) const;
 
 
         // ODE functions (overriding abstract functions in ODE.H)
 
             //- Number of ODE's to solve
             inline virtual label nEqns() const;
+
+            //- Return access to coefficients
+            virtual scalarField& coeffs();
+
+            //- Return reference to coefficients
+            virtual const scalarField& coeffs() const;
 
             virtual void derivatives
             (
@@ -241,21 +354,26 @@ public:
                 scalarSquareMatrix& J
             ) const;
 
-            virtual void solve
+            virtual scalar solve
             (
-                scalar& p,
-                scalar& T,
-                scalarField& c,
+                scalarField &c,
+                const scalar T,
+                const scalar p,
                 const label li,
-                scalar& deltaT,
-                scalar& subDeltaT
+                const scalar t0,
+                const scalar dt
             ) const = 0;
+
+            //- Update ODE after the solution, advancing by delta
+            virtual void update(const scalar delta)
+            {}
+
 
 
     // Member Operators
 
         //- Disallow default bitwise assignment
-        void operator=(const StandardChemistryModel&) = delete;
+        void operator=(const ODESolidHeterogeneousChemistryModel&) = delete;
 };
 
 
@@ -265,12 +383,12 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "StandardChemistryModelI.H"
+#include "ODESolidHeterogeneousChemistryModelI.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #ifdef NoRepository
-    #include "StandardChemistryModel.C"
+    #include "ODESolidHeterogeneousChemistryModel.C"
 #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

@@ -141,7 +141,7 @@ public:
         //- Class used for the read-construction of PtrLists of reaction
         class iNew
         {
-	        const PtrList<volScalarField>& gasPhaseGases_;
+            const PtrList<volScalarField>& gasPhaseGases_;
             const speciesTable& components_;
             speciesTable pyrolisisGases_;
 
@@ -150,11 +150,11 @@ public:
             iNew
             (
                 const PtrList<volScalarField>& gasPhaseGases,
-		        const speciesTable& components,
+                const speciesTable& components,
                 Istream& pyrolisisGases
             )
             :
-		        gasPhaseGases_(gasPhaseGases),
+                gasPhaseGases_(gasPhaseGases),
                 components_(components),
                 pyrolisisGases_(pyrolisisGases)
             {}
@@ -165,7 +165,7 @@ public:
                 (
                     solidHeterogeneousReaction::New
                     (
-			            gasPhaseGases_,
+                        gasPhaseGases_,
                         components_,
                         is,
                         pyrolisisGases_

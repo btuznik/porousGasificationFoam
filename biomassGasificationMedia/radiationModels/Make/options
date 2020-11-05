@@ -1,28 +1,12 @@
-EXE_INC = \
-    -I$(LIB_SRC)/thermophysicalModels/basic/lnInclude \
-    -I$(LIB_SRC)/thermophysicalModels/specie/lnInclude \
-    -I$(LIB_SRC)/thermophysicalModels/solidThermo/lnInclude \
-    -I$(LIB_SRC)/thermophysicalModels/SLGThermo/lnInclude \
-    -I$(LIB_SRC)/thermophysicalModels/thermophysicalProperties/lnInclude \
-    -I$(LIB_SRC)/thermophysicalModels/reactionThermo/lnInclude \
+EXE_INC =  -ggdb3 -DFULLDEBUG \
     -I$(LIB_SRC)/finiteVolume/lnInclude \
     -I$(LIB_SRC)/meshTools/lnInclude \
-    -I$(LIB_SRC)/radiationModels/lnInclude \
-    -I$(FOAM_HGS)/radiationModels/lnInclude
+    -I$(LIB_SRC)/thermophysicalModels/basic/lnInclude \
+    -I$(LIB_SRC)/radiationModels/lnInclude 
 
 LIB_LIBS = \
-    -L$(FOAM_HGS)/lib \
-    -lfluidThermophysicalModels \
-    -lspecie \
-    -lsolidThermo \
-    -lSLGThermo \
-    -lthermophysicalProperties \
+    -L$(FOAM_USER_LIBBIN) \
     -lfiniteVolume \
     -lmeshTools \
+    -lfluidThermophysicalModels \
     -lradiationModels 
-	
-
-
-
-
-    

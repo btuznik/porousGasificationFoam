@@ -1,8 +1,8 @@
-EXE_INC = \
+EXE_INC =  -ggdb3 -DFULLDEBUG \
     -I$(FOAM_HGS)/thermophysicalModels/solid/lnInclude \
     -I$(FOAM_HGS)/pyrolysisModels/lnInclude \
-    -I$(FOAM_HGS)/thermophysicalModels/solidReactingThermo/lnInclude \
-    -I$(FOAM_HGS)/thermophysicalModels/basicSolid/lnInclude \
+    -I$(FOAM_HGS)/thermophysicalModels/HGSSolidThermo/lnInclude \
+    -I$(FOAM_HGS)/thermophysicalModels/solidThermo/lnInclude \
     -I$(FOAM_HGS)/thermophysicalModels/solidChemistryModel/lnInclude \
     -I$(LIB_SRC)/finiteVolume/lnInclude \
     -I$(LIB_SRC)/meshTools/lnInclude \

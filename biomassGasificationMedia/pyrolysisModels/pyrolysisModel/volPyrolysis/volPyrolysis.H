@@ -37,7 +37,7 @@ SourceFiles
 #define volPyrolysis_H
 
 #include "heterogeneousPyrolysisModel.H"
-#include "solidReactingThermo.H"
+#include "HGSSolidThermo.H"
 #include "BasicSolidChemistryModel.H"
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -74,58 +74,129 @@ protected:
     ///- Thermophysical properties of gaseous species.
     psiReactionThermo& gasThermo_;
 
+    PtrList<volScalarField>& Ygas_;
+
     ///- Thermophysical properties of solid phase
-    solidReactingThermo& solidThermo_;
+    HGSSolidThermo& solidThermo_;
 
     ///- Solid chemistry model
     //autoPtr<BasicSolidChemistryModel<psiReactionThermo>> solidChemistry_;
-    autoPtr<BasicSolidChemistryModel<solidReactingThermo>> solidChemistry_;
+    autoPtr<BasicSolidChemistryModel<HGSSolidThermo>> solidChemistry_;
+
+    // Reference to solid thermo properties
+
+        //- Absorption coefficient [1/m]
+        const volScalarField& kappa_;
+
+        //- Thermal conductivity [W/m/K]
+        const volScalarField& K_;
+
+        //- Density [kg/m3]
+        volScalarField& rho_;
+
+        //- Density for initial moment
+        volScalarField rho0_;
+
+        //- List of solid components
+        PtrList<volScalarField>& Ys_;
+
+       //- List of solid component masses
+        PtrList<volScalarField> Ym_;
+
+        //- List of solid component masses  //gk  [kg]
+        PtrList<volScalarField> Msolid_;
+
+        //- solid total mass  //gk  [kg]
+        volScalarField Msolidtotal_;
+
+        // Non-const access to temperature
+        volScalarField& T_;
+
+    //- Name of the radiative flux in the primary region
+    word primaryRadFluxName_;
 
     /// Switch for equilibrium/nonequilibrium model
     Switch equilibrium_;
 
+    /// Non-const access to solid's temperature DO USUNIECIA
+    volScalarField Tsolid_;
+    //- Switch for equilibrium/nonequilibrium model
+    scalar viscosityDropFactor_;
+
 
     // Reference to solid thermo properties
 
-        /// Density of solid region[kg/m3]
-        volScalarField rho_;
-        /// Non-const access to solid's temperature
-        volScalarField Tsolid_;
 
-        // Solution parameters
 
-            /// Number of non-orthogonal correctors
-            label nNonOrthCorr_;
-            /// Maximum diffussivity
-            scalar maxDiff_;
+    // Solution parameters
+
+        /// Number of non-orthogonal correctors
+        label nNonOrthCorr_;
+        /// Maximum diffussivity
+        scalar maxDiff_;
 
     // Reference to main region fields
 
-        /// porosity
+        //- porosity
         volScalarField& porosity_;
-        /// initial porosity
-        volScalarField initialPorosity_;
+
+        volScalarField porosity0_;
+
         volScalarField porosityArch_;
-        /// void fraction
+
         volScalarField voidFraction_;
-        
+
         //- radiation
         volScalarField& radiation_;
 
     // Fields
 
+        //- Sensible enthalpy gas flux [J/m2/s]
+        volScalarField phiHsGas_;
+
+        //- Heat release [J/s/m3]
+        volScalarField chemistrySh_;
+
+        //- porosity growthw [1/s]
+        volScalarField porositySource_;
+
         //- masks for equations
         volScalarField whereIs_;
+
         volScalarField whereIsNot_;
+
+        volScalarField heatUpGas_;
+
+        volScalarField viscosityDrop_;
 
         //- Reference to heat transport model
         autoPtr<heatTransferModel> HTmodel_;
+
         volScalarField HTC_;
+
+        volScalarField radiationSh_;
+
+        volTensorField anisotropyK_;
 
         //- border cells inside solid body
         List<label> surfF_;
 
     // Checks
+
+        //- Cumulative lost mass of the condensed phase [kg]
+        dimensionedScalar lostSolidMass_;
+
+        //- Cumulative mass generation of the gas phase [kg]
+        dimensionedScalar addedGasMass_;
+
+        //- Total mass gas flux at the pyrolysing walls [kg/s]
+        dimensionedScalar totalGasMassFlux_;
+
+        //- Total heat release rate [J/s]
+        dimensionedScalar totalHeatRR_;
+
+        //- scalar chemistryTime
+        scalar timeChem_;
 
         //- scalar max dT in a cell
         scalar maxDT_;
@@ -139,7 +210,16 @@ protected:
         //- Read control parameters from dict
         bool read(const dictionary& dict);
 
-   tmp<volScalarField> heatUpGasCalc() const;
+        //- Mass check
+        void calculateMassTransfer();
+
+        // Equations
+
+            //- Solve energy
+            void solveEnergy();
+
+            //- Solve solid species mass conservation
+            void solveSpeciesMass();
 
 public:
 
@@ -154,8 +234,8 @@ public:
         (
             const word& modelType,
             const fvMesh& mesh,
+            HGSSolidThermo& solidThermo,
             psiReactionThermo& gasThermo,
-            solidReactingThermo& solidThermo,
             volScalarField& whereIs
         );
         
@@ -164,8 +244,8 @@ public:
         (
             const word& modelType,
             const fvMesh& mesh,
+            HGSSolidThermo& solidThermo,
             psiReactionThermo& gasThermo,
-            solidReactingThermo& solidThermo,
             volScalarField& whereIs,
             volScalarField& radiation
         );
@@ -179,18 +259,49 @@ public:
 
             //- Fields
 
-                /// Return const temperature of solid phase[K]
+                //- Return density [kg/m3]
+                virtual volScalarField& rhoConst() const;
+
+                //- Return density [kg/m3]
+                virtual volScalarField& rho();
+
+                //- Return const temperature [K]
                 virtual const volScalarField& T() const;
 
-    // parametrs from main region
+                //- Return specific heat capacity [J/kg/K]
+                virtual const tmp<volScalarField> Cp() const;
 
-        //- Returm time modification factor
-        virtual Switch equilibrium() const;
+                //- Return the region absorptivity [1/m]
+                virtual const volScalarField& kappa() const;
 
-    // Solution parameters
+                //- Return the region thermal conductivity [W/m/k]
+                virtual const volScalarField& K() const;
 
-        //- Return the number of non-orthogonal correctors
-        inline label nNonOrthCorr() const;
+                //- Return list of cells in surface layer inside solid
+                virtual const List<label>& surf() const;
+
+        // Parametrs from main region
+
+            // Solution parameters
+
+                //- Return the number of non-orthogonal correctors
+                inline label nNonOrthCorr() const;
+
+                //- Return max diffusivity allowed in the solid
+                virtual scalar maxDiff() const;
+
+        // Helper functions
+
+            //- Mean diffusion number of the solid region
+            virtual scalar solidRegionDiffNo() const;
+
+            //- Returm time modification factor
+            virtual scalar maxTime() const;
+
+            //- Returm time modification factor
+            virtual Switch equilibrium() const;
+
+        // Source fields (read/write access)
 
        // Evolution
 
@@ -205,11 +316,32 @@ public:
 
         //Comunication with main region
 
+            //- Return total mass source - Eulerian phase only
+            virtual Foam::tmp<Foam::volScalarField> Srho() const;
+
+            //- Return mass source for specie i - Eulerian phase only
+            virtual Foam::tmp<Foam::volScalarField> Srho
+            (
+                const label i
+            ) const;
+
             //- Return enthalpy source - Eulerian phase only
             virtual Foam::tmp<Foam::volScalarField> heatTransfer();
 
             //- Return HTC
             virtual Foam::tmp<Foam::volScalarField> HTC() const;
+
+            //- Return enthalpy needed to heat up gas
+            virtual Foam::tmp<Foam::volScalarField> heatUpGasCalc() const;
+
+            //- Return enthalpy needed to heat up gas
+            virtual Foam::tmp<Foam::volScalarField> heatUpGas() const;
+
+            //- Return enthalpy needed to heat up gas  GK  or to pyrolyse the solid into gas ???
+            virtual Foam::tmp<Foam::volScalarField> solidChemistrySh() const;
+
+            //- Return cells where viscosity drops for numerical purpose
+            virtual Foam::tmp<Foam::volScalarField> viscosityDrop();
 
         // I-O
 

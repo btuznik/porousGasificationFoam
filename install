@@ -8,6 +8,7 @@ cp -r biomassGasificationFoam $WM_PROJECT_USER_DIR/applications/
 cp -r biomassGasificationMedia/fieldPorosityModel $FOAM_HGS/
 cp -r biomassGasificationMedia/thermophysicalModels $FOAM_HGS/
 cp -r biomassGasificationMedia/pyrolysisModels $FOAM_HGS/
+cp -r biomassGasificationMedia/radiationModels $FOAM_HGS/
 cp install $FOAM_HGS/
 
 ./Allwmake

@@ -1,4 +1,4 @@
-EXE_INC = \
+EXE_INC =  -ggdb3 -DFULLDEBUG \
     -I$(LIB_SRC)/finiteVolume/lnInclude \
     -I$(LIB_SRC)/meshTools/lnInclude \
     -I$(LIB_SRC)/sampling/lnInclude \
@@ -8,15 +8,16 @@ EXE_INC = \
     -I$(LIB_SRC)/ThermophysicalTransportModels/psiReactionThermo/lnInclude \
     -I$(LIB_SRC)/thermophysicalModels/specie/lnInclude \
     -I$(LIB_SRC)/thermophysicalModels/reactionThermo/lnInclude \
+    -I$(LIB_SRC)/thermophysicalModels/solidThermo/lnInclude \
     -I$(LIB_SRC)/thermophysicalModels/basic/lnInclude \
     -I$(LIB_SRC)/thermophysicalModels/chemistryModel/lnInclude \
     -I$(LIB_SRC)/ODE/lnInclude \
     -I$(LIB_SRC)/combustionModels/lnInclude \
+    -I$(FOAM_HGS)/thermophysicalModels/HGSSolidThermo/lnInclude \
     -I$(FOAM_HGS)/pyrolysisModels/lnInclude \
     -I$(FOAM_HGS)/thermophysicalModels/solid/lnInclude \
-    -I$(FOAM_HGS)/thermophysicalModels/basicSolid/lnInclude \
-    -I$(FOAM_HGS)/thermophysicalModels/solidReactingThermo/lnInclude \
     -I$(FOAM_HGS)/thermophysicalModels/solidChemistryModel/lnInclude \
+    -I$(FOAM_HGS)/radiationModels/lnInclude \
     -I$(FOAM_HGS)/fieldPorosityModel/lnInclude
 
 EXE_LIBS = \
@@ -37,7 +38,6 @@ EXE_LIBS = \
      -L$(FOAM_USER_LIBBIN) \
     -lHGSheterogeneousPyrolysisModels \
     -lfieldPorosityModel \
-    -lsolidThermophysicalModels \
-    -lsolidReactingThermo \
     -lsolidChemistryModel \
-    -lHGSsolid
+    -lHGSsolid \
+    -lHGSSolidThermo

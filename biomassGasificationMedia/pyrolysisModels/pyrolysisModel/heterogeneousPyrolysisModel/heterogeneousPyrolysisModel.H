@@ -44,7 +44,7 @@ SourceFiles
 #include "runTimeSelectionTables.H"
 #include "volFieldsFwd.H"
 #include "psiReactionThermo.H"
-#include "solidReactingThermo.H"
+#include "HGSSolidThermo.H"
 #include "heatTransferModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -144,11 +144,11 @@ public:
             (
                 const word& modelType,
                 const fvMesh& mesh,
+                HGSSolidThermo& solidThermo,
                 psiReactionThermo& gasThermo,
-                solidReactingThermo& solidThermo,
                 volScalarField& whereIs
              ),
-             (modelType, mesh, gasThermo, solidThermo, whereIs)
+             (modelType, mesh, solidThermo, gasThermo, whereIs)
         );
         
         declareRunTimeSelectionTable
@@ -159,12 +159,12 @@ public:
             (
                 const word& modelType,
                 const fvMesh& mesh,
+                HGSSolidThermo& solidThermo,
                 psiReactionThermo& gasThermo,
-                solidReactingThermo& solidThermo,
                 volScalarField& whereIs,
                 volScalarField& radiation
              ),
-             (modelType, mesh, gasThermo, solidThermo, whereIs, radiation)
+             (modelType, mesh, solidThermo, gasThermo, whereIs, radiation)
         );
 
     // Constructors
@@ -181,8 +181,8 @@ public:
         (
             const word& modelType,
             const fvMesh& mesh,
+            HGSSolidThermo& solidThermo,
             psiReactionThermo& gasThermo,
-            solidReactingThermo& solidThermo,
             volScalarField& whereIs
         );
         
@@ -191,8 +191,8 @@ public:
         (
             const word& modelType,
             const fvMesh& mesh,
+            HGSSolidThermo& solidThermo,
             psiReactionThermo& gasThermo,
-            solidReactingThermo& solidThermo,
             volScalarField& whereIs,
             volScalarField& radiation
         );
@@ -203,16 +203,16 @@ public:
         static autoPtr<heterogeneousPyrolysisModel> New
         (
           const fvMesh& mesh,
+          HGSSolidThermo& solidThermo,
           psiReactionThermo& gasThermo,
-          solidReactingThermo& solidThermo,
           volScalarField& whereIs
         );
         
         static autoPtr<heterogeneousPyrolysisModel> New
         (
           const fvMesh& mesh,
+          HGSSolidThermo& solidThermo,
           psiReactionThermo& gasThermo,
-          solidReactingThermo& solidThermo,
           volScalarField& whereIs,
           volScalarField& radiation
         );
@@ -225,6 +225,24 @@ public:
         // Access
 
             // Fields
+
+                //- Return density [kg/m3]
+                virtual volScalarField& rhoConst() const = 0;
+
+                //- Return const temperature [K]
+                virtual const volScalarField& T() const = 0;
+
+                //- Return specific heat capacity [J/kg/K]
+                virtual const tmp<volScalarField> Cp() const = 0;
+
+                //- Return the region absorptivity [1/m]
+                virtual const volScalarField& kappa() const = 0;
+
+                //- Return the region thermal conductivity [W/m/k]
+                virtual const volScalarField& K() const = 0;
+
+                //- Return list of cells in surface layer inside solid
+                virtual const List<label>& surf() const = 0;
 
 
         // Evolution
@@ -241,6 +259,12 @@ public:
 
         // Helper function
 
+            //- Mean diffusion number of the solid region
+            virtual scalar solidRegionDiffNo() const;
+
+            //- Return max diffusivity allowed in the solid
+            virtual scalar maxDiff() const;
+
             /// Returm time modification factor
             virtual scalar maxTime() const;
 
@@ -250,10 +274,34 @@ public:
             ///- Return the solution dictionary
             inline const dictionary& solution() const;
 
+            //- Return the model coefficients dictionary
+            inline const dictionary& coeffs() const;
+
+            //- Return the active flag
+            inline const Switch& active() const;
+
         // Source fields
+
+            //- Return total mass source - Eulerian phase only
+            virtual Foam::tmp<Foam::volScalarField> Srho() const;
+
+            //- Return mass source for specie i - Eulerian phase only
+            virtual Foam::tmp<Foam::volScalarField> Srho
+            (
+                const label i
+            ) const = 0;
 
             //- Return enthalpy source - Eulerian phase only
             virtual Foam::tmp<Foam::volScalarField> heatTransfer();
+
+            //- Return enthalpy needed to heat up gas
+            virtual Foam::tmp<Foam::volScalarField> heatUpGas() const;
+
+            //- Return enthalpy needed to heat up gas
+            virtual Foam::tmp<Foam::volScalarField> solidChemistrySh() const;
+
+            //- Return viscosityDrop
+            virtual Foam::tmp<Foam::volScalarField> viscosityDrop();
 
 
 };

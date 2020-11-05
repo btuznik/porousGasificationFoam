@@ -32,13 +32,4 @@ Foam::heterogeneousPyrolysisModels::volPyrolysis::nNonOrthCorr() const
 {
     return nNonOrthCorr_;
 }
-
-/*
-inline const Foam::volScalarField&
-Foam::regionModels::heterogeneousPyrolysisModels::volPyrolysis::Qr() const
-{
-    return Qr_;
-}
-*/
-
 // ************************************************************************* //

@@ -24,21 +24,23 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "basicSolidChemistryModel.H"
-#include "basicSolidThermo.H"
+#include "basicThermo.H"
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
 
 template<class ChemistryModel>
 Foam::autoPtr<ChemistryModel> Foam::basicSolidChemistryModel::New
 (
-    const typename ChemistryModel::reactionThermo& thermo
+    const typename ChemistryModel::reactionThermo& thermo,
+    PtrList<volScalarField>& gasPhaseGases,
+    const word thermoName
 )
 {
     IOdictionary chemistryDict
     (
         IOobject
         (
-            thermo.phasePropertyName("chemistryProperties"),
+            "chemistryProperties",
             thermo.db().time().constant(),
             thermo.db(),
             IOobject::MUST_READ,
@@ -62,7 +64,7 @@ Foam::autoPtr<ChemistryModel> Foam::basicSolidChemistryModel::New
     }
 
     const dictionary& chemistryTypeDict =
-        chemistryDict.subDict("chemistryType");
+        chemistryDict.subDict("solidChemistryType");
 
     const word& solverName
     (
@@ -73,19 +75,13 @@ Foam::autoPtr<ChemistryModel> Foam::basicSolidChemistryModel::New
       : chemistryTypeDict.lookup("solver") // error if neither entry is found
     );
 
-    const word& methodName
-    (
-        chemistryTypeDict.lookupOrDefault<word>
-        (
-            "method",
-            chemistryTypeDict.lookupOrDefault<bool>("TDAC", false)
-          ? "TDAC"
-          : "standard"
-        )
-    );
+    const word& methodName(chemistryTypeDict.lookup("method"));
+    const word& solidThermoType(chemistryTypeDict.lookup("solidThermoType"));
+
     dictionary chemistryTypeDictNew;
     chemistryTypeDictNew.add("solver", solverName);
     chemistryTypeDictNew.add("method", methodName);
+    chemistryTypeDictNew.add("solidThermoType", solidThermoType);
 
     Info<< "Selecting chemistry solver for solid phase " << chemistryTypeDictNew << endl;
 
@@ -94,79 +90,27 @@ Foam::autoPtr<ChemistryModel> Foam::basicSolidChemistryModel::New
 
     const word chemSolverCompThermoName =
         solverName + '<' + methodName + '<'
-      + ChemistryModel::reactionThermo::typeName + ','
-      + thermo.thermoName() + ">>";
+      + HGSSolidThermo::typeName + ','
+      + solidThermoType + ',' + thermoName + ">>";
 
     typename cstrTableType::iterator cstrIter =
         cstrTable->find(chemSolverCompThermoName);
-        Info << "basicSolidNew" << endl;
     if (cstrIter == cstrTable->end())
     {
+        Info << "Chemistry model not found. " << endl;
         FatalErrorInFunction
             << "Unknown " << typeName_() << " type " << solverName << endl
-            << endl;
+            << endl
+            << "Valid models are:" << endl
+            << cstrTable->toc() << endl;
 
-        const wordList names(cstrTable->toc());
+//        const wordList names(cstrTable->toc());
 
-        wordList thisCmpts;
-        thisCmpts.append(word::null);
-        thisCmpts.append(word::null);
-        thisCmpts.append(ChemistryModel::reactionThermo::typeName);
-        thisCmpts.append(basicSolidThermo::splitThermoName(thermo.thermoName(), 5));
-
-        List<wordList> validNames;
-        validNames.append(wordList(2, word::null));
-        validNames[0][0] = "solver";
-        validNames[0][1] = "method";
-        forAll(names, i)
-        {
-            const wordList cmpts(basicSolidThermo::splitThermoName(names[i], 8));
-
-            bool isValid = true;
-            for (label i = 2; i < cmpts.size() && isValid; ++ i)
-            {
-                isValid = isValid && cmpts[i] == thisCmpts[i];
-            }
-
-            if (isValid)
-            {
-                validNames.append(SubList<word>(cmpts, 2));
-            }
-        }
-
-        FatalErrorInFunction
-            << "All " << validNames[0][0] << '/' << validNames[0][1]
-            << " combinations for this thermodynamic model are:"
-            << endl << endl;
-        printTable(validNames, FatalErrorInFunction);
-
-        FatalErrorInFunction << endl;
-
-        List<wordList> validCmpts;
-        validCmpts.append(wordList(8, word::null));
-        validCmpts[0][0] = "solver";
-        validCmpts[0][1] = "method";
-        validCmpts[0][2] = "reactionThermo";
-        validCmpts[0][3] = "transport";
-        validCmpts[0][4] = "thermo";
-        validCmpts[0][5] = "equationOfState";
-        validCmpts[0][6] = "specie";
-        validCmpts[0][7] = "energy";
-        forAll(names, i)
-        {
-            validCmpts.append(basicSolidThermo::splitThermoName(names[i], 8));
-        }
-
-        FatalErrorInFunction
-            << "All " << validCmpts[0][0] << '/' << validCmpts[0][1] << '/'
-            << validCmpts[0][2] << "/thermoPhysics combinations are:"
-            << endl << endl;
-        printTable(validCmpts, FatalErrorInFunction);
-
+//        printTable(names, FatalErrorInFunction);
         FatalErrorInFunction << exit(FatalError);
     }
     Info << "basicSolidNew" << endl;
-    return autoPtr<ChemistryModel>(cstrIter()(thermo));
+    return autoPtr<ChemistryModel>(cstrIter()(thermo, gasPhaseGases));
 }
 
 // ************************************************************************* //

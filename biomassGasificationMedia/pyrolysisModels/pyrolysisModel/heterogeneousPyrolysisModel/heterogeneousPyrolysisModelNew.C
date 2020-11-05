@@ -39,8 +39,8 @@ namespace heterogeneousPyrolysisModels
 autoPtr<heterogeneousPyrolysisModel> heterogeneousPyrolysisModel::New
 (
     const fvMesh& mesh,
+    HGSSolidThermo& solidThermo,
     psiReactionThermo& gasThermo,
-    solidReactingThermo& solidThermo,
     volScalarField& whereIs)
 {
     // get model name, but do not register the dictionary
@@ -74,14 +74,14 @@ autoPtr<heterogeneousPyrolysisModel> heterogeneousPyrolysisModel::New
             << exit(FatalError);
     }
 
-    return autoPtr<heterogeneousPyrolysisModel>(cstrIter()(modelType, mesh, gasThermo, solidThermo, whereIs));
+    return autoPtr<heterogeneousPyrolysisModel>(cstrIter()(modelType, mesh, solidThermo, gasThermo, whereIs));
 }
 
 autoPtr<heterogeneousPyrolysisModel> heterogeneousPyrolysisModel::New
 (
     const fvMesh& mesh,
+    HGSSolidThermo& solidThermo,
     psiReactionThermo& gasThermo,
-    solidReactingThermo& solidThermo,
     volScalarField& whereIs,
     volScalarField& radiation
 )
@@ -117,7 +117,7 @@ autoPtr<heterogeneousPyrolysisModel> heterogeneousPyrolysisModel::New
             << exit(FatalError);
     }
 
-    return autoPtr<heterogeneousPyrolysisModel>(cstrIter()(modelType, mesh, gasThermo, solidThermo, whereIs, radiation));
+    return autoPtr<heterogeneousPyrolysisModel>(cstrIter()(modelType, mesh, solidThermo, gasThermo, whereIs, radiation));
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

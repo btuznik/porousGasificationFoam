@@ -27,7 +27,6 @@ License
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-/*
 inline const Foam::Switch&
 Foam::heterogeneousPyrolysisModels::heterogeneousPyrolysisModel::active() const
 {
@@ -40,7 +39,7 @@ Foam::heterogeneousPyrolysisModels::heterogeneousPyrolysisModel::coeffs() const
 {
     return coeffs_;
 }
-*/
+
 inline const Foam::dictionary&
 Foam::heterogeneousPyrolysisModels::heterogeneousPyrolysisModel::solution() const
 {

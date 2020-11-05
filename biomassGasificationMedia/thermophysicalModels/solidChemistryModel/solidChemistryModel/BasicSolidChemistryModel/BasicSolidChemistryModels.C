@@ -28,8 +28,7 @@ Description
 
 #include "BasicSolidChemistryModel.H"
 
-#include "solidReactingThermo.H"
-#include "psiReactionThermo.H"
+#include "HGSSolidThermo.H"
 
 #include "makeChemistryModel.H"
 
@@ -37,8 +36,7 @@ Description
 
 namespace Foam
 {
-    defineChemistryModel(BasicSolidChemistryModel, solidReactingThermo);
-    defineChemistryModel(BasicSolidChemistryModel, psiReactionThermo);
+    defineChemistryModel(BasicSolidChemistryModel, HGSSolidThermo);
 }
 
 // ************************************************************************* //

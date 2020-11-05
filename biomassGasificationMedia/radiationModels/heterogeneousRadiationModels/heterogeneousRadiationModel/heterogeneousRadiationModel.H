@@ -224,7 +224,7 @@ public:
             ) const;
 
             //- Sensible enthalpy source term
-            virtual tmp<fvScalarMatrix> Shs(basicThermo& thermo) const;
+           // virtual tmp<fvScalarMatrix> Shs(basicThermo& thermo) const;
 
             //- Temperature source term
             virtual tmp<fvScalarMatrix> ST

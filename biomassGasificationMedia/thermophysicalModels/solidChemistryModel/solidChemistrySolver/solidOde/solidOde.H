@@ -55,12 +55,11 @@ class solidOde
     // Private Data
 
         dictionary coeffsDict_;
-
+        const word solverName_;
         mutable autoPtr<ODESolver> odeSolver_;
 
-        // Solver data
+        // Model constants
         mutable scalarField cTp_;
-
 
 public:
 
@@ -71,7 +70,11 @@ public:
     // Constructors
 
         //- Construct from thermo
-        solidOde(const typename ChemistryModel::reactionThermo& thermo);
+        solidOde
+        (
+            const HGSSolidThermo& thermo,
+            PtrList<volScalarField>& gasPhaseGases
+        );
 
 
     //- Destructor
@@ -81,14 +84,14 @@ public:
     // Member Functions
 
         //- Update the concentrations and return the chemical time
-        virtual void solve
+        virtual scalar solve
         (
-            scalar& p,
-            scalar& T,
-            scalarField& c,
+            scalarField &c,
+            const scalar T,
+            const scalar p,
             const label li,
-            scalar& deltaT,
-            scalar& subDeltaT
+            const scalar t0,
+            const scalar dt
         ) const;
 };
 

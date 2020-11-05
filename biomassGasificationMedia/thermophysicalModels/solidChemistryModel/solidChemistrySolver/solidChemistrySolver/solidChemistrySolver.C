@@ -30,10 +30,11 @@ License
 template<class ChemistryModel>
 Foam::solidChemistrySolver<ChemistryModel>::solidChemistrySolver
 (
-    const typename ChemistryModel::reactionThermo& thermo
+    const HGSSolidThermo& thermo,
+    PtrList<volScalarField>& gasPhaseGases
 )
 :
-    ChemistryModel(thermo)
+    ChemistryModel(thermo, gasPhaseGases)
 {}
 
 

@@ -40,8 +40,8 @@ SourceFiles
 #include "Switch.H"
 #include "scalarField.H"
 #include "volFields.H"
-#include "basicSolidThermo.H"
-#include "basicThermo.H"
+#include "HGSSolidThermo.H"
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -98,8 +98,7 @@ public:
     // Constructors
 
         //- Construct from thermo
-        basicSolidChemistryModel(const basicSolidThermo& thermo);
-        basicSolidChemistryModel(const basicThermo& thermo);
+        basicSolidChemistryModel(const HGSSolidThermo& thermo);
 
         //- Construct as copy (not implemented)
         basicSolidChemistryModel(const basicSolidChemistryModel&);
@@ -111,7 +110,9 @@ public:
         template<class ChemistryModel>
         static autoPtr<ChemistryModel> New
         (
-            const typename ChemistryModel::reactionThermo& thermo
+            const typename ChemistryModel::reactionThermo& thermo,
+            PtrList<volScalarField>& gasPhaseGases,
+            const word thermoName
         );
 
 
@@ -168,11 +169,11 @@ public:
 
                 //- Solve the reaction system for the given time step
                 //  and return the characteristic time
-                virtual scalar solve(const scalar deltaT) = 0;
+                virtual scalar solve(const scalar t0, const scalar deltaT) = 0;
 
                 //- Solve the reaction system for the given time step
                 //  and return the characteristic time
-                virtual scalar solve(const scalarField& deltaT) = 0;
+                //virtual scalar solve(const scalarField& deltaT) = 0;
 
                 //- Return the chemical time scale
                 virtual tmp<volScalarField> tc() const = 0;

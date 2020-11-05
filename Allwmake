@@ -3,6 +3,9 @@
 cd $FOAM_HGS/fieldPorosityModel
 wmake libso
 
+cd $FOAM_HGS/radiationModels
+wmake libso
+
 cd $FOAM_HGS/thermophysicalModels
 ./Allwmake
 

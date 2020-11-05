@@ -17,7 +17,15 @@ FoamFile
 
 chemistryType
 {
-    solver          solidOde;
+    solver          ode;
+}
+
+solidChemistryType
+{
+   solver          solidOde;
+   method          ODESolidHeterogeneousChemistryModel;
+   solidThermoType const<constRad<constThermo<constRho>>>;
+   //solidThermoType constSolidThermoPhysics;
 }
 
 chemistry       on;
@@ -36,6 +44,35 @@ EulerImplicitCoeffs
     equilibriumRateLimiter off;
 }
 
-#include "reactions"
+species 	//gasous products of reactions
+(
+    N2 O2 CO2 CO H2 CH4 H2O tar
+);
+
+reactions 
+(
+	
+    //wood pyrolysis
+    irreversibleSolidArrheniusHeterogeneousReaction
+    1. wood = 0.350 char + 1.607 CO + 2.273 CO2 + 1 H2 + 0.1875 CH4 + 6.389 H2O + 4.096 tar 
+    (1.5e3 15550 300 -4e3 1) 
+
+    //boudourd reaction
+    irreversibleSolidArrheniusHeterogeneousReaction
+    char + CO2 = 2 CO
+    (1e7 26095 300 1.43e7 1)
+ 
+    //water-shift gasification
+    irreversibleSolidArrheniusHeterogeneousReaction
+    1. char + 1. H2O = 1. CO + 1. H2 
+    (1e7 26095 300 1.1e7 1)
+
+    //char combustion  
+    irreversibleSolidArrheniusHeterogeneousReaction
+    char + O2 = CO2 + 0.01 ash 
+    (5.67e7 19294 300 -33e6 1)
+
+);
+//#include "reactions"
 
 // ************************************************************************* //

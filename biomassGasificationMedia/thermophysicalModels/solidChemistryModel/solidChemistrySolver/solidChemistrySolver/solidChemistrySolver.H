@@ -37,6 +37,8 @@ SourceFiles
 
 #include "IOdictionary.H"
 #include "scalarField.H"
+#include "volFieldsFwd.H"
+#include "HGSSolidThermo.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -58,7 +60,11 @@ public:
     // Constructors
 
         //- Construct from thermo
-        solidChemistrySolver(const typename ChemistryModel::reactionThermo& thermo);
+        solidChemistrySolver
+        (
+            const HGSSolidThermo& thermo,
+            PtrList<volScalarField>& gasPhaseGases
+        );
 
 
     //- Destructor
@@ -68,14 +74,14 @@ public:
     // Member Functions
 
         //- Update the concentrations and return the chemical time
-        virtual void solve
+        virtual scalar solve
         (
-            scalar& p,
-            scalar& T,
-            scalarField& c,
+            scalarField &c,
+            const scalar T,
+            const scalar p,
             const label li,
-            scalar& deltaT,
-            scalar& subDeltaT
+            const scalar t0,
+            const scalar dt
         ) const = 0;
 };
 

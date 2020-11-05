@@ -5,11 +5,6 @@ autoPtr<psiReactionThermo> pThermo(psiReactionThermo::New(mesh));
 psiReactionThermo& thermo = pThermo();
 thermo.validate(args.executable(), "h", "e");
 
-Info<< "Reading solids' thermophysical properties\n" << endl;
-autoPtr<solidReactingThermo> sThermo(solidReactingThermo::New(mesh));
-solidReactingThermo& solidThermo = sThermo();
-solidThermo.validate(args.executable(), "h", "e");
-
 basicSpecieMixture& composition = thermo.composition();
 PtrList<volScalarField>& Y = composition.Y();
 
@@ -50,6 +45,20 @@ volScalarField& p = thermo.p();
 
 #include "compressibleCreatePhi.H"
 
+volScalarField kappa
+(
+    IOobject
+    (
+        "kappa",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::AUTO_WRITE
+    ),
+    mesh,
+    dimensionedScalar("zero", dimless, 0.0)
+);
+
 pressureControl pressureControl(p, rho, pimple.dict(), false);
 
 mesh.setFluxRequired(p.name());
@@ -66,11 +75,118 @@ autoPtr<compressible::momentumTransportModel> turbulence
     )
 );
 
+volScalarField p_amb
+(
+    IOobject
+    (
+        "p_amb",
+        runTime.timeName(),
+        mesh,
+        IOobject::MUST_READ,
+        IOobject::AUTO_WRITE
+    ),
+    mesh
+);
+
+volScalarField p_thermo
+(
+    IOobject
+    (
+        "p_thermo",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::AUTO_WRITE
+    ),
+    mesh,
+    dimensionedScalar("zero", p.dimensions(), 0.0)
+);
+
+dimensionedScalar pMean = (max(p)+min(p))/2;
+
+p_amb = p - pMean;
+
 Info<< "Creating thermophysical transport model\n" << endl;
 autoPtr<psiReactionThermophysicalTransportModel> thermophysicalTransport
 (
     psiReactionThermophysicalTransportModel::New(turbulence(), thermo)
 );
+
+dimensionedScalar timeUnit("one", dimTime, 1.0);
+
+Info<< "Creating reaction model\n" << endl;
+autoPtr<CombustionModel<psiReactionThermo>> reaction
+(
+    CombustionModel<psiReactionThermo>::New(thermo, turbulence())
+);
+
+Info<< "Creating field dpdt\n" << endl;
+volScalarField dpdt
+(
+    IOobject
+    (
+        "dpdt",
+        runTime.timeName(),
+        mesh
+    ),
+    mesh,
+    dimensionedScalar(p.dimensions()/dimTime, 0)
+);
+
+Info<< "Creating field kinetic energy K\n" << endl;
+volScalarField K("K", 0.5*magSqr(U));
+
+
+multivariateSurfaceInterpolationScheme<scalar>::fieldTable fields;
+
+forAll(Y, i)
+{
+    fields.add(Y[i]);
+}
+fields.add(thermo.he());
+
+volScalarField chemistrySh
+(
+    IOobject
+    (
+        "chemistry::Sh",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::NO_WRITE
+    ),
+    mesh,
+    dimensionedScalar("chemistrySh", dimEnergy/dimTime/dimVolume, 0.0)
+);
+
+volScalarField ddtKinEn
+(
+    IOobject
+    (
+        "ddtKinEn",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::AUTO_WRITE
+    ),
+    mesh,
+    dimensionedScalar("zero", chemistrySh.dimensions(), 0.0)
+);
+
+volScalarField divPhiKinEn
+(
+    IOobject
+    (
+        "divPhiKinEn",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::AUTO_WRITE
+    ),
+    mesh,
+    dimensionedScalar("zero", chemistrySh.dimensions(), 0.0)
+);
+
 
 Info << "Reading field Df\n" << endl;
 
@@ -110,42 +226,44 @@ volScalarField porosityF
             "porosityF",
             runTime.timeName(),
             mesh,
-            IOobject::MUST_READ_IF_MODIFIED,
+            IOobject::MUST_READ,
             IOobject::AUTO_WRITE
         ),
         mesh
 );
 
-Info<< "Creating reaction model\n" << endl;
-autoPtr<CombustionModel<psiReactionThermo>> reaction
+volScalarField radiationF
 (
-    CombustionModel<psiReactionThermo>::New(thermo, turbulence())
+        IOobject
+        (
+            "radiationF",
+            runTime.timeName(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh,
+    dimensionedScalar("zero",dimMass/dimLength/pow3(dimTime),0.0)
 );
 
-Info<< "Creating field dpdt\n" << endl;
-volScalarField dpdt
+volScalarField cellVolume
 (
     IOobject
     (
-        "dpdt",
+        "cellVolume",
         runTime.timeName(),
-        mesh
+        mesh,
+        IOobject::NO_READ,
+        IOobject::NO_WRITE
     ),
     mesh,
-    dimensionedScalar(p.dimensions()/dimTime, 0)
+    dimensionedScalar("zero", dimVolume, 0.0)
 );
 
-Info<< "Creating field kinetic energy K\n" << endl;
-volScalarField K("K", 0.5*magSqr(U));
-
-
-multivariateSurfaceInterpolationScheme<scalar>::fieldTable fields;
-
-forAll(Y, i)
+forAll(cellVolume,cellI)
 {
-    fields.add(Y[i]);
+    cellVolume[cellI] = mesh.V()[cellI];
 }
-fields.add(thermo.he());
 
 #include "createMRF.H"
 #include "createFvOptions.H"

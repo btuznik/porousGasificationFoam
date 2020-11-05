@@ -221,7 +221,24 @@ Foam::tmp<Foam::fvScalarMatrix> Foam::heterogeneousRadiationModel::Sh
       - Rp()*T3*(T_ - 4.0*he/Cpv)
     );
 }
+/*
+Foam::tmp<Foam::fvScalarMatrix> Foam::heterogeneousRadiationModel::Shs
+(
+    basicThermo& thermo
+) const
+{
+    volScalarField& hs = thermo.hs();
+    const volScalarField Cp(thermo.Cp());
+    const volScalarField T3(pow3(T_));
 
+    return
+    (
+        Ru()
+      - fvm::Sp(4.0*Rp()*T3/Cp, hs)
+      - Rp()*T3*(T_ - 4.0*hs/Cp)
+    );
+}
+*/
 
 Foam::tmp<Foam::fvScalarMatrix> Foam::heterogeneousRadiationModel::ST
 (
