@@ -1,0 +1,132 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.1.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.1;
+    format      binary;
+    class       dictionary;
+    location    "system";
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    rho
+    {
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-06;
+        relTol          1e-05;
+    }
+
+
+    rhoFinal
+    {
+        $rho;
+        tolerance       1e-07;
+        relTol          0;
+    }
+
+
+    "(p|p_amb)"
+    {
+        solver           PCG;
+        preconditioner   DIC;
+        tolerance        1e-6;
+        relTol           1e-6;
+    }
+
+
+    "(p|p_amb)Final"
+    {
+        $p;
+        tolerance        1e-8;
+        relTol           0.0;
+    }
+
+
+    "(U|hs)"
+    {
+        solver          PBiCG;
+        preconditioner  DILU;
+        tolerance       1e-07;
+        relTol          1e-06;
+    }
+
+    "(U|hs)Final"
+    {
+        solver          PBiCG;
+        preconditioner  DILU;
+        tolerance       1e-08;
+        relTol          0;
+    }
+
+    "(Yi|Ys|porosity)"
+    {
+        $hsFinal;
+    }
+
+    Ts
+    {
+        solver           PCG;
+        preconditioner   DIC;
+        tolerance        1e-8;
+        relTol           0;
+    }
+
+    rhos
+    {
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-08;
+        relTol          1e-08;
+    }
+
+    G
+    {
+        $p;
+        tolerance       1e-06;
+        relTol          0.1;
+    }
+
+    GFinal
+    {
+        $p;
+        tolerance       1e-06;
+        relTol          0;
+    }
+}
+
+
+PISO
+{
+    nCorrectors     2;
+    nNonOrthogonalCorrectors 1;
+}
+
+
+PIMPLE
+{
+    momentumPredictor yes;
+    nOuterCorrectors  1;
+    nCorrectors     1;
+    nNonOrthogonalCorrectors 1;
+}
+
+
+relaxationFactors
+{
+p 	 0.3;
+p_amb 	 0.3;
+U 	 0.5;
+hs	 0.7;
+}
+
+// *************************************************************************//
+
