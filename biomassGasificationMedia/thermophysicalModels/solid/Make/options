@@ -1,4 +1,4 @@
-EXE_INC =  -ggdb3 -DFULLDEBUG \
+EXE_INC = \
     -I$(FOAM_HGS)/thermophysicalModels/solid/lnInclude \
     -I$(LIB_SRC)/finiteVolume/lnInclude \
     -I$(LIB_SRC)/meshTools/lnInclude \

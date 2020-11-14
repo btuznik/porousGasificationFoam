@@ -1,4 +1,4 @@
-EXE_INC =  -ggdb3 -DFULLDEBUG \
+EXE_INC = \
     -I$(FOAM_HGS)/thermophysicalModels/solid/lnInclude \
     -I$(FOAM_HGS)/pyrolysisModels/lnInclude \
     -I$(FOAM_HGS)/thermophysicalModels/HGSSolidThermo/lnInclude \
@@ -11,7 +11,6 @@ EXE_INC =  -ggdb3 -DFULLDEBUG \
     -I$(LIB_SRC)/thermophysicalModels/basic/lnInclude \
     -I$(LIB_SRC)/thermophysicalModels/specie/lnInclude \
     -I$(LIB_SRC)/thermophysicalModels/solidSpecie/lnInclude \
-    -I$(LIB_SRC)/thermophysicalModels/solidThermo/lnInclude \
 
 LIB_LIBS = \
     -L$(FOAM_USER_LIBBIN) \

@@ -443,7 +443,7 @@ Foam::radiationModels::heterogeneousP1::heterogeneousP1
 	    whereIsNot_[cellI] = 0.0;
         }
     }
-    surfToVol_.ref() = pow(mesh_.V(),1./3.)/6.;
+    surfToVol_.ref() = 6./pow(mesh_.V(),1./3.);
 
 }
 

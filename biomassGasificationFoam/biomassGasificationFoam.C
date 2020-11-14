@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
     #include "createPorosity.H"
     #include "createPyrolysisModel.H"
     #include "readPyrolysisTimeControls.H"
-    //#include "createHeterogeneousRadiationModel.H"
+    #include "createHeterogeneousRadiationModel.H"
 
     turbulence->validate();
     if (!LTS)

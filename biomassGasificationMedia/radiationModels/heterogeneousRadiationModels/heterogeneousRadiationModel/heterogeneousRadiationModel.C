@@ -227,7 +227,7 @@ Foam::tmp<Foam::fvScalarMatrix> Foam::heterogeneousRadiationModel::Shs
     basicThermo& thermo
 ) const
 {
-    volScalarField& hs = thermo.hs();
+    volScalarField& hs = thermo.Hs();
     const volScalarField Cp(thermo.Cp());
     const volScalarField T3(pow3(T_));
 

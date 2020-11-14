@@ -17,12 +17,12 @@ PART 3 -- documentation
 
 The installation guide is prepared under assumption 
 that OpenFOAM is installed in standard location: 
-/opt/OpenFoam-7/
+/opt/OpenFoam-8/
 
 To install the 'biomassGasificationMedia':
 1. Set the OpenFOAM environmental paths by typing:
 
-    $ source /opt/OpenFoam-7/etc/bashrc
+    $ source /opt/OpenFoam-8/etc/bashrc
     (modify the commend if your OpenFOAM is installed elsewhere)
 
 2. check the environmental settings

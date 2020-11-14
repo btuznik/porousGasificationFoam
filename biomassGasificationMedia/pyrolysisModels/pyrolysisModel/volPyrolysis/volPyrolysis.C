@@ -143,7 +143,7 @@ void volPyrolysis::solveEnergy()
 
         volTensorField composedK(K_*(1-porosity_)*anisotropyK_);
         //radiationSh_ = radiation_;
-        Info << "HELLO ENERGY\n";
+
         if (equilibrium_)
         {}
         else

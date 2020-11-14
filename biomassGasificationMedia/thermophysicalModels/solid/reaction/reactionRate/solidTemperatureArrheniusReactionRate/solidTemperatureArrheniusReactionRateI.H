@@ -23,26 +23,70 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "makeSolidHeterogeneousReactionThermo.H"
-#include "solidArrheniusReactionRate.H"
-#include "solidTemperatureArrheniusReactionRate.H"
-#include "solidEvaporationRate.H"
-#include "solidConstRate.H"
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+inline Foam::solidTemperatureArrheniusReactionRate::solidTemperatureArrheniusReactionRate
+(
+    const scalar A,
+    const scalar Ta,
+    const scalar Tcrit
+)
+:
+    A_(A),
+    Ta_(Ta),
+    Tcrit_(Tcrit)
+{}
 
-namespace Foam
+
+inline Foam::solidTemperatureArrheniusReactionRate::solidTemperatureArrheniusReactionRate
+(
+    const speciesTable&,
+    Istream& is
+)
+:
+    A_(readScalar(is.readBegin("solidTemperatureArrheniusReaction(Istream&)"))),
+    Ta_(readScalar(is)),
+    Tcrit_(readScalar(is))
+{}
+
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+inline Foam::scalar Foam::solidTemperatureArrheniusReactionRate::operator()
+(
+    const scalar T,
+    const scalar,
+    const scalarField&
+) const
+
+// eqId (5)
 {
+    scalar ak = A_;
 
-// * * * * * * * * * * * * * Make Solid reactions  * * * * * * * * * * * * //
+    if (T < Tcrit_)
+    {
+        ak *= 0.0;
+    }
+    else
+    {
+        ak *= T*exp(-Ta_/T);
+    }
 
-makeIRReactions(solidArrheniusReactionRate)
-makeIRReactions(solidTemperatureArrheniusReactionRate)
-makeIRReactions(solidEvaporationRate)
-makeIRReactions(solidConstRate)
+  return ak;
+}
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace Foam
+inline Foam::Ostream& Foam::operator<<
+(
+    Ostream& os,
+    const solidTemperatureArrheniusReactionRate& arr
+)
+{
+    os  << token::BEGIN_LIST
+        << arr.A_ << token::SPACE << arr.Ta_ << token::SPACE << arr.Tcrit_
+        << token::END_LIST;
+    return os;
+}
+
 
 // ************************************************************************* //

@@ -1,4 +1,4 @@
-EXE_INC =  -ggdb3 -DFULLDEBUG \
+EXE_INC = \
     -I$(LIB_SRC)/finiteVolume/lnInclude \
     -I$(LIB_SRC)/meshTools/lnInclude \
     -I$(LIB_SRC)/sampling/lnInclude \
@@ -35,7 +35,8 @@ EXE_LIBS = \
     -lchemistryModel \
     -lODE \
     -lcombustionModels \
-     -L$(FOAM_USER_LIBBIN) \
+    -L$(FOAM_USER_LIBBIN) \
+    -lHGSradiationModels \
     -lHGSheterogeneousPyrolysisModels \
     -lfieldPorosityModel \
     -lsolidChemistryModel \
