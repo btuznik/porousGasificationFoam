@@ -142,7 +142,7 @@ void volPyrolysis::solveEnergy()
     {
 
         volTensorField composedK(K_*(1-porosity_)*anisotropyK_);
-        //radiationSh_ = radiation_;
+        radiationSh_ = radiation_;
 
         if (equilibrium_)
         {}
@@ -535,23 +535,7 @@ volPyrolysis::volPyrolysis
     heterogeneousPyrolysisModel(modelType, mesh),
     gasThermo_(gasThermo),
     Ygas_(gasThermo.composition().Y()),
-    solidThermo_(HGSSolidThermo::New
-        (
-         mesh,
-         IOdictionary
-             (
-                 IOobject
-                 (
-                     "solidThermophysicalProperties",
-                     mesh.time().constant(),
-                     mesh,
-                     IOobject::MUST_READ,
-                     IOobject::NO_WRITE,
-                     false
-                 )
-             ),
-            Ygas_
-                )()),
+    solidThermo_(solidThermo),
     solidChemistry_(BasicSolidChemistryModel<HGSSolidThermo>::New(solidThermo_, Ygas_, gasThermo.thermoName())),
     kappa_(solidThermo_.kappa()),
     K_(solidThermo_.K()),
