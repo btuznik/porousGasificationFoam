@@ -261,7 +261,6 @@ public:
         //- Calculates the reaction rates
         virtual void calculate();
 
-
         // Chemistry model functions (overriding abstract functions in
         // basicChemistryModel.H)
 

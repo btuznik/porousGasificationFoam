@@ -41,7 +41,18 @@ volVectorField U
     mesh
 );
 
-volScalarField& p = thermo.p();
+volScalarField pKin
+(
+    IOobject
+    (
+        "pKin",
+        runTime.timeName(),
+        mesh,
+        IOobject::MUST_READ,
+        IOobject::AUTO_WRITE
+    ),
+    mesh
+);
 
 #include "compressibleCreatePhi.H"
 
@@ -59,9 +70,9 @@ volScalarField kappa
     dimensionedScalar("zero", dimless, 0.0)
 );
 
-pressureControl pressureControl(p, rho, pimple.dict(), false);
+pressureControl pressureControl(pKin, rho, pimple.dict(), false);
 
-mesh.setFluxRequired(p.name());
+mesh.setFluxRequired(pKin.name());
 
 Info << "Creating turbulence model.\n" << nl;
 autoPtr<compressible::momentumTransportModel> turbulence
@@ -75,19 +86,6 @@ autoPtr<compressible::momentumTransportModel> turbulence
     )
 );
 
-volScalarField pKin
-(
-    IOobject
-    (
-        "pKin",
-        runTime.timeName(),
-        mesh,
-        IOobject::MUST_READ,
-        IOobject::AUTO_WRITE
-    ),
-    mesh
-);
-
 volScalarField p_thermo
 (
     IOobject
@@ -99,7 +97,7 @@ volScalarField p_thermo
         IOobject::AUTO_WRITE
     ),
     mesh,
-    dimensionedScalar("zero", p.dimensions(), 0.0)
+    dimensionedScalar("zero", pKin.dimensions(), 0.0)
 );
 
 Info<< "Creating thermophysical transport model\n" << endl;
