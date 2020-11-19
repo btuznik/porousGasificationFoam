@@ -35,7 +35,7 @@ Description
         fvm::ddt(porosityF, rho)
       + fvc::div(phi)
       ==
-        Srho
+        Srho * (1.0 - porosityF)
     );
 
     //fvOptions.constrain(rhoEqn);

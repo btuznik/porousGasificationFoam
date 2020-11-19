@@ -75,11 +75,11 @@ autoPtr<compressible::momentumTransportModel> turbulence
     )
 );
 
-volScalarField p_amb
+volScalarField pKin
 (
     IOobject
     (
-        "p_amb",
+        "pKin",
         runTime.timeName(),
         mesh,
         IOobject::MUST_READ,
@@ -102,10 +102,6 @@ volScalarField p_thermo
     dimensionedScalar("zero", p.dimensions(), 0.0)
 );
 
-dimensionedScalar pMean = (max(p)+min(p))/2;
-
-p_amb = p - pMean;
-
 Info<< "Creating thermophysical transport model\n" << endl;
 autoPtr<psiReactionThermophysicalTransportModel> thermophysicalTransport
 (
@@ -124,13 +120,12 @@ Info<< "Creating field dpdt\n" << endl;
 volScalarField dpdt
 (
     IOobject
-    (
-        "dpdt",
+    (        "dpdt",
         runTime.timeName(),
         mesh
     ),
     mesh,
-    dimensionedScalar(p.dimensions()/dimTime, 0)
+    dimensionedScalar(pKin.dimensions()/dimTime, 0)
 );
 
 Info<< "Creating field kinetic energy K\n" << endl;
@@ -201,20 +196,6 @@ volTensorField Df
             IOobject::AUTO_WRITE
         ),
         mesh
-);
-
-volTensorField porDf
-(
-        IOobject
-        (
-            "porDf",
-            runTime.timeName(),
-            mesh,
-            IOobject::NO_READ,
-            IOobject::AUTO_WRITE
-        ),
-        mesh,
-        dimensionedTensor("zero", dimless/dimLength/dimLength, tensor(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0))
 );
 
 Info << "Reading field porosityF\n" << endl;

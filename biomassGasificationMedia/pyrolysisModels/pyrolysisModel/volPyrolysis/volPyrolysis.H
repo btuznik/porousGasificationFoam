@@ -124,10 +124,6 @@ protected:
     scalar viscosityDropFactor_;
 
 
-    // Reference to solid thermo properties
-
-
-
     // Solution parameters
 
         /// Number of non-orthogonal correctors

@@ -80,7 +80,7 @@ tmp<volScalarField> cylinderHTC::HTC()
             mesh_,
             dimensionedScalar
             (
-                "zero", dimEnergy/dimTime/dimTemperature, 0.0
+                "zero", dimEnergy/dimTime/dimTemperature/dimVolume, 0.0
             )
         )
      );
@@ -109,7 +109,7 @@ tmp<volScalarField> cylinderHTC::borderHTC()
             mesh_,
             dimensionedScalar
             (
-                "HTC", dimEnergy/dimTime/dimTemperature, 0.0
+                "HTC", dimEnergy/dimTime/dimTemperature/dimVolume, 0.0
             )
         )
     );

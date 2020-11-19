@@ -99,7 +99,7 @@ void volPyrolysis::solveSpeciesMass()
     if (active_)
     {
         volScalarField Mt(0.0*Ym_[0]);
-        volScalarField rhoLoc(max(rho_,dimensionedScalar("minRho",dimMass/dimVolume,SMALL)));
+        volScalarField rhoLoc(max(rho_ * (1.-porosity_),dimensionedScalar("minRho",dimMass/dimVolume,SMALL)));
 
         for (label i=0; i<Ys_.size(); i++)
         {
@@ -111,7 +111,7 @@ void volPyrolysis::solveSpeciesMass()
             (
                 fvm::ddt(rhoLoc,Yi)
              ==
-                solidChemistry_->RRs(i)
+                 (1-porosity_) * solidChemistry_->RRs(i)
             );
 
             YsEqn.relax();
@@ -161,21 +161,24 @@ void volPyrolysis::solveEnergy()
                 fvm::ddt(rhoCp, T_)
               - fvm::laplacian(composedK, T_)
              ==
-                chemistrySh_
+                (1. - porosity_) * chemistrySh_
               - heatTransfer()()
-             // + radiationSh_
+              - heatUpGasCalc()
+              + radiationSh_
             );
+            TEqn.relax();
             TEqn.solve();
         }
 
-        T_ *= whereIs_;
-
         scalar minTemp = GREAT;
         scalar maxTemp = -GREAT;
+        scalar areThere = 0;
+
         forAll(T_,cellI)
         {
             if (whereIs_[cellI] == 1 )
             {
+                areThere = 1;
                 if (T_[cellI] < minTemp)
                 {
                     minTemp = T_[cellI];
@@ -186,7 +189,18 @@ void volPyrolysis::solveEnergy()
                 }
             }
         }
-        Info<< " pyrolysis min/max(T) = " << minTemp << ", " << maxTemp << endl;
+        reduce(maxTemp, maxOp<scalar>());
+        reduce(minTemp, minOp<scalar>());
+        reduce(areThere, maxOp<scalar>());
+
+        if (areThere == 1)
+        {
+            Info<< " pyrolysis min/max(T) = " << minTemp << ", " << maxTemp << endl;
+        }
+        else
+        {
+            Info<< " no solid phase " << endl;
+        }
     }
 }
 
@@ -873,7 +887,14 @@ scalar volPyrolysis::solidRegionDiffNo() const
 
         NumCprho = max(Cprho.ref()).value();
         reduce(NumCprho, maxOp<scalar>());
-        DiNum = max(KrhoCpbyDelta.ref()).value()*time_.deltaTValue()/NumCprho;
+        if (NumCprho != 0.)
+        {
+            DiNum = gMax(KrhoCpbyDelta.internalField())*time_.deltaTValue()/NumCprho;
+        }
+        else
+        {
+            DiNum = SMALL;
+        }
 
     }
 
@@ -894,6 +915,7 @@ Switch volPyrolysis::equilibrium() const
 void volPyrolysis::preEvolveRegion() {
     // Added for completeness
     heterogeneousPyrolysisModel::preEvolveRegion();
+
     // Iterates over every cell and sets cells containing solid phase
     // as reacting cell.
     forAll(Tsolid_, cellI)
@@ -954,7 +976,7 @@ void volPyrolysis::evolvePorosity()
     {
         porositySource_ = solidChemistry_->RRpor(T_)();
 
-        Info << "  Evolve porosity porosity Source max/min " << max(porositySource_).value() << " / "<< min(porositySource_).value() << endl;
+        Info << "  Evolve porosity porosity Source max/min " <<gMax(porositySource_) << " / "<< gMin(porositySource_) << endl;
         volScalarField& por = porosity_;
 
         fvScalarMatrix porosityEqn
@@ -1206,10 +1228,9 @@ Foam::tmp<Foam::volScalarField> volPyrolysis::heatUpGasCalc() const
             volScalarField tempSh = hSh_();
             volScalarField tempDiff = ((whereIs_*T_)+(whereIsNot_*Tgas));
             const speciesTable& gasTable = solidChemistry_->gasTable();
-            const dimensionedScalar stala("one",dimless,1.0);
             forAll(gasTable,gasI)
             {
-                tempSh += (solidChemistry_().gasHs(pGas, tempDiff, gasI) - solidChemistry_().gasHs(pGas, Tgas,gasI))*Srho(gasI);
+                tempSh += solidThermo_.Cp()*T_*Srho(gasI)*(1-porosity_);
             }
             hSh_ = tempSh * whereIs_;
         }

@@ -27,6 +27,7 @@ tmp<fv::convectionScheme<scalar>> mvConvection
              ==
                 reaction->R(Yi)
               + fvOptions(rho, Yi)
+              + (1.-porosityF)*pyrolysisZone.Srho(i)
             );
 
             YiEqn.relax();
@@ -38,25 +39,53 @@ tmp<fv::convectionScheme<scalar>> mvConvection
             fvOptions.correct(Yi);
 
             Yi.max(0.0);
+            if (gMax(Yi) > 2.0)
+            {
+                Info << "warning: the " << Y[i].name() <<" field exceeded 2 in cells" << endl;
+                forAll(Yi,cellI)
+                {
+                    if (Yi[cellI] > 2.0)
+                    Info << "in cell: " << cellI << " " <<  Yi[cellI] << " "
+                         << rho[cellI] << " " << pyrolysisZone.Srho(i)()[cellI]
+                         << " " << T[cellI] << endl;
+                }
+            }
             Yt += Yi;
+        }
+        else
+        {
+            volScalarField& Yi = Y[i];
 
-            Info<< " gas  "<<Y[i].name()<< " Srho min/max   = "
-                << min(pyrolysisZone.Srho(i)()).value() << ", "
-                << max(pyrolysisZone.Srho(i)()).value()
-                //TODO//<< " RR min/max   = " << min(reaction->RR(i)).value() << ", "
-                //<< max(reaction->RR(i)).value()<< " min Y = "
-                << min(Y[i]).value() <<" max Y = " << max(Y[i]).value() << endl;
+            fvScalarMatrix YiEqn
+            (
+                fvm::ddt(porosityF*rho, Yi)
+              + mvConvection->fvmDiv(phi, Yi)
+              - fvm::laplacian(turbulence->muEff(), Yi)
+            );
+
+            YiEqn.relax();
+
+            fvOptions.constrain(YiEqn);
+
+            YiEqn.solve("Yi");
+
+            fvOptions.correct(Yi);
+            inertIndex = i;
         }
     }
 
     forAll(Y, i)
     {
+        Info<< " gas  "<<Y[i].name()<< " Srho min/max   = "
+            << min(pyrolysisZone.Srho(i)()).value() << ", "
+            << max(pyrolysisZone.Srho(i)()).value()
+            //TODO//<< " RR min/max   = " << min(reaction->RR(i)).value() << ", "
+            //<< max(reaction->RR(i)).value()<< " min Y = "
+            << min(Y[i]).value() <<" max Y = " << max(Y[i]).value() << endl;
+
         if (Y[i].name() != inertSpecie)
         {
             Y[i] = Y[i]/(Yt+Y[inertIndex]);
         }
     }
-
-    Y[inertIndex] = scalar(1) - Yt;
-    Y[inertIndex].max(0.0);
 }

@@ -105,14 +105,16 @@ int main(int argc, char *argv[])
 
         #include "rhoEqn.H"
 
-        // new trick with pressure and everything else coupling
-        p_thermo = rho/psi;
-
         while (pimple.loop())
         {
+            if (pimple.nCorrPimple() > 0)
+            {
+                pKin.storePrevIter();
+                rho.storePrevIter();
+                U.storePrevIter();
+            }
+
             #include "UEqn.H"
-            #include "YEqn.H"
-            #include "EEqn.H"
 
             // --- Pressure corrector loop
             while (pimple.correct())
@@ -134,6 +136,9 @@ int main(int argc, char *argv[])
             }
         }
 
+        rho = thermo.rho();
+        #include "YEqn.H"
+        #include "EEqn.H"
         rho = thermo.rho();
 
         runTime.write();

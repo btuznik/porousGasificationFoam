@@ -2,7 +2,7 @@ rho = thermo.rho();
 
 volScalarField rAU(1.0/UEqn.A());
 surfaceScalarField rhorAUf("rhorAUf", fvc::interpolate(rho*rAU));
-volVectorField HbyA(constrainHbyA(rAU*UEqn.H(), U, p));
+volVectorField HbyA(constrainHbyA(rAU*UEqn.H(), U, pKin));
 
 if (pimple.nCorrPiso() <= 1)
 {
@@ -30,11 +30,11 @@ if (pimple.transonic())
     {
         fvScalarMatrix pEqn
         (
-            fvm::ddt(psi, p)
-          + fvm::div(phid, p)
-          - fvm::laplacian(rhorAUf, p)
+            fvm::ddt(psi, pKin)
+          + fvm::div(phid, pKin)
+          - fvm::laplacian(rhorAUf, pKin)
          ==
-            fvOptions(psi, p, rho.name())
+            fvOptions(psi, pKin, rho.name())
         );
 
         pEqn.solve();
@@ -59,17 +59,18 @@ else
     MRF.makeRelative(fvc::interpolate(rho), phiHbyA);
 
     // Update the pressure BCs to ensure flux consistency
-    constrainPressure(p, rho, U, phiHbyA, rhorAUf, MRF);
+    constrainPressure(pKin, rho, U, phiHbyA, rhorAUf, MRF);
 
     while (pimple.correctNonOrthogonal())
     {
         fvScalarMatrix pEqn
         (
-            fvm::ddt(psi, p)
+            fvm::ddt(psi * porosityF, pKin)
           + fvc::div(phiHbyA)
-          - fvm::laplacian(rhorAUf, p)
+          - fvm::laplacian(rhorAUf, pKin)
          ==
-            fvOptions(psi, p, rho.name())
+            fvOptions(psi * porosityF, pKin, rho.name())
+          + Srho * (1.0 - porosityF)
         );
 
         pEqn.solve();
@@ -85,20 +86,20 @@ else
 #include "compressibleContinuityErrs.H"
 
 // Explicitly relax pressure for momentum corrector
-p.relax();
+pKin.relax();
 
-U = HbyA - rAU*fvc::grad(p);
+U = HbyA - rAU*fvc::grad(pKin);
 U.correctBoundaryConditions();
 fvOptions.correct(U);
 K = 0.5*magSqr(U);
 
-if (pressureControl.limit(p))
+if (pressureControl.limit(pKin))
 {
-    p.correctBoundaryConditions();
+    pKin.correctBoundaryConditions();
     rho = thermo.rho();
 }
 
 if (thermo.dpdt())
 {
-    dpdt = fvc::ddt(p);
+    dpdt = fvc::ddt(pKin);
 }

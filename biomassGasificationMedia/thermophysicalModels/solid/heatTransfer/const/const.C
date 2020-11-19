@@ -94,7 +94,8 @@ tmp<volScalarField> constHTC::HTC() const
             mesh_,
             dimensionedScalar
             (
-                "HTC", dimEnergy/dimTime/dimTemperature/dimVolume, HTCCoeff_
+                "HTC", dimEnergy/dimTime/dimTemperature/dimVolume,
+                HTCCoeff_ * surfaceCoeff_
             )
         )
     );
@@ -118,7 +119,8 @@ tmp<volScalarField> constHTC::borderHTC() const
             mesh_,
             dimensionedScalar
             (
-                "HTC", dimEnergy/dimTime/dimTemperature/dimVolume, borderHTCCoeff_
+                "HTC", dimEnergy/dimTime/dimTemperature/dimVolume,
+                borderHTCCoeff_ * surfaceCoeff_
             )
         )
     );
