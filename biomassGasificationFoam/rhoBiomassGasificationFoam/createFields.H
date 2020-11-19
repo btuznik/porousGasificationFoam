@@ -43,13 +43,13 @@ volVectorField U
 );
 
 
-volScalarField& p = thermo.p();
+volScalarField& pKin = thermo.pKin();
 
 #include "compressibleCreatePhi.H"
 
-pressureControl pressureControl(p, rho, pimple.dict(), false);
+pressureControl pressureControl(pKin, rho, pimple.dict(), false);
 
-mesh.setFluxRequired(p.name());
+mesh.setFluxRequired(pKin.name());
 
 
 Info << "Creating turbulence model.\n" << nl;
@@ -92,7 +92,7 @@ volScalarField dpdt
         mesh
     ),
     mesh,
-    dimensionedScalar(p.dimensions()/dimTime, 0)
+    dimensionedScalar(pKin.dimensions()/dimTime, 0)
 );
 
 Info<< "Creating field kinetic energy K\n" << endl;

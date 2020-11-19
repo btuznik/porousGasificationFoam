@@ -2,7 +2,7 @@ CorrectPhi
 (
     U,
     phi,
-    p,
+    pKin,
     rho,
     psi,
     dimensionedScalar("rAUf", dimTime, 1),

@@ -177,6 +177,9 @@ private:
         List<label> gasDictionary_;
 
         const volScalarField& rhoG_;
+
+        const volScalarField& porosityF_;
+
        // Private members
 
             //- Set reacting status of cell, cellI

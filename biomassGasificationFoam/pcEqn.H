@@ -2,7 +2,7 @@ rho = thermo.rho();
 
 volScalarField rAU(1.0/UEqn.A());
 volScalarField rAtU(1.0/(1.0/rAU - UEqn.H1()));
-volVectorField HbyA(constrainHbyA(rAU*UEqn.H(), U, p));
+volVectorField HbyA(constrainHbyA(rAU*UEqn.H(), U, pKin));
 
 if (pimple.nCorrPiso() <= 1)
 {
@@ -30,10 +30,10 @@ if (pimple.transonic())
     surfaceScalarField phic
     (
         "phic",
-        fvc::interpolate(rho*(rAtU - rAU))*fvc::snGrad(p)*mesh.magSf()
+        fvc::interpolate(rho*(rAtU - rAU))*fvc::snGrad(pKin)*mesh.magSf()
     );
 
-    HbyA -= (rAU - rAtU)*fvc::grad(p);
+    HbyA -= (rAU - rAtU)*fvc::grad(pKin);
 
     volScalarField rhorAtU("rhorAtU", rho*rAtU);
 
@@ -41,12 +41,12 @@ if (pimple.transonic())
     {
         fvScalarMatrix pEqn
         (
-            fvm::ddt(psi, p)
-          + fvm::div(phid, p)
+            fvm::ddt(psi, pKin)
+          + fvm::div(phid, pKin)
           + fvc::div(phic)
-          - fvm::laplacian(rhorAtU, p)
+          - fvm::laplacian(rhorAtU, pKin)
          ==
-            fvOptions(psi, p, rho.name())
+            fvOptions(psi, pKin, rho.name())
         );
 
         pEqn.solve();
@@ -70,23 +70,23 @@ else
 
     MRF.makeRelative(fvc::interpolate(rho), phiHbyA);
 
-    phiHbyA += fvc::interpolate(rho*(rAtU - rAU))*fvc::snGrad(p)*mesh.magSf();
-    HbyA -= (rAU - rAtU)*fvc::grad(p);
+    phiHbyA += fvc::interpolate(rho*(rAtU - rAU))*fvc::snGrad(pKin)*mesh.magSf();
+    HbyA -= (rAU - rAtU)*fvc::grad(pKin);
 
     volScalarField rhorAtU("rhorAtU", rho*rAtU);
 
     // Update the pressure BCs to ensure flux consistency
-    constrainPressure(p, rho, U, phiHbyA, rhorAtU, MRF);
+    constrainPressure(pKin, rho, U, phiHbyA, rhorAtU, MRF);
 
     while (pimple.correctNonOrthogonal())
     {
         fvScalarMatrix pEqn
         (
-            fvm::ddt(psi, p)
+            fvm::ddt(psi, pKin)
           + fvc::div(phiHbyA)
-          - fvm::laplacian(rhorAtU, p)
+          - fvm::laplacian(rhorAtU, pKin)
          ==
-            fvOptions(psi, p, rho.name())
+            fvOptions(psi, pKin, rho.name())
         );
 
         pEqn.solve();
@@ -102,20 +102,20 @@ else
 #include "compressibleContinuityErrs.H"
 
 // Explicitly relax pressure for momentum corrector
-p.relax();
+pKin.relax();
 
-U = HbyA - rAtU*fvc::grad(p);
+U = HbyA - rAtU*fvc::grad(pKin);
 U.correctBoundaryConditions();
 fvOptions.correct(U);
 K = 0.5*magSqr(U);
 
-if (pressureControl.limit(p))
+if (pressureControl.limit(pKin))
 {
-    p.correctBoundaryConditions();
+    pKin.correctBoundaryConditions();
     rho = thermo.rho();
 }
 
 if (thermo.dpdt())
 {
-    dpdt = fvc::ddt(p);
+    dpdt = fvc::ddt(pKin);
 }

@@ -26,8 +26,8 @@ if (solveEnergy)
               ? fvc::div
                 (
                     fvc::absolute(phi/fvc::interpolate(rho), U),
-                    p,
-                    "div(phiv,p)"
+                    pKin,
+                    "div(phiv,pKin)"
                 )
               : -dpdt
             )

@@ -3,13 +3,13 @@ if (!pimple.simpleRho())
     rho = thermo.rho();
 }
 
-// Thermodynamic density needs to be updated by psi*d(p) after the
+// Thermodynamic density needs to be updated by psi*d(pKin) after the
 // pressure solution
-const volScalarField psip0(psi*p);
+const volScalarField psip0(psi*pKin);
 
 volScalarField rAU(1.0/UEqn.A());
 volScalarField rAtU(1.0/(1.0/rAU - UEqn.H1()));
-volVectorField HbyA(constrainHbyA(rAU*UEqn.H(), U, p));
+volVectorField HbyA(constrainHbyA(rAU*UEqn.H(), U, pKin));
 
 if (pimple.nCorrPiso() <= 1)
 {
@@ -34,7 +34,7 @@ MRF.makeRelative(fvc::interpolate(rho), phiHbyA);
 volScalarField rhorAtU("rhorAtU", rho*rAtU);
 
 // Update the pressure BCs to ensure flux consistency
-constrainPressure(p, rho, U, phiHbyA, rhorAtU, MRF);
+constrainPressure(pKin, rho, U, phiHbyA, rhorAtU, MRF);
 
 if (pimple.transonic())
 {
@@ -45,22 +45,22 @@ if (pimple.transonic())
     );
 
     phiHbyA +=
-        fvc::interpolate(rho*(rAtU - rAU))*fvc::snGrad(p)*mesh.magSf()
-      - fvc::interpolate(psi*p)*phiHbyA/fvc::interpolate(rho);
+        fvc::interpolate(rho*(rAtU - rAU))*fvc::snGrad(pKin)*mesh.magSf()
+      - fvc::interpolate(psi*pKin)*phiHbyA/fvc::interpolate(rho);
 
-    HbyA -= (rAU - rAtU)*fvc::grad(p);
+    HbyA -= (rAU - rAtU)*fvc::grad(pKin);
 
     fvScalarMatrix pDDtEqn
     (
-        fvc::ddt(rho) + psi*correction(fvm::ddt(p))
-      + fvc::div(phiHbyA) + fvm::div(phid, p)
+        fvc::ddt(rho) + psi*correction(fvm::ddt(pKin))
+      + fvc::div(phiHbyA) + fvm::div(phid, pKin)
      ==
-        fvOptions(psi, p, rho.name())
+        fvOptions(psi, pKin, rho.name())
     );
 
     while (pimple.correctNonOrthogonal())
     {
-        fvScalarMatrix pEqn(pDDtEqn - fvm::laplacian(rhorAtU, p));
+        fvScalarMatrix pEqn(pDDtEqn - fvm::laplacian(rhorAtU, pKin));
 
         // Relax the pressure equation to ensure diagonal-dominance
         pEqn.relax();
@@ -75,20 +75,20 @@ if (pimple.transonic())
 }
 else
 {
-    phiHbyA += fvc::interpolate(rho*(rAtU - rAU))*fvc::snGrad(p)*mesh.magSf();
-    HbyA -= (rAU - rAtU)*fvc::grad(p);
+    phiHbyA += fvc::interpolate(rho*(rAtU - rAU))*fvc::snGrad(pKin)*mesh.magSf();
+    HbyA -= (rAU - rAtU)*fvc::grad(pKin);
 
     fvScalarMatrix pDDtEqn
     (
-        fvc::ddt(rho) + psi*correction(fvm::ddt(p))
+        fvc::ddt(rho) + psi*correction(fvm::ddt(pKin))
       + fvc::div(phiHbyA)
      ==
-        fvOptions(psi, p, rho.name())
+        fvOptions(psi, pKin, rho.name())
     );
 
     while (pimple.correctNonOrthogonal())
     {
-        fvScalarMatrix pEqn(pDDtEqn - fvm::laplacian(rhorAtU, p));
+        fvScalarMatrix pEqn(pDDtEqn - fvm::laplacian(rhorAtU, pKin));
 
         pEqn.solve();
 
@@ -99,10 +99,10 @@ else
     }
 }
 
-bool limitedp = pressureControl.limit(p);
+bool limitedp = pressureControl.limit(pKin);
 
 // Thermodynamic density update
-thermo.correctRho(psi*p - psip0);
+thermo.correctRho(psi*pKin - psip0);
 
 if (limitedp)
 {
@@ -113,9 +113,9 @@ if (limitedp)
 #include "compressibleContinuityErrs.H"
 
 // Explicitly relax pressure for momentum corrector
-p.relax();
+pKin.relax();
 
-U = HbyA - rAtU*fvc::grad(p);
+U = HbyA - rAtU*fvc::grad(pKin);
 U.correctBoundaryConditions();
 fvOptions.correct(U);
 K = 0.5*magSqr(U);
@@ -130,10 +130,10 @@ fvc::correctRhoUf(rhoUf, rho, U, phi);
 
 if (thermo.dpdt())
 {
-    dpdt = fvc::ddt(p);
+    dpdt = fvc::ddt(pKin);
 
     if (mesh.moving())
     {
-        dpdt -= fvc::div(fvc::meshPhi(rho, U), p);
+        dpdt -= fvc::div(fvc::meshPhi(rho, U), pKin);
     }
 }
