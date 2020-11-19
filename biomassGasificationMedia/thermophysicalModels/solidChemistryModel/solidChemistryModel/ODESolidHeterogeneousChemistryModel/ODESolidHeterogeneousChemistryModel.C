@@ -554,11 +554,6 @@ Foam::scalarField  Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidT
 
             scalar totalSubstrates = substrates + solidSubstrates;
 
-            Info << "substrates: " << substrates << endl;
-            Info << "solidSubstrates: "  << solidSubstrates << endl;
-            Info << "products: " << products << endl;
-            Info << "solidProducts: " << solidProducts << endl;
-
             if ((totalSubstrates > 0) and (mag(totalSubstrates - (products + solidProducts)) < SMALL))
             {
                 forAll(R.slhs(), s)
