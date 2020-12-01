@@ -1,9 +1,8 @@
-
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-   \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+   \\    /   O peration     |
+    \\  /    A nd           | Copyright held by original author
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -23,14 +22,13 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::radiation::heterogeneousRadiationModel
+    Foam::heterogeneousRadiationModel
 
 Description
-    Top level model for radiation modelling
+    Top level model for heterogeneous radiation modelling
 
 SourceFiles
     heterogeneousRadiationModel.C
-    heterogeneousRadiationModelNew.C
 
 \*---------------------------------------------------------------------------*/
 
@@ -61,7 +59,7 @@ class sootModel;
 }
 
 /*---------------------------------------------------------------------------*\
-                       Class heterogeneousRadiationModel Declaration
+                 Class heterogeneousRadiationModel Declaration
 \*---------------------------------------------------------------------------*/
 
 class heterogeneousRadiationModel
@@ -84,9 +82,6 @@ protected:
         //- Reference to the solid temperature field
         const volScalarField& Ts_;
 
-        //- Model specific dictionary input parameters
-        Switch radiation_;
-
         //- Radiation model dictionary
         dictionary coeffs_;
 
@@ -102,7 +97,7 @@ protected:
 
             //- Absorption/emission model
             autoPtr<radiationModels::heterogeneousAbsorptionEmissionModel>
-                absorptionEmission_;
+                heterogeneousAbsorptionEmission_;
 
             //- Scatter model
             autoPtr<radiationModels::scatterModel> scatter_;
@@ -130,30 +125,30 @@ public:
 
     // Declare runtime constructor selection table
 
-         declareRunTimeSelectionTable
-         (
-             autoPtr,
-             heterogeneousRadiationModel,
-             T,
-             (
-                 const volScalarField& T
-             ),
-             (T)
-         );
+        declareRunTimeSelectionTable
+        (
+            autoPtr,
+            heterogeneousRadiationModel,
+            T,
+            (
+                const volScalarField& T
+            ),
+            (T)
+        );
 
-         declareRunTimeSelectionTable
-         (
-             autoPtr,
-             heterogeneousRadiationModel,
-             porosity,
-             ( 
-                 const volScalarField& T,
-                 const volScalarField& porosityF,
-                 const List<label>& surfF,
-                 const volScalarField& Ts
-             ),
-             (T,porosityF,surfF,Ts)
-         );
+        declareRunTimeSelectionTable
+        (
+            autoPtr,
+            heterogeneousRadiationModel,
+            porosity,
+            ( 
+                const volScalarField& T,
+                const volScalarField& porosityF,
+                const List<label>& surfF,
+                const volScalarField& Ts
+            ),
+            (T,porosityF,surfF,Ts)
+        );
 
     // Constructors
 
@@ -165,30 +160,26 @@ public:
 
         //- Construct from porosity, surface and solid temperature
         heterogeneousRadiationModel
-        ( 
-     		const volScalarField& T,
-        	const volScalarField& porosityF,
-        	const List<label>& surfF,
-        	const volScalarField& Ts
+        (
+            const volScalarField& T,
+            const volScalarField& porosityF,
+            const List<label>& surfF,
+            const volScalarField& Ts
         );
-
-        //- Disallow default bitwise copy construction
-        heterogeneousRadiationModel(const heterogeneousRadiationModel&) = delete;
-
 
     // Selectors
 
         //- Return a reference to the selected radiation model
-		static autoPtr<heterogeneousRadiationModel> New(const volScalarField& T);
+        static autoPtr<heterogeneousRadiationModel> New(const volScalarField& T);
 
         //- Return a reference to the selected radiation model
-		static autoPtr<heterogeneousRadiationModel> New
-	 	(
-			const volScalarField& T,
-			const volScalarField& porosityF,
-			const List<label>& surfF, 
-			const volScalarField& Ts
-	 	);
+        static autoPtr<heterogeneousRadiationModel> New
+        (
+            const volScalarField& T,
+            const volScalarField& porosityF,
+            const List<label>& surfF,
+            const volScalarField& Ts
+        );
 
 
     //- Destructor
@@ -224,9 +215,6 @@ public:
                 const volScalarField& he
             ) const;
 
-            //- Sensible enthalpy source term
-           // virtual tmp<fvScalarMatrix> Shs(basicThermo& thermo) const;
-
             //- Temperature source term
             virtual tmp<fvScalarMatrix> ST
             (
@@ -234,7 +222,7 @@ public:
                 volScalarField& T
             ) const;
 
-	    	//- Enthalpy source term for solid
+            //- Enthalpy source term for solid
             virtual tmp<volScalarField> solidSh() const = 0;
 
             //- Access to absorptionEmission model
@@ -251,24 +239,6 @@ public:
         void operator=(const heterogeneousRadiationModel&) = delete;
 };
 
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#define addToRadiationRunTimeSelectionTables(model)                            \
-                                                                               \
-    addToRunTimeSelectionTable                                                 \
-    (                                                                          \
-        heterogeneousRadiationModel,                                           \
-        model,                                                                 \
-        T                                                             	  \
-    );                                                                         \
-                                                                               \
-    addToRunTimeSelectionTable                                                 \
-    (                                                                          \
-        heterogeneousRadiationModel,                                           \
-        model,                                                                 \
-        porosity                                                               \
-    );
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

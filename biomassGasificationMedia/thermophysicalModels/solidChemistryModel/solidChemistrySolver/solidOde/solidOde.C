@@ -35,7 +35,7 @@ Foam::solidOde<ChemistryModel>::solidOde
 )
 :
     solidChemistrySolver<ChemistryModel>(thermo, gasPhaseGases),
-    coeffsDict_(this->subDict("solidOdeCoeffs")),
+    coeffsDict_(this->subDict("odeCoeffs")),
     odeSolver_(ODESolver::New(*this, coeffsDict_)),
     cTp_(this->nEqns())
 {}

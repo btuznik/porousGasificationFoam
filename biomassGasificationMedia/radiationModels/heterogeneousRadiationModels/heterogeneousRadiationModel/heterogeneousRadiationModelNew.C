@@ -1,8 +1,8 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-   \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+   \\    /   O peration     |
+    \\  /    A nd           | Copyright held by original author
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -28,45 +28,42 @@ License
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-//Tutaj nic nie zmieniałem ~ TADEK
-Foam::autoPtr<Foam::heterogeneousRadiationModel> 
-	Foam::heterogeneousRadiationModel::New
+Foam::autoPtr<Foam::heterogeneousRadiationModel>
+Foam::heterogeneousRadiationModel::New
 (
     const volScalarField& T
 )
 {
-    IOobject radIO
+    // get model name, but do not register the dictionary
+    const word modelType
     (
-        "radiationProperties",
-        T.time().constant(),
-        T.mesh(),
-        IOobject::MUST_READ_IF_MODIFIED,
-        IOobject::NO_WRITE,
-        false
+        IOdictionary
+        (
+            IOobject
+            (
+                "radiationProperties",
+                T.time().constant(),
+                T.mesh(),
+                IOobject::MUST_READ,
+                IOobject::NO_WRITE,
+                false
+            )
+        ).lookup("heterogeneousRadiationModel")
     );
 
-    word modelType("none");
-    if (radIO.typeHeaderOk<IOdictionary>(false))
-    {
-        IOdictionary(radIO).lookup("radiationModel") >> modelType;
-    }
-    else
-    {
-        Info<< "Radiation model not active: radiationProperties not found"
-            << endl;
-    }
-
-    Info<< "Selecting radiationModel " << modelType << endl;
+    Info<< "Selecting heterogeneousRadiationModel " << modelType << endl;
 
     TConstructorTable::iterator cstrIter =
         TConstructorTablePtr_->find(modelType);
 
     if (cstrIter == TConstructorTablePtr_->end())
     {
-        FatalErrorInFunction
-            << "Unknown radiationModel type "
+        FatalErrorIn
+        (
+            "heterogeneousRadiationModel::New(const volScalarField&)"
+        )   << "Unknown heterogeneousRadiationModel type "
             << modelType << nl << nl
-            << "Valid radiationModel types are:" << nl
+            << "Valid heterogeneousRadiationModel types are:" << nl
             << TConstructorTablePtr_->sortedToc()
             << exit(FatalError);
     }
@@ -74,16 +71,17 @@ Foam::autoPtr<Foam::heterogeneousRadiationModel>
     return autoPtr<heterogeneousRadiationModel>(cstrIter()(T));
 }
 
-//Przekopiowałem czytanie słownika z bgf dla fe31
-Foam::autoPtr<Foam::heterogeneousRadiationModel> 
-	Foam::heterogeneousRadiationModel::New
+
+Foam::autoPtr<Foam::heterogeneousRadiationModel>
+Foam::heterogeneousRadiationModel::New
 (
     const volScalarField& T,
-	const volScalarField& porosityF,
-	const List<label>& surfF, 
-	const volScalarField& Ts
+    const volScalarField& porosityF,
+    const List<label>& surfF,
+    const volScalarField& Ts
 )
 {
+    // get model name, but do not register the dictionary
     const word modelType
     (
         IOdictionary
@@ -107,16 +105,17 @@ Foam::autoPtr<Foam::heterogeneousRadiationModel>
 
     if (cstrIter == porosityConstructorTablePtr_->end())
     {
-        FatalErrorInFunction
-            << "Unknown radiationModel type "
+        FatalErrorIn
+        (
+            "heterogeneousRadiationModel::New(const volScalarField&, const volScalarField&)"
+        )   << "Unknown heterogeneousRadiationModel type "
             << modelType << nl << nl
-            << "Valid radiationModel types are:" << nl
+            << "Valid heterogeneousRadiationModel types are:" << nl
             << porosityConstructorTablePtr_->sortedToc()
             << exit(FatalError);
     }
 
     return autoPtr<heterogeneousRadiationModel>(cstrIter()(T,porosityF,surfF,Ts));
 }
-
 
 // ************************************************************************* //

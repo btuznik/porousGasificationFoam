@@ -92,11 +92,11 @@ int main(int argc, char *argv[])
         {
             #include "compressibleCourantNo.H"
             #include "setDeltaT.H"
+            #include "solidRegionDiffusionNo.H"
+            #include "setMultiRegionDeltaT.H"
         }
 
         runTime++;
-
-        #include "solidRegionDiffusionNo.H"
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 

@@ -85,7 +85,7 @@ tmp<volScalarField> cylinderHTC::HTC()
         )
      );
 
-     HTCloc_ = pow(1 - por(),0.5)*pow(1-por0(),0.5)*2.0/pipeRadius_*HTCCoeff_;
+     HTCloc_ = pow(1 - porosity(),0.5)*pow(1-initialPorosity(),0.5)*2.0/pipeRadius_*HTCCoeff_;
 
      return HTCloc_;
 
@@ -114,7 +114,7 @@ tmp<volScalarField> cylinderHTC::borderHTC()
         )
     );
 
-    borderHTCloc_ = pow(1 - por(),0.5)*pow(1-por0(),0.5)*2.0/pipeRadius_*borderHTCCoeff_;
+    borderHTCloc_ = pow(1 - porosity(),0.5)*pow(1-initialPorosity(),0.5)*2.0/pipeRadius_*borderHTCCoeff_;
 
 return borderHTCloc_;
 }

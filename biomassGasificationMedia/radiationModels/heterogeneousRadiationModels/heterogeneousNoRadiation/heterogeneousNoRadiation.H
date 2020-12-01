@@ -1,8 +1,8 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-   \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+   \\    /   O peration     |
+    \\  /    A nd           | Copyright held by original author
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -46,13 +46,18 @@ namespace radiationModels
 {
 
 /*---------------------------------------------------------------------------*\
-                             Class heterogeneousNoRadiation Declaration
+                    Class heterogeneousNoRadiation Declaration
 \*---------------------------------------------------------------------------*/
 
 class heterogeneousNoRadiation
 :
     public heterogeneousRadiationModel
 {
+    // Private Member Functions
+
+        //- Disallow default bitwise copy construct
+        heterogeneousNoRadiation(const heterogeneousNoRadiation&);
+
 public:
 
     //- Runtime type information
@@ -62,31 +67,22 @@ public:
     // Constructors
 
         //- Construct from components
-        heterogeneousNoRadiation(const volScalarField& T);
-
-        //- Construct from components
         heterogeneousNoRadiation
-	(
-        	const volScalarField& T,
-        	const volScalarField& porosityF,
-        	const List<label>& surfF,
-        	const volScalarField& Ts
+        (
+            const volScalarField& T,
+            const volScalarField& porosityF,
+            const List<label>& surfF,
+            const volScalarField& Ts
         );
-
-        //- Disallow default bitwise copy construction
-        heterogeneousNoRadiation(const heterogeneousNoRadiation&) = delete;
 
 
     //- Destructor
     virtual ~heterogeneousNoRadiation();
 
 
-    // Member Functions
+    // Member functions
 
         // Edit
-
-            //- Main update/correction routine
-            void correct();
 
             //- Solve radiation equation(s)
             void calculate();
@@ -101,8 +97,7 @@ public:
             tmp<volScalarField::Internal> Ru() const;
 
             //- Source term component (constant)
-            virtual tmp<volScalarField> solidSh() const;		
-
+            virtual tmp<volScalarField> solidSh() const;
 
     // Member Operators
 
@@ -113,7 +108,7 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace radiationModels
+} // End namespace radiation
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

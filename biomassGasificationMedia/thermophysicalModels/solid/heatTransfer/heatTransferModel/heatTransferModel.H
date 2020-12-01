@@ -132,7 +132,11 @@ public:
     // Selectors
 
         //- Return a reference to the selected heatTransfer model
-        static autoPtr<heatTransferModel> New(const volScalarField&,const volScalarField&);
+        static autoPtr<heatTransferModel> New
+        (
+            const volScalarField& porosity,
+            const volScalarField& initialPorosity
+        );
 
 
     //- Destructor
@@ -143,12 +147,12 @@ public:
     // Member Functions
 
         //- Access function to flux field
-        inline const volScalarField& por() const
+        inline const volScalarField& porosity() const
         {
             return porosity_;
         }
 
-        inline const volScalarField& por0() const
+        inline const volScalarField& initialPorosity() const
         {
             return initialPorosity_;
         }

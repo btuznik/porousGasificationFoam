@@ -1,8 +1,8 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-   \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+   \\    /   O peration     |
+    \\  /    A nd           | Copyright held by original author
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -34,31 +34,30 @@ License
 
 namespace Foam
 {
-namespace radiationModels
-{
-    defineTypeNameAndDebug(heterogeneousNoRadiation, 0);
-    addToRadiationRunTimeSelectionTables(heterogeneousNoRadiation);
-}
+    namespace radiationModels
+    {
+        defineTypeNameAndDebug(heterogeneousNoRadiation, 0);
+        addToRunTimeSelectionTable
+        (
+            heterogeneousRadiationModel,
+            heterogeneousNoRadiation,
+            porosity
+        );
+    }
 }
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::radiationModels::heterogeneousNoRadiation::heterogeneousNoRadiation(const volScalarField& T)
-:
-    heterogeneousRadiationModel(T)
-{}
-
-
 Foam::radiationModels::heterogeneousNoRadiation::heterogeneousNoRadiation
 (
-        	const volScalarField& T,
-        	const volScalarField& porosityF,
-        	const List<label>& surfF,
-        	const volScalarField& Ts
+    const volScalarField& T,
+    const volScalarField& porosityF,
+    const List<label>& surfF,
+    const volScalarField& Ts
 )
 :
-    heterogeneousRadiationModel(T, porosityF, surfF, Ts)
+    heterogeneousRadiationModel(T)
 {}
 
 
@@ -70,21 +69,17 @@ Foam::radiationModels::heterogeneousNoRadiation::~heterogeneousNoRadiation()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void Foam::radiationModels::heterogeneousNoRadiation::correct()
-{}
-
-
-void Foam::radiationModels::heterogeneousNoRadiation::calculate()
-{}
-
-
 bool Foam::radiationModels::heterogeneousNoRadiation::read()
 {
     return heterogeneousRadiationModel::read();
 }
 
 
-Foam::tmp<Foam::volScalarField> 
+void Foam::radiationModels::heterogeneousNoRadiation::calculate()
+{}
+
+
+Foam::tmp<Foam::volScalarField>
 Foam::radiationModels::heterogeneousNoRadiation::Rp() const
 {
     return volScalarField::New
@@ -112,30 +107,15 @@ Foam::radiationModels::heterogeneousNoRadiation::Ru() const
 }
 
 
-Foam::tmp<Foam::volScalarField> 
+Foam::tmp<Foam::volScalarField>
 Foam::radiationModels::heterogeneousNoRadiation::solidSh() const
 {
-    return tmp<volScalarField>
+    return volScalarField::New
     (
-        new volScalarField
-        (
-            IOobject
-            (
-                "solidSh",
-                mesh_.time().timeName(),
-                mesh_,
-                IOobject::NO_READ,
-                IOobject::NO_WRITE
-            ),
-            mesh_,
-            dimensionedScalar
-            (
-                dimMass/dimLength/pow3(dimTime),
-                0.0
-            )
-        )
+        "solidSh",
+        mesh_,
+        dimensionedScalar(dimMass/dimLength/pow3(dimTime), 0)
     );
 }
-
 
 // ************************************************************************* //

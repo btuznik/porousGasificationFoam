@@ -70,8 +70,8 @@ public:
         //- Construct from components
         constHTC
         (
-            const volScalarField& por,
-            const volScalarField& por0
+            const volScalarField& porosity,
+            const volScalarField& initialPorosity
         );
 
 
@@ -80,8 +80,8 @@ public:
         //- Return a reference to the selected heatTransfer model
         static autoPtr<constHTC> New
         (
-            const volScalarField& por,
-            const volScalarField& por0
+            const volScalarField& porosity,
+            const volScalarField& initialPorosity
         );
 
 

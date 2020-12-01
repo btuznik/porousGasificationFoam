@@ -163,7 +163,7 @@ void volPyrolysis::solveEnergy()
              ==
                 (1. - porosity_) * chemistrySh_
               - heatTransfer()()
-              - heatUpGasCalc()
+              - heatUpGas_
               + radiationSh_
             );
             TEqn.relax();
@@ -267,18 +267,6 @@ volPyrolysis::volPyrolysis
     ),
     T_(solidThermo_.T()),
     equilibrium_(false),
-    Tsolid_
-    (
-         IOobject
-         (
-             "Ts",
-             time_.timeName(),
-             mesh_,
-             IOobject::MUST_READ,
-             IOobject::AUTO_WRITE
-         ),
-         mesh
-    ),
     viscosityDropFactor_(1.0),
     nNonOrthCorr_(-1),
     maxDiff_(10),
@@ -584,18 +572,6 @@ volPyrolysis::volPyrolysis
     ),
     T_(solidThermo_.T()),
     equilibrium_(false),
-    Tsolid_
-    (
-         IOobject
-         (
-             "Ts",
-             time_.timeName(),
-             mesh_,
-             IOobject::MUST_READ,
-             IOobject::AUTO_WRITE
-         ),
-         mesh
-    ),
     viscosityDropFactor_(1.0),
     nNonOrthCorr_(-1),
     maxDiff_(10),
@@ -918,7 +894,7 @@ void volPyrolysis::preEvolveRegion() {
 
     // Iterates over every cell and sets cells containing solid phase
     // as reacting cell.
-    forAll(Tsolid_, cellI)
+    forAll(T_, cellI)
     {
         if ( active_ && whereIs_[cellI] != 0)
         {
@@ -1154,7 +1130,7 @@ Foam::tmp<Foam::volScalarField> volPyrolysis::heatTransfer()
     else
     {
         volScalarField Tgas = gasThermo_.T();
-        volScalarField HT(HTC_ * (Tsolid_-Tgas));
+        volScalarField HT(HTC_ * (T_-Tgas));
         Sh_ = HT * whereIs_;
     }
     return Sh_;
@@ -1187,10 +1163,10 @@ Foam::tmp<Foam::volScalarField> volPyrolysis::HTC() const
     else
     {
         HTCloc_ = HTmodel_->HTC()*whereIs_;
-       // forAll(surfF_,cellI)
-       // {
-       //     HTCloc_.internalField()[surfF_[cellI]] = borderHTC[surfF_[cellI]];
-       // }
+        forAll(surfF_,cellI)
+        {
+            HTCloc_.ref()[surfF_[cellI]] = borderHTC[surfF_[cellI]];
+        }
     }
     return HTCloc_;
 }

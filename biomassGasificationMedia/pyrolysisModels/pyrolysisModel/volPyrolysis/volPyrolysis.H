@@ -118,8 +118,6 @@ protected:
     /// Switch for equilibrium/nonequilibrium model
     Switch equilibrium_;
 
-    /// Non-const access to solid's temperature DO USUNIECIA
-    volScalarField Tsolid_;
     //- Switch for equilibrium/nonequilibrium model
     scalar viscosityDropFactor_;
 
@@ -234,7 +232,7 @@ public:
             psiReactionThermo& gasThermo,
             volScalarField& whereIs
         );
-        
+
         //- Construct from type name, mesh, main region gas list and radiation
         volPyrolysis
         (

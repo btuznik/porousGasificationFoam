@@ -25,8 +25,8 @@ Class
     Foam::radiationModels::heterogeneousAbsorptionEmissionModel
 
 Description
-    Model to supply absorption and emission coefficients for radiation
-    modelling
+    Model to supply absorption and emission coefficients for
+    heterogeneous radiation modelling
 
 \*---------------------------------------------------------------------------*/
 
@@ -47,7 +47,7 @@ namespace radiationModels
 {
 
 /*---------------------------------------------------------------------------*\
-                   Class heterogeneousAbsorptionEmissionModel Declaration
+             Class heterogeneousAbsorptionEmissionModel Declaration
 \*---------------------------------------------------------------------------*/
 
 class heterogeneousAbsorptionEmissionModel
@@ -194,6 +194,13 @@ public:
             //- Flag for whether the absorption/emission is for a grey gas
             virtual bool isGrey() const;
 
+            //- Add radiative intensity for ray i
+            virtual tmp<volScalarField> addIntensity
+            (
+                const label rayI,
+                const volScalarField& ILambda
+            ) const;
+
             //- Correct absorption coefficients
             virtual void correct
             (
@@ -213,4 +220,3 @@ public:
 #endif
 
 // ************************************************************************* //
-

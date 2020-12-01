@@ -6,20 +6,20 @@
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
-    This file is part of foam-extend.
+    This file is part of OpenFOAM.
 
-    foam-extend is free software: you can redistribute it and/or modify it
-    under the terms of the GNU General Public License as published by the
-    Free Software Foundation, either version 3 of the License, or (at your
-    option) any later version.
+    OpenFOAM is free software: you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-    foam-extend is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    General Public License for more details.
+    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+    for more details.
 
     You should have received a copy of the GNU General Public License
-    along with foam-extend.  If not, see <http://www.gnu.org/licenses/>.
+    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 \*---------------------------------------------------------------------------*/
 
@@ -106,6 +106,7 @@ Foam::radiationModels::heterogeneousAbsorptionEmissionModel::asCont(const label 
     );
 }
 
+
 Foam::tmp<Foam::volScalarField>
 Foam::radiationModels::heterogeneousAbsorptionEmissionModel::borderAs(const label bandI) const
 {
@@ -118,11 +119,12 @@ Foam::radiationModels::heterogeneousAbsorptionEmissionModel::borderAsCont(const 
 {
     return volScalarField::New
     (
-        "asCont",
+        "borderAsCont",
         mesh_,
         dimensionedScalar(dimless/dimLength, 0)
     );
 }
+
 
 Foam::tmp<Foam::volScalarField>
 Foam::radiationModels::heterogeneousAbsorptionEmissionModel::e(const label bandI) const
@@ -172,6 +174,8 @@ Foam::radiationModels::heterogeneousAbsorptionEmissionModel::esCont(const label 
         dimensionedScalar(dimless/dimLength, 0)
     );
 }
+
+
 Foam::tmp<Foam::volScalarField>
 Foam::radiationModels::heterogeneousAbsorptionEmissionModel::borderEs(const label bandI) const
 {
@@ -184,9 +188,9 @@ Foam::radiationModels::heterogeneousAbsorptionEmissionModel::borderEsCont(const 
 {
     return volScalarField::New
     (
-        "EsCont",
+        "borderEsCont",
         mesh_,
-        dimensionedScalar(dimMass/dimLength/pow3(dimTime), 0)
+        dimensionedScalar(dimless/dimLength, 0)
     );
 }
 
@@ -238,6 +242,17 @@ Foam::radiationModels::heterogeneousAbsorptionEmissionModel::bands(const label n
 bool Foam::radiationModels::heterogeneousAbsorptionEmissionModel::isGrey() const
 {
     return false;
+}
+
+
+Foam::tmp<Foam::volScalarField>
+Foam::radiationModels::heterogeneousAbsorptionEmissionModel::addIntensity
+(
+    const label rayI,
+    const volScalarField& ILambda
+) const
+{
+    return ILambda;
 }
 
 

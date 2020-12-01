@@ -37,7 +37,7 @@ SourceFiles
 #ifndef constSolidThermo_H
 #define constSolidThermo_H
 
-#include "specie.H"
+#include "thermodynamicConstants.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

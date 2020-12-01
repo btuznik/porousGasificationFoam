@@ -78,8 +78,8 @@ public:
         */
         cylinderHTC
         (
-            const volScalarField& por,
-            const volScalarField& por0
+            const volScalarField& porosity,
+            const volScalarField& initialPorosity
         );
 
     //- Destructor

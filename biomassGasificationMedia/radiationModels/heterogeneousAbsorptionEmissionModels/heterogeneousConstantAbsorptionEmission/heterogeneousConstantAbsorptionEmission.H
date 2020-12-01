@@ -1,8 +1,8 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
-  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-   \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+  \\      /  F ield         | foam-extend: Open Source CFD
+   \\    /   O peration     |
+    \\  /    A nd           | For copyright notice see file Copyright
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::radiationModels::heterogeneousAbsorptionEmissionModels::heterogeneousConstant
+    Foam::radiationModels::heterogeneousConstantAbsorptionEmission
 
 Description
     Constant radiation absorption and emission coefficients for continuous
@@ -48,14 +48,14 @@ namespace heterogeneousAbsorptionEmissionModels
 {
 
 /*---------------------------------------------------------------------------*\
-                          Class heterogeneousConstant Declaration
+           Class heterogeneousConstantAbsorptionEmission Declaration
 \*---------------------------------------------------------------------------*/
 
-class heterogeneousConstant
+class heterogeneousConstantAbsorptionEmission
 :
     public heterogeneousAbsorptionEmissionModel
 {
-    // Private Data
+    // Private data
 
         //- Absorption model dictionary
         dictionary coeffsDict_;
@@ -85,20 +85,24 @@ class heterogeneousConstant
 public:
 
     //- Runtime type information
-    TypeName("heterogeneousConstant");
+    TypeName("heterogeneousConstantAbsorptionEmission");
 
 
     // Constructors
 
         //- Construct from components
-        heterogeneousConstant(const dictionary& dict, const fvMesh& mesh);
+        heterogeneousConstantAbsorptionEmission
+        (
+            const dictionary& dict,
+            const fvMesh& mesh
+        );
 
 
-    //- Destructor
-    virtual ~heterogeneousConstant();
+    // Destructor
+    virtual ~heterogeneousConstantAbsorptionEmission();
 
 
-    // Member Functions
+    // Member Operators
 
         // Access
 

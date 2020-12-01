@@ -1,7 +1,7 @@
 /* Absorption/Emission model */
 heterogeneousAbsorptionEmissionModels/heterogeneousAbsorptionEmissionModel/heterogeneousAbsorptionEmissionModel.C
 heterogeneousAbsorptionEmissionModels/heterogeneousAbsorptionEmissionModel/newHeterogeneousAbsorptionEmissionModel.C
-heterogeneousAbsorptionEmissionModels/heterogeneousNoAbsorptionEmission/heterogeneousNoAbsorptionEmission.C
+/* heterogeneousAbsorptionEmissionModels/heterogeneousNoAbsorptionEmission/heterogeneousNoAbsorptionEmission.C*/
 heterogeneousAbsorptionEmissionModels/heterogeneousConstantAbsorptionEmission/heterogeneousConstantAbsorptionEmission.C
 
 /* Radiation model */
@@ -9,5 +9,6 @@ heterogeneousRadiationModels/heterogeneousRadiationModel/heterogeneousRadiationM
 heterogeneousRadiationModels/heterogeneousRadiationModel/heterogeneousRadiationModelNew.C
 heterogeneousRadiationModels/heterogeneousNoRadiation/heterogeneousNoRadiation.C
 heterogeneousRadiationModels/heterogeneousP1/heterogeneousP1.C
+/*radiationModel/heterogeneousMeanTemp/heterogeneousMeanTemp.C*/
 
 LIB = $(FOAM_USER_LIBBIN)/libHGSradiationModels

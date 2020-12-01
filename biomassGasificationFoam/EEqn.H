@@ -20,12 +20,12 @@ if (solveEnergy)
         fvScalarMatrix EEqn
         (
             fvm::ddt(porosityF * rho, he) + mvConvection->fvmDiv(phi, he)
-          + fvc::ddt(rho, K) + fvc::div(phi, K)
+          + fvc::ddt(porosityF * rho, K) + fvc::div(phi, K)
           + (
                 he.name() == "e"
               ? fvc::div
                 (
-                    fvc::absolute(phi/fvc::interpolate(rho), U),
+                    fvc::absolute(phi/fvc::interpolate(porosityF * rho), U),
                     pKin,
                     "div(phiv,pKin)"
                 )
@@ -33,11 +33,11 @@ if (solveEnergy)
             )
             + thermophysicalTransport->divq(he)
          ==
-            reaction->Qdot()*(1.-porosityF)
+            chemistrySh*(1.-porosityF)
             + fvOptions(rho, he)
             + heatTransfer
             + heatUpGas
-            //+ radiation->Shs(thermo)
+            + radiation->Sh(thermo, he)
         );
 
     EEqn.relax();

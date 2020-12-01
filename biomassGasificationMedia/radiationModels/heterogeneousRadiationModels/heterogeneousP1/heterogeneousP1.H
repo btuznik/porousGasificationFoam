@@ -1,8 +1,8 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-   \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+   \\    /   O peration     |
+    \\  /    A nd           | Copyright held by original author
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::radiationModels::heterogeneousP1
+    Foam::radiation::heterogeneousP1
 
 Description
     Works well for combustion applications where optical thickness, tau is
@@ -38,8 +38,8 @@ SourceFiles
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef heterogeneousRadiation_P1_H
-#define heterogeneousRadiation_P1_H
+#ifndef heterogeneousRadiationModelheterogeneousP1_H
+#define heterogeneousRadiationModelheterogeneousP1_H
 
 #include "heterogeneousRadiationModel.H"
 #include "volFields.H"
@@ -59,12 +59,12 @@ class heterogeneousP1
 :
     public heterogeneousRadiationModel
 {
-    // Private Data
+    // Private data
 
-        //- Incident radiation / [W/m^2]
+        //- Incident radiation / [W/m2]
         volScalarField G_;
 
-        //- Total radiative heat flux [W/m^2]
+        //- Total radiative heat flux [W/m2]
         volScalarField qr_;
 
         //- Absorption coefficient
@@ -88,8 +88,8 @@ class heterogeneousP1
         //- Emission contribution
         volScalarField E_;
 
-		//- ratio of the projected area to the volume
-		volScalarField surfToVol_;
+	    //- ratio of the projected area to the volume
+	    volScalarField surfToVol_;
 
         //- porosity field
         const volScalarField& porosityF_;
@@ -100,14 +100,14 @@ class heterogeneousP1
         //- porosity field
         volScalarField surfF_;
 
-		//- field where porosity is
-		volScalarField whereIs_;
+	    //- field where porosity is
+	    volScalarField whereIs_;
 
-		//- field where is no porosity
-		volScalarField whereIsNot_;
+	    //- field where is no porosity
+	    volScalarField whereIsNot_;
 
         //- enthalpy source term for solid
-		volScalarField solidSh_;
+	    volScalarField solidSh_;
 
 
 public:
@@ -118,16 +118,13 @@ public:
 
     // Constructors
 
-        //-Null constructor
-        heterogeneousP1(const volScalarField& T);
-
         //- Construct from components
         heterogeneousP1
         (
-        	const volScalarField& T,
-        	const volScalarField& porosityF,
-        	const List<label>& surfF,
-        	const volScalarField& Ts
+            const volScalarField& T,
+            const volScalarField& porosityF,
+            const List<label>& surfF,
+            const volScalarField& Ts
         );
 
         //- Disallow default bitwise copy construction
@@ -138,7 +135,7 @@ public:
     virtual ~heterogeneousP1();
 
 
-    // Member Functions
+    // Member functions
 
         // Edit
 
@@ -155,7 +152,7 @@ public:
             virtual tmp<volScalarField> Rp() const;
 
             //- Source term component (constant)
-            virtual tmp<volScalarField::Internal> Ru() const;
+            virtual tmp<DimensionedField<scalar, volMesh> > Ru() const;
 
             //- Source term component (constant)
             virtual tmp<volScalarField> solidSh() const;

@@ -1,8 +1,8 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-   \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+   \\    /   O peration     |
+    \\  /    A nd           | Copyright held by original author
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -42,7 +42,8 @@ namespace Foam
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-Foam::IOobject Foam::heterogeneousRadiationModel::createIOobject(const fvMesh& mesh) const
+Foam::IOobject
+Foam::heterogeneousRadiationModel::createIOobject(const fvMesh& mesh) const
 {
     IOobject io
     (
@@ -70,7 +71,7 @@ void Foam::heterogeneousRadiationModel::initialise()
 {
     solverFreq_ = max(1, lookupOrDefault<label>("solverFreq", 1));
 
-    absorptionEmission_.reset
+    heterogeneousAbsorptionEmission_.reset
     (
         radiationModels::heterogeneousAbsorptionEmissionModel::New(*this, mesh_).ptr()
     );
@@ -92,7 +93,7 @@ Foam::heterogeneousRadiationModel::heterogeneousRadiationModel(const volScalarFi
             "radiationProperties",
             T.time().constant(),
             T.mesh(),
-            IOobject::NO_READ,
+            IOobject::MUST_READ,
             IOobject::NO_WRITE
         )
     ),
@@ -100,28 +101,10 @@ Foam::heterogeneousRadiationModel::heterogeneousRadiationModel(const volScalarFi
     time_(T.time()),
     T_(T),
     Ts_(T),
-    radiation_(lookup("radiation")),
     coeffs_(dictionary::null),
     solverFreq_(0),
     firstIter_(true),
-    absorptionEmission_(nullptr),
-    scatter_(nullptr),
-    soot_(nullptr)
-{}
-
-
-Foam::heterogeneousRadiationModel::heterogeneousRadiationModel(const word& type, const volScalarField& T)
-:
-    IOdictionary(createIOobject(T.mesh())),
-    mesh_(T.mesh()),
-    time_(T.time()),
-    T_(T),
-    Ts_(T),
-    radiation_(lookup("radiation")),
-    coeffs_(subOrEmptyDict(type + "Coeffs")),
-    solverFreq_(1),
-    firstIter_(true),
-    absorptionEmission_(nullptr),
+    heterogeneousAbsorptionEmission_(nullptr),
     scatter_(nullptr),
     soot_(nullptr)
 {
@@ -130,11 +113,9 @@ Foam::heterogeneousRadiationModel::heterogeneousRadiationModel(const word& type,
 
 
 Foam::heterogeneousRadiationModel::heterogeneousRadiationModel
-( 
-                 const volScalarField& T,
-                 const volScalarField& porosityF,
-                 const List<label>& surfF,
-                 const volScalarField& Ts
+(
+    const word& type,
+    const volScalarField& T
 )
 :
     IOdictionary
@@ -144,7 +125,7 @@ Foam::heterogeneousRadiationModel::heterogeneousRadiationModel
             "radiationProperties",
             T.time().constant(),
             T.mesh(),
-            IOobject::NO_READ,
+            IOobject::MUST_READ,
             IOobject::NO_WRITE
         )
     ),
@@ -152,11 +133,44 @@ Foam::heterogeneousRadiationModel::heterogeneousRadiationModel
     time_(T.time()),
     T_(T),
     Ts_(T),
-    radiation_(lookup("radiation")),
     coeffs_(dictionary::null),
+    solverFreq_(readLabel(lookup("solverFreq"))),
+    firstIter_(true),
+    heterogeneousAbsorptionEmission_(nullptr),
+    scatter_(nullptr),
+    soot_(nullptr)
+{
+    initialise();
+}
+
+
+Foam::heterogeneousRadiationModel::heterogeneousRadiationModel
+(
+    const volScalarField& T,
+    const volScalarField& porosityF,
+    const List<label>& surfF,
+    const volScalarField& Ts
+)
+:
+    IOdictionary
+    (
+        IOobject
+        (
+            "radiationProperties",
+            T.time().constant(),
+            T.mesh(),
+            IOobject::MUST_READ,
+            IOobject::NO_WRITE
+        )
+    ),
+    mesh_(T.mesh()),
+    time_(T.time()),
+    T_(T),
+    Ts_(Ts),
+    coeffs_(subOrEmptyDict(type() + "Coeffs")),
     solverFreq_(1),
     firstIter_(true),
-    absorptionEmission_(nullptr),
+    heterogeneousAbsorptionEmission_(nullptr),
     scatter_(nullptr),
     soot_(nullptr)
 {
@@ -221,24 +235,7 @@ Foam::tmp<Foam::fvScalarMatrix> Foam::heterogeneousRadiationModel::Sh
       - Rp()*T3*(T_ - 4.0*he/Cpv)
     );
 }
-/*
-Foam::tmp<Foam::fvScalarMatrix> Foam::heterogeneousRadiationModel::Shs
-(
-    basicThermo& thermo
-) const
-{
-    volScalarField& hs = thermo.Hs();
-    const volScalarField Cp(thermo.Cp());
-    const volScalarField T3(pow3(T_));
 
-    return
-    (
-        Ru()
-      - fvm::Sp(4.0*Rp()*T3/Cp, hs)
-      - Rp()*T3*(T_ - 4.0*hs/Cp)
-    );
-}
-*/
 
 Foam::tmp<Foam::fvScalarMatrix> Foam::heterogeneousRadiationModel::ST
 (
@@ -257,18 +254,19 @@ Foam::tmp<Foam::fvScalarMatrix> Foam::heterogeneousRadiationModel::ST
 const Foam::radiationModels::heterogeneousAbsorptionEmissionModel&
 Foam::heterogeneousRadiationModel::heterogeneousAbsorptionEmission() const
 {
-    if (!absorptionEmission_.valid())
+    if (!heterogeneousAbsorptionEmission_.valid())
     {
         FatalErrorInFunction
-            << "Requested radiation absorptionEmission model, but model is "
+            << "Requested radiation heterogeneousAbsorptionEmission model, but model is "
             << "not active" << abort(FatalError);
     }
 
-    return absorptionEmission_();
+    return heterogeneousAbsorptionEmission_;
 }
 
 
-const Foam::radiationModels::sootModel& Foam::heterogeneousRadiationModel::soot() const
+const Foam::radiationModels::sootModel&
+Foam::heterogeneousRadiationModel::soot() const
 {
     if (!soot_.valid())
     {

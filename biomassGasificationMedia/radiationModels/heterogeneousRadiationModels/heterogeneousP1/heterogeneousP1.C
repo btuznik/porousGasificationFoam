@@ -1,8 +1,8 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-   \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
+   \\    /   O peration     |
+    \\  /    A nd           | Copyright held by original author
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -40,209 +40,24 @@ namespace Foam
 namespace radiationModels
 {
     defineTypeNameAndDebug(heterogeneousP1, 0);
-    addToRadiationRunTimeSelectionTables(heterogeneousP1);
+    addToRunTimeSelectionTable
+    (
+        heterogeneousRadiationModel,
+        heterogeneousP1,
+        porosity
+    );
 }
 }
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-Foam::radiationModels::heterogeneousP1::heterogeneousP1
-(
-    const volScalarField& T
-)
-:
-  heterogeneousRadiationModel(typeName, T),
-  G_
-  (
-      IOobject
-      (
-          "G",
-          mesh_.time().timeName(),
-          mesh_,
-          IOobject::MUST_READ,
-          IOobject::AUTO_WRITE
-      ),
-      mesh_
-  ),
-  qr_
-  (
-      IOobject
-      (
-          "qr",
-          mesh_.time().timeName(),
-          mesh_,
-          IOobject::NO_READ,
-          IOobject::AUTO_WRITE
-      ),
-      mesh_,
-      dimensionedScalar(dimMass/pow3(dimTime), 0)
-  ),
-  a_
-  (
-      IOobject
-      (
-          "a",
-          mesh_.time().timeName(),
-          mesh_,
-          IOobject::NO_READ,
-          IOobject::AUTO_WRITE
-      ),
-      mesh_,
-      dimensionedScalar(dimless/dimLength, 0)
-  ),
-  as_
-  (
-      IOobject
-      (
-          "as",
-          mesh_.time().timeName(),
-          mesh_,
-          IOobject::NO_READ,
-          IOobject::AUTO_WRITE
-      ),
-      mesh_,
-      dimensionedScalar(dimless/dimLength, 0)
-  ),
-  borderAs_
-  (
-      IOobject
-      (
-          "borderAs",
-          mesh_.time().timeName(),
-          mesh_,
-          IOobject::NO_READ,
-          IOobject::AUTO_WRITE
-      ),
-      mesh_,
-      dimensionedScalar(dimless/dimLength, 0)
-  ),
-  e_
-  (
-      IOobject
-      (
-          "e",
-          mesh_.time().timeName(),
-          mesh_,
-          IOobject::NO_READ,
-          IOobject::NO_WRITE
-      ),
-      mesh_,
-      dimensionedScalar(dimless/dimLength, 0)
-  ),
-  es_
-  (
-      IOobject
-      (
-          "es",
-          mesh_.time().timeName(),
-          mesh_,
-          IOobject::NO_READ,
-          IOobject::NO_WRITE
-      ),
-      mesh_,
-      dimensionedScalar("es", dimless/dimLength, 0)
-  ),
-  borderEs_
-  (
-      IOobject
-      (
-          "borderEs",
-          mesh_.time().timeName(),
-          mesh_,
-          IOobject::NO_READ,
-          IOobject::NO_WRITE
-      ),
-      mesh_,
-      dimensionedScalar("borderEs", dimless/dimLength, 0)
-  ),
-  E_
-  (
-      IOobject
-      (
-          "E",
-          mesh_.time().timeName(),
-          mesh_,
-          IOobject::NO_READ,
-          IOobject::NO_WRITE
-      ),
-      mesh_,
-      dimensionedScalar(dimMass/dimLength/pow3(dimTime), 0)
-  ),
-  surfToVol_
-  (
-      IOobject
-      (
-          "surfToVol",
-          mesh_.time().timeName(),
-          mesh_,
-          IOobject::NO_READ,
-          IOobject::NO_WRITE
-      ),
-      mesh_,
-      dimensionedScalar(dimless/dimLength, 1.)
-  ),
-  porosityF_(volScalarField::null()),
-  surfL_(List<label>::null()),
-  surfF_
-  (
-      IOobject
-      (
-          "surfF",
-          mesh_.time().timeName(),
-          mesh_,
-          IOobject::NO_READ,
-          IOobject::NO_WRITE
-      ),
-      mesh_,
-      scalar(0.0)
-  ),
-  whereIs_
-  (
-      IOobject
-      (
-          "whereIs",
-          mesh_.time().timeName(),
-          mesh_,
-          IOobject::NO_READ,
-          IOobject::NO_WRITE
-      ),
-      mesh_,
-      scalar(1.0)
-  ),
-  whereIsNot_
-  (
-      IOobject
-      (
-          "whereIsNot",
-          mesh_.time().timeName(),
-          mesh_,
-          IOobject::NO_READ,
-          IOobject::NO_WRITE
-      ),
-      mesh_,
-      scalar(0.0)
-  ),
-  solidSh_
-  (
-      IOobject
-      (
-          "radiationSolidSh",
-          mesh_.time().timeName(),
-          mesh_,
-          IOobject::NO_READ,
-          IOobject::NO_WRITE
-      ),
-      mesh_,
-      dimensionedScalar(dimMass/dimLength/pow3(dimTime), 0)
-  )
-{}
 
 Foam::radiationModels::heterogeneousP1::heterogeneousP1
 (
-        	const volScalarField& T,
-        	const volScalarField& porosityF,
-        	const List<label>& surfF,
-        	const volScalarField& Ts
+    const volScalarField& T,
+    const volScalarField& porosityF,
+    const List<label>& surfF,
+    const volScalarField& Ts
 )
 :
     heterogeneousRadiationModel(typeName, T),
@@ -266,7 +81,7 @@ Foam::radiationModels::heterogeneousP1::heterogeneousP1
             mesh_.time().timeName(),
             mesh_,
             IOobject::NO_READ,
-            IOobject::AUTO_WRITE
+            IOobject::NO_WRITE
         ),
         mesh_,
         dimensionedScalar(dimMass/pow3(dimTime), 0)
@@ -334,7 +149,7 @@ Foam::radiationModels::heterogeneousP1::heterogeneousP1
             IOobject::NO_WRITE
         ),
         mesh_,
-        dimensionedScalar("es", dimless/dimLength, 0)
+        dimensionedScalar(dimless/dimLength, 0)
     ),
     borderEs_
     (
@@ -347,7 +162,7 @@ Foam::radiationModels::heterogeneousP1::heterogeneousP1
             IOobject::NO_WRITE
         ),
         mesh_,
-        dimensionedScalar("borderEs", dimless/dimLength, 0)
+        dimensionedScalar(dimless/dimLength, 0)
     ),
     E_
     (
@@ -373,7 +188,7 @@ Foam::radiationModels::heterogeneousP1::heterogeneousP1
             IOobject::NO_WRITE
         ),
         mesh_,
-        dimensionedScalar(dimless/dimLength, 1.)
+        dimensionedScalar(dimless/dimLength, 1)
     ),
     porosityF_(porosityF),
     surfL_(surfF),
@@ -439,11 +254,11 @@ Foam::radiationModels::heterogeneousP1::heterogeneousP1
         }
         else
         {
-	    whereIs_[cellI] = 1.0; 
+	    whereIs_[cellI] = 1.0;
 	    whereIsNot_[cellI] = 0.0;
         }
     }
-    surfToVol_.ref() = 6./pow(mesh_.V(),1./3.);
+    surfToVol_.ref() = 1./(pow(mesh_.V(),1./3.)*6.);
 
 }
 
@@ -460,8 +275,6 @@ bool Foam::radiationModels::heterogeneousP1::read()
 {
     if (heterogeneousRadiationModel::read())
     {
-        // nothing to read
-
         return true;
     }
     else
@@ -473,38 +286,38 @@ bool Foam::radiationModels::heterogeneousP1::read()
 
 void Foam::radiationModels::heterogeneousP1::calculate()
 {
-    a_  = absorptionEmission_->a();
-    as_ = absorptionEmission_->as();
-    borderAs_ = absorptionEmission_->borderAs();
-    e_  = absorptionEmission_->e();
-    es_ = absorptionEmission_->es();
-    borderEs_ = absorptionEmission_->borderEs();
-    E_  = absorptionEmission_->E();
+    a_ = heterogeneousAbsorptionEmission_->aCont();
+    as_ = heterogeneousAbsorptionEmission_->asCont();
+    borderAs_ = heterogeneousAbsorptionEmission_->borderAsCont();
+    e_ = heterogeneousAbsorptionEmission_->eCont();
+    es_ = heterogeneousAbsorptionEmission_->esCont();
+    borderEs_ = heterogeneousAbsorptionEmission_->borderEsCont();
+    E_ = heterogeneousAbsorptionEmission_->ECont();
     const volScalarField sigmaEff(scatter_->sigmaEff());
+
+    const dimensionedScalar a0 ("a0", a_.dimensions(), rootVSmall);
+
     surfF_ = surfF_*0;
     forAll(surfL_,cellI)
     {
         surfF_[surfL_[cellI]] = 1.0;
     }
-    
-    const dimensionedScalar a0 ("a0", a_.dimensions(), rootVSmall);
 
     forAll(porosityF_,cellI)
     {
         if (porosityF_[cellI] > (1.0 - pow(10.0,-8.0)))  //this is an ad hoc threshold
         {
-	    whereIs_[cellI] = 0.0;
-	    whereIsNot_[cellI] = 1.0;
+	           whereIs_[cellI] = 0.0;
+	           whereIsNot_[cellI] = 1.0;
         }
         else
         {
-	    whereIs_[cellI] = 1.0;
-	    whereIsNot_[cellI] = 0.0;
+	           whereIs_[cellI] = 1.0;
+	           whereIsNot_[cellI] = 0.0;
         }
     }
 
     // Construct diffusion
-    // GN eq. (69)
     const volScalarField gamma
     (
         IOobject
@@ -515,10 +328,9 @@ void Foam::radiationModels::heterogeneousP1::calculate()
             IOobject::NO_READ,
             IOobject::NO_WRITE
         ),
-        1.0/(3.0*(a_ + as_*(whereIs_-surfF_) + borderAs_*surfF_ ) + sigmaEff)
+        1.0/(3.0*(a_ + as_*(whereIs_-surfF_) + borderAs_*surfF_) + sigmaEff + a0)
     );
 
-    // GN eq. (70)
     volScalarField solidRadiation = (es_*(whereIs_-surfF_) + borderEs_*surfF_ )*physicoChemical::sigma*pow4(Ts_);
 
     // Solve G transport equation
@@ -527,7 +339,7 @@ void Foam::radiationModels::heterogeneousP1::calculate()
         fvm::laplacian(gamma, G_)
       - fvm::Sp((a_ + as_*(whereIs_-surfF_) + borderAs_*surfF_ ), G_)
      ==
-      - 4.0*(e_*physicoChemical::sigma*pow4(T_) ) - E_ + solidRadiation
+      - 4.0*(e_*physicoChemical::sigma*pow4(T_) + solidRadiation) - E_
     );
 
     volScalarField Gair=G_;
@@ -541,8 +353,9 @@ void Foam::radiationModels::heterogeneousP1::calculate()
         else
         {
             solidSh_[cellI] = (G_[cellI]*borderAs_[cellI] - 4.0*solidRadiation[cellI])*whereIs_[cellI];
-        } 
+        }
     }
+
     volScalarField::Boundary& qrBf = qr_.boundaryFieldRef();
 
     // Calculate radiative heat flux on boundaries.
@@ -563,7 +376,7 @@ Foam::tmp<Foam::volScalarField> Foam::radiationModels::heterogeneousP1::Rp() con
     return volScalarField::New
     (
         "Rp",
-        4.0*absorptionEmission_->eCont()*physicoChemical::sigma
+        4.0*heterogeneousAbsorptionEmission().eCont()*physicoChemical::sigma
     );
 }
 
@@ -571,15 +384,13 @@ Foam::tmp<Foam::volScalarField> Foam::radiationModels::heterogeneousP1::Rp() con
 Foam::tmp<Foam::DimensionedField<Foam::scalar, Foam::volMesh>>
 Foam::radiationModels::heterogeneousP1::Ru() const
 {
-    const volScalarField::Internal& G =
-        G_();
-    const volScalarField::Internal E =
-        absorptionEmission_->ECont()()();
-    const volScalarField::Internal a =
-        absorptionEmission_->aCont()()();
+    const volScalarField::Internal& G = G_();
+    const volScalarField::Internal E = heterogeneousAbsorptionEmission_->ECont()()();
+    const volScalarField::Internal a = heterogeneousAbsorptionEmission_->aCont()()();
 
     return a*G - E;
 }
+
 
 Foam::tmp<Foam::volScalarField>
 Foam::radiationModels::heterogeneousP1::solidSh() const
