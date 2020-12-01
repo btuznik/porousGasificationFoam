@@ -91,7 +91,6 @@ int main(int argc, char *argv[])
         else
         {
             #include "compressibleCourantNo.H"
-            #include "setDeltaT.H"
             #include "solidRegionDiffusionNo.H"
             #include "setMultiRegionDeltaT.H"
         }
