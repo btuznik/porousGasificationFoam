@@ -28,6 +28,7 @@ Description
     Solve the continuity for density.
 
 \*---------------------------------------------------------------------------*/
+Srho = pyrolysisZone.Srho();
 
 {
     fvScalarMatrix rhoEqn
@@ -38,11 +39,11 @@ Description
         Srho * (1.0 - porosityF)
     );
 
-    //fvOptions.constrain(rhoEqn);
+    fvOptions.constrain(rhoEqn);
 
     rhoEqn.solve();
 
-    //fvOptions.correct(rho);
+    fvOptions.correct(rho);
 }
 
 // ************************************************************************* //
