@@ -138,7 +138,7 @@ Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasTherm
     (
       mesh_.lookupObject<volScalarField>("porosityF")
     ),
-    specieConcentration_(0.0),
+    specieConcentration_(nSpecie_, 0.0),
     tauC_(0.0),
     dt_(0.0)
 {
