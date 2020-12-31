@@ -130,10 +130,17 @@ Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasTherm
     (
         mesh_.lookupObject<volScalarField>("rho")
     ),
+    rho_
+    (
+        solidThermo.rho()
+    ),
     porosityF_
     (
       mesh_.lookupObject<volScalarField>("porosityF")
-    )
+    ),
+    specieConcentration_(0.0),
+    tauC_(0.0),
+    dt_(0.0)
 {
     // create the fields for the chemistry sources
     Info << "gases in gas phase: " << gasPhaseGases_.size() << " \n" << endl;
@@ -1110,26 +1117,7 @@ void Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, Gas
         this->solidThermo().rho()
     );
 
-    if (this->mesh().changing())
-    {
-        forAll(RRs_, i)
-        {
-            RRs_[i].setSize(rho.size());
-        }
-        forAll(RRg_, i)
-        {
-            RRg_[i].setSize(rho.size());
-        }
-    }
-
-    forAll(RRs_, i)
-    {
-        RRs_[i] = 0.0;
-    }
-    forAll(RRg_, i)
-    {
-        RRg_[i] = 0.0;
-    }
+    resetReactionRates(rho);
 
     if (this->chemistry_)
     {
@@ -1189,6 +1177,37 @@ Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasTherm
         this->solidThermo().rho()
     );
 
+    resetReactionRates(rho);
+    shReactionHeat_ *= 0.0;
+
+    if (!this->chemistry_)
+    {
+        return GREAT;
+    }
+    else
+    {
+        scalar deltaTMin = GREAT;
+
+        forAll(rho, celli)
+        {
+            solveOneCell(t0, deltaT, deltaTMin, celli, rho);
+        }
+
+        // Doesn't allow the time-step to rise.
+        deltaTMin = min(deltaTMin, deltaT);
+        reduce(deltaTMin,minOp<scalar>());
+
+        return deltaTMin;
+    }
+}
+
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
+void
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::resetReactionRates
+(
+    const volScalarField& rho
+)
+{
     if (this->mesh().changing())
     {
         forAll(RRs_, i)
@@ -1209,192 +1228,190 @@ Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasTherm
     {
         RRg_[i] = 0.0;
     }
+}
 
-    shReactionHeat_ *= 0.0;
-
-    if (!this->chemistry_)
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
+void
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::solveOneCell
+(
+    const scalar t0,
+    const scalar deltaT,
+    scalar deltaTMin,
+    const label celli,
+    const volScalarField& rho
+)
+{
+    if (reactingCells_[celli])
     {
-        return GREAT;
-    }
-    else
-    {
-        scalar deltaTMin = GREAT;
+        cellCounter_ = celli;
 
-        forAll(rho, celli)
+        // Initialises properties of the cell.
+        scalar solidRho = rho[celli] * (1 - porosityF_[celli]);
+        scalar gasRho = rhoG_[celli] * porosityF_[celli];
+        scalar Ti = this->solidThermo().T()[celli];
+
+        scalarField initialSpecieConcentration(nSpecie_, 0.0);
+        scalarField rR(nReaction_, 0.0);
+        scalarField omegaPreq(omega(initialSpecieConcentration, Ti, 0.0, rR));
+
+        if (showRRR_ && gSum(rR) > 0)
         {
-            if (reactingCells_[celli])
+            Info<< "relative reaction rates: " << rR / gSum(rR) << endl;
+        }
+
+        for (label i = 0; i < nSolids_; ++i)
+        {
+            specieConcentration_[i] = solidRho * Ys_[i][celli];
+        }
+
+        for (label i = 0; i < nGases_; ++i)
+        {
+            specieConcentration_[nSolids_ + i] = gasRho * gasPhaseGases_[i][celli];
+        }
+
+        initialSpecieConcentration = specieConcentration_;
+
+        calculateSourceTerms(t0, deltaT, deltaTMin, celli, solidRho, Ti, initialSpecieConcentration, omegaPreq);
+
+        updateReactionRates(deltaT, deltaTMin, celli, solidRho, gasRho, initialSpecieConcentration);
+
+        if (not solidReactionEnergyFromEnthalpy_)
+        {
+            shReactionHeat_[celli] = omegaPreq[nEqns()];
+        }
+
+        // Update Ys0_
+        omegaPreq = omega(initialSpecieConcentration,Ti,0.0,rR,true);
+    }
+}
+
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
+void
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::calculateSourceTerms
+(
+    const scalar t0,
+    const scalar deltaT,
+    scalar& deltaTMin,
+    const label celli,
+    const scalar solidRho,
+    scalar& Ti,
+    const scalarField& initialSpecieConcentration,
+    const scalarField& omegaPreq
+)
+{
+
+    tauC_ = this->deltaTChem_[celli];
+    dt_ = min(deltaT, tauC_);
+
+    scalar t = t0;
+    scalar timeLeft = deltaT;
+
+    // Calculate the source terms.
+    while (timeLeft > SMALL)
+    {
+        tauC_ = this->solve(specieConcentration_, Ti, 0.0, celli, t, dt_);
+        t += dt_;
+        // update the temperature
+        scalar cTot = 0.0;
+
+        //Total mass density
+        for (label i=0; i<nSolids_; i++)
+        {
+            cTot += specieConcentration_[i];
+        }
+
+        scalar newCp = 0.0;
+        scalar newhi = 0.0;
+        scalar invRho = 0.0;
+        scalarList dcdt = (specieConcentration_ - initialSpecieConcentration)/dt_;
+
+        if (solidReactionEnergyFromEnthalpy_)
+        {
+            for (label i=0; i<nSolids_; i++)
             {
-                cellCounter_ = celli;
-
-                scalar rhoi = rho[celli]*(1-porosityF_[celli]);
-                scalar rhoiG = rhoG_[celli]*porosityF_[celli];
-
-                scalar Ti = this->solidThermo().T()[celli];
-
-                scalarField c(nSpecie_, 0.0);
-                scalarField c0(nSpecie_, 0.0);
-                scalarField dc(nSpecie_, 0.0);
-                scalarField rR(nReaction_, 0.0);
-
-                scalarField omegaPreq(omega(c0,Ti,0.0,rR));
-                if (showRRR_ && gSum(rR) > 0)
-                {
-                    Info << "relative reaction rates: " << rR/gSum(rR) << endl;
-                }
-
-                for (label i=0; i<nSolids_; i++)
-                {
-                    c[i] = rhoi*Ys_[i][celli];
-                }
-                for (label i=0; i < nGases_; i++)
-                {
-                    c[nSolids_ + i] = rhoiG*gasPhaseGases_[i][celli];
-                }
-                c0 = c;
-
-                scalar t = t0;
-                scalar tauC = this->deltaTChem_[celli];
-                scalar dt = min(deltaT, tauC);
-                scalar timeLeft = deltaT;
-
-                // calculate the source terms
-                while (timeLeft > SMALL)
-                {
-                    tauC = this->solve(c, Ti, 0.0, celli, t, dt);
-                    t += dt;
-                        // update the temperature
-                        scalar cTot = 0.0;
-
-                        //Total mass density
-                        for (label i=0; i<nSolids_; i++)
-                        {
-                            cTot += c[i];
-                        }
-
-                        scalar newCp = 0.0;
-                        scalar newhi = 0.0;
-                        scalar invRho = 0.0;
-                        scalarList dcdt = (c - c0)/dt;
-
-                    if (solidReactionEnergyFromEnthalpy_)
-                    {
-                        for (label i=0; i<nSolids_; i++)
-                        {
-                        scalar dYi = dcdt[i];
-                        scalar Yi = c[i];
-                        newhi -= dYi*solidThermo_[i].hf();
-                        newCp += Yi*solidThermo_[i].Cp(Ti);
-                        invRho += Yi/solidThermo_[i].rho(Ti);
-                        }
-                    }
-                    else
-                    {
-                        for (label i=0; i<nSolids_; i++)
-                        {
-                            scalar Yi = c[i];
-                            newCp += Yi*solidThermo_[i].Cp(Ti);
-                            invRho += Yi/solidThermo_[i].rho(Ti);
-                        }
-                        newhi += omegaPreq[nEqns()];
-                    }
-
-                    scalar dTi = (newhi/(newCp*rhoi))*dt;
-
-                    Ti += dTi;
-
-                    timeLeft -= dt;
-                    this->deltaTChem_[celli] = tauC;
-                    if (tauC > timeLeft)
-                    {
-                       deltaTMin = min(dt, deltaTMin);
-                    }
-                    dt = min(timeLeft, tauC);
-                    dt = max(dt, SMALL);
-                }
-
-                dc = c - c0;
-
-                scalar sumC = 0.;
-
-                forAll(RRs_, i)
-                {
-                    RRs_[i][celli] = dc[i]/deltaT;
-                    sumC += c[i];
-
-                    if ((rhoi*RRs_[i][celli] != 0) and (mag(RRs_[i][celli]) > ROOTVSMALL))
-                    {
-                        if (1. <= c[i]/rhoi) deltaTMin = min(deltaTMin,(1.02-Ys_[i][celli])/RRs_[i][celli]);
-                        if (0. >= c[i]/rhoi) deltaTMin = min(deltaTMin,(-.02-Ys_[i][celli])/RRs_[i][celli]);
-                        if (deltaTMin < 0) Info << dt << " " << deltaTMin << " " << tauC << " an error occured: negative deltaT from solid chemistry" << endl;
-                    }
-                }
-
-                sumC=0;
-
-                forAll(RRg_, i)
-                {
-                    RRg_[i][celli] = dc[nSolids_ + i]/deltaT;
-                    sumC += c[nSolids_ + i];
-                    if ((dc[nSolids_ + i]*rhoiG != 0) and (mag(RRg_[i][celli]) > ROOTVSMALL))
-                    {
-                        scalar dtm = deltaTMin;
-                        if (1. <= c[nSolids_ + i]/rhoiG) deltaTMin = min(deltaTMin,(1.02-gasPhaseGases_[i][celli])/RRg_[i][celli]);
-                        if (0. >= c[nSolids_ + i]/rhoiG) deltaTMin = min(deltaTMin,(-.02-gasPhaseGases_[i][celli])/RRg_[i][celli]);
-                        if (deltaTMin < 0) Info << dt  << " " << dtm << " " << deltaTMin << " " << tauC << " " << (1.-gasPhaseGases_[i][celli]) << " " << c[nSolids_ + i]/rhoiG << " " << gasPhaseGases_[i][celli]  << " an error occured: negative deltaT from solid chemistry" << endl;
-                    }
-                }
-
-                if (not solidReactionEnergyFromEnthalpy_)
-                {
-                    shReactionHeat_[celli] = omegaPreq[nEqns()];
-                }
-
-                // Update Ys0_
-                omegaPreq = omega(c0,Ti,0.0,rR,true);
-                if (solidReactionEnergyFromEnthalpy_)
-                {
-                    dc = omegaPreq;
-                }
-                else
-                {
-                    forAll(dc,i)
-                    {
-                        dc[i] = omegaPreq[i];
-                    }
-                }
+            scalar dYi = dcdt[i];
+            scalar Yi = specieConcentration_[i];
+            newhi -= dYi*solidThermo_[i].hf();
+            newCp += Yi*solidThermo_[i].Cp(Ti);
+            invRho += Yi/solidThermo_[i].rho(Ti);
             }
         }
-        // Don't allow the time-step to rise
-        deltaTMin = min(deltaTMin, deltaT);
-        reduce(deltaTMin,minOp<scalar>());
-        return deltaTMin;
+        else
+        {
+            for (label i=0; i<nSolids_; i++)
+            {
+                scalar Yi = specieConcentration_[i];
+                newCp += Yi*solidThermo_[i].Cp(Ti);
+                invRho += Yi/solidThermo_[i].rho(Ti);
+            }
+            newhi += omegaPreq[nEqns()];
+        }
+
+        scalar dTi = (newhi/(newCp*solidRho))*dt_;
+
+        Ti += dTi;
+
+        timeLeft -= dt_;
+        this->deltaTChem_[celli] = tauC_;
+        if (tauC_ > timeLeft)
+        {
+           deltaTMin = min(dt_, deltaTMin);
+        }
+        dt_ = min(timeLeft, tauC_);
+        dt_ = max(dt_, SMALL);
     }
 }
 
-/*
 template<class SolidThermo, class SolidThermoType, class GasThermoType>
-Foam::scalar Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::solve
+void
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::updateReactionRates
 (
-    const scalar deltaT
+    const scalar deltaT,
+    scalar deltaTMin,
+    const label celli,
+    const scalar solidRho,
+    const scalar gasRho,
+    const scalarField& initialSpecieConcentration
 )
 {
-    // Don't allow the time-step to change more than a factor of 2
-    return min
-    (
-        this->solve<UniformField<scalar>>(UniformField<scalar>(deltaT)),
-        2*deltaT
-    );
+   const scalarField& changeOfConcentration = specieConcentration_ - initialSpecieConcentration;
+
+    forAll(RRs_, i)
+    {
+        RRs_[i][celli] = changeOfConcentration[i] / deltaT;
+
+        if ((solidRho * RRs_[i][celli] != 0) && (mag(RRs_[i][celli]) > ROOTVSMALL))
+        {
+            if (1. <= specieConcentration_[i] / solidRho)
+                deltaTMin = min(deltaTMin, (1.02 - Ys_[i][celli]) / RRs_[i][celli]);
+
+            if (0. >= specieConcentration_[i] / solidRho)
+                deltaTMin = min(deltaTMin, (-.02 - Ys_[i][celli]) / RRs_[i][celli]);
+
+            if (deltaTMin < 0)
+                Info<< dt_ << " " << deltaTMin << " " << tauC_ << " an error occured: negative deltaT from solid chemistry" << endl;
+        }
+    }
+
+    forAll(RRg_, i)
+    {
+        RRg_[i][celli] = changeOfConcentration[nSolids_ + i] / deltaT;
+
+        if ((changeOfConcentration[nSolids_ + i] * gasRho != 0) && (mag(RRg_[i][celli]) > ROOTVSMALL))
+        {
+            scalar dtm = deltaTMin;
+            if (1. <= specieConcentration_[nSolids_ + i] / gasRho)
+                deltaTMin = min(deltaTMin, (1.02 - gasPhaseGases_[i][celli]) / RRg_[i][celli]);
+            if (0. >= specieConcentration_[nSolids_ + i] / gasRho)
+                deltaTMin = min(deltaTMin, (-.02 - gasPhaseGases_[i][celli]) / RRg_[i][celli]);
+            if (deltaTMin < 0)
+            {
+                Info<< dt_  << " " << dtm << " " << deltaTMin << " " << tauC_ << " "
+                    << (1.-gasPhaseGases_[i][celli]) << " " << specieConcentration_[nSolids_ + i]/gasRho
+                    << " " << gasPhaseGases_[i][celli]  << " an error occured: negative deltaT from solid chemistry" << endl;
+            }
+        }
+    }
+
 }
-*/
-
-/*template<class SolidThermo, class SolidThermoType, class GasThermoType>
-Foam::scalar Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::solve
-(
-    const scalarField& deltaT
-)
-{
-    return this->solve<scalarField>(deltaT);
-}*/
-
-
 // ************************************************************************* //

@@ -161,29 +161,49 @@ private:
         //- cellVolume
         volScalarField V_;
 
-        //- choose source of information about solid chemistry reaction energy
+        //- Choose source of information about solid chemistry reaction energy
         Switch solidReactionEnergyFromEnthalpy_;
 
-        //- choose source of information about solid chemistry reaction energy
+        //- Choose source of information about solid chemistry reaction energy
         Switch stoichiometricReactions_;
 
-        //- change of energy in time while heat of reaction approach is chosen
+        //- Change of energy in time while heat of reaction approach is chosen
         scalar solidReactionDeltaEnergy_;
 
-        //- show the relative reaction ratios
+        //- Show the relative reaction ratios
         Switch showRRR_;
 
-        //- dictionary for gasName communication
+        //- Dictionary for gasName communication
         List<label> gasDictionary_;
 
         const volScalarField& rhoG_;
 
+        const volScalarField& rho_;
+
         const volScalarField& porosityF_;
+
+        //- Temporary concentration field
+        mutable scalarField specieConcentration_;
+
+        scalar tauC_;
+
+        scalar dt_;
 
        // Private members
 
-            //- Set reacting status of cell, cellI
-            void setCellReacting(const label cellI, const bool active);
+        //- Set reacting status of cell, cellI
+        void setCellReacting(const label cellI, const bool active);
+
+        // Resets the values of reaction rates and adjust size for the changing meshes.
+        void resetReactionRates(const volScalarField& rho);
+
+        void solveOneCell(const scalar t0, const scalar deltaT, scalar deltaTMin, const label celli, const volScalarField& rho);
+
+        void calculateSourceTerms(const scalar t0, const scalar deltaT, scalar& deltaTMin, const label celli, const scalar solidRho,
+                                  scalar& Ti, const scalarField& initialSpecieConcentration, const scalarField& omegaPreq);
+
+        void updateReactionRates(const scalar deltaT, scalar deltaTMin, const label celli, const scalar solidRho,
+                                 const scalar gasRho, const scalarField& initialSpecieConcentration);
 
 public:
 
@@ -303,17 +323,9 @@ public:
                 const label i
             ) const;
 
-           /* //- Solve the reaction system for the given time step
-            //  and return the characteristic time
-            virtual scalar solve(const scalar deltaT);
-            */
             //- Solve the reaction system for the given start time and time
             //  step and return the characteristic time
             virtual scalar solve(const scalar t0, const scalar deltaT);
-
-            //- Solve the reaction system for the given time step
-            //  and return the characteristic time
-          //  virtual scalar solve(const scalarField& deltaT);
 
             //- Return the chemical time scale
             virtual tmp<volScalarField> tc() const;
