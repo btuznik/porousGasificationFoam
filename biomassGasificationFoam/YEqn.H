@@ -40,16 +40,7 @@ tmp<fv::convectionScheme<scalar>> mvConvection
 
             Yi.max(0.0);
             if (gMax(Yi) > 2.0)
-            {
-                Info << "warning: the " << Y[i].name() <<" field exceeded 2 in cells" << endl;
-                forAll(Yi,cellI)
-                {
-                    if (Yi[cellI] > 2.0)
-                    Info << "in cell: " << cellI << " " <<  Yi[cellI] << " "
-                         << rho[cellI] << " " << pyrolysisZone.Srho(i)()[cellI]
-                         << " " << T[cellI] << endl;
-                }
-            }
+                Info << "warning: mass fraction exceeded 2" << endl;
             Yt += Yi;
         }
         else

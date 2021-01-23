@@ -27,25 +27,14 @@ volScalarField rho
     thermo.rho()
 );
 
+volScalarField& p = thermo.p();
+
 Info<< "Reading field U\n" << endl;
 volVectorField U
 (
     IOobject
     (
         "U",
-        runTime.timeName(),
-        mesh,
-        IOobject::MUST_READ,
-        IOobject::AUTO_WRITE
-    ),
-    mesh
-);
-
-volScalarField pKin
-(
-    IOobject
-    (
-        "pKin",
         runTime.timeName(),
         mesh,
         IOobject::MUST_READ,
@@ -70,9 +59,9 @@ volScalarField kappa
     dimensionedScalar("zero", dimless, 0.0)
 );
 
-pressureControl pressureControl(pKin, rho, pimple.dict(), false);
+pressureControl pressureControl(p, rho, pimple.dict(), false);
 
-mesh.setFluxRequired(pKin.name());
+mesh.setFluxRequired(p.name());
 
 Info << "Creating turbulence model.\n" << nl;
 autoPtr<compressible::momentumTransportModel> turbulence
@@ -97,7 +86,7 @@ volScalarField p_thermo
         IOobject::AUTO_WRITE
     ),
     mesh,
-    dimensionedScalar("zero", pKin.dimensions(), 0.0)
+    dimensionedScalar("zero", p.dimensions(), 0.0)
 );
 
 Info<< "Creating thermophysical transport model\n" << endl;
@@ -123,7 +112,7 @@ volScalarField dpdt
         mesh
     ),
     mesh,
-    dimensionedScalar(pKin.dimensions()/dimTime, 0)
+    dimensionedScalar(p.dimensions()/dimTime, 0)
 );
 
 Info<< "Creating field kinetic energy K\n" << endl;
@@ -243,6 +232,20 @@ forAll(cellVolume,cellI)
 {
     cellVolume[cellI] = mesh.V()[cellI];
 }
+
+// TODO
+//tmp<fv::convectionScheme<scalar> > mvConvection
+//(
+//    fv::convectionScheme<scalar>::New
+//    (
+//        mesh,
+//        fields,
+//        phi,
+//        mesh.schemesDict().divScheme("div(phi,Yi_h)")
+//    )
+//);
+
+//mesh.schemesDict().setFluxRequired(p.name());
 
 #include "createMRF.H"
 #include "createFvOptions.H"

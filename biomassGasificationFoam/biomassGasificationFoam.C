@@ -102,17 +102,18 @@ int main(int argc, char *argv[])
         #include "radiation.H"
         pyrolysisZone.evolve();
 
-        #include "rhoEqn.H"
-
         while (pimple.loop())
         {
             if (pimple.nCorrPimple() > 0)
             {
-                pKin.storePrevIter();
+                p.storePrevIter();
                 rho.storePrevIter();
                 U.storePrevIter();
             }
 
+            #include "YEqn.H"
+            #include "EEqn.H"
+            #include "rhoEqn.H"
             #include "UEqn.H"
 
             // --- Pressure corrector loop
@@ -133,12 +134,12 @@ int main(int argc, char *argv[])
                 turbulence->correct();
                 thermophysicalTransport->correct();
             }
+
+            rho = thermo.rho();
         }
 
         rho = thermo.rho();
-        #include "YEqn.H"
-        #include "EEqn.H"
-        rho = thermo.rho();
+
 
         runTime.write();
 

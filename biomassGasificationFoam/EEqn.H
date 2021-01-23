@@ -1,8 +1,5 @@
 if (solveEnergy)
 {
-    ddtKinEn = fvc::ddt(porosityF*rho, K);
-    divPhiKinEn = fvc::div(phi, K);
-
     if (pyrolysisZone.equilibrium())
     {}
     else
@@ -26,8 +23,8 @@ if (solveEnergy)
               ? fvc::div
                 (
                     fvc::absolute(phi/fvc::interpolate(porosityF * rho), U),
-                    pKin,
-                    "div(phiv,pKin)"
+                    p,
+                    "div(phiv,p)"
                 )
               : -dpdt
             )
