@@ -247,5 +247,7 @@ forAll(cellVolume,cellI)
 
 //mesh.schemesDict().setFluxRequired(p.name());
 
+#include "readGravitationalAcceleration.H"
+
 #include "createMRF.H"
 #include "createFvOptions.H"

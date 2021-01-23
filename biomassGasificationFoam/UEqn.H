@@ -9,6 +9,7 @@ tmp<fvVectorMatrix> tUEqn
   + pyrolysisZone.viscosityDrop()() * turbulence->divDevTau(U)
  ==
     fvOptions(rho, U)
+  + rho * g
 );
 fvVectorMatrix& UEqn = tUEqn.ref();
 
