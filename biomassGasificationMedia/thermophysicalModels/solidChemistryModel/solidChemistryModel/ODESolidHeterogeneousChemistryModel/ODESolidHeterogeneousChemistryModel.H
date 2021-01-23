@@ -197,12 +197,12 @@ private:
         // Resets the values of reaction rates and adjust size for the changing meshes.
         void resetReactionRates(const volScalarField& rho);
 
-        void solveOneCell(const scalar t0, const scalar deltaT, scalar deltaTMin, const label celli, const volScalarField& rho);
+        void solveOneCell(const scalar t0, const scalar deltaT, scalar& deltaTMin, const label celli, const volScalarField& rho);
 
         void calculateSourceTerms(const scalar t0, const scalar deltaT, scalar& deltaTMin, const label celli, const scalar solidRho,
-                                  scalar& Ti, const scalarField& initialSpecieConcentration, const scalarField& omegaPreq);
+                                  scalar& Ti, const scalarField& initialSpecieConcentration,  const scalarField& omegaPreq);
 
-        void updateReactionRates(const scalar deltaT, scalar deltaTMin, const label celli, const scalar solidRho,
+        void updateReactionRates(const scalar deltaT, scalar& deltaTMin, const label celli, const scalar solidRho,
                                  const scalar gasRho, const scalarField& initialSpecieConcentration);
 
 public:

@@ -1,4 +1,4 @@
-/*---------------------------------------------------------------------------*\
+﻿/*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
@@ -1154,6 +1154,34 @@ void Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, Gas
     }
 }
 
+template<class SolidThermo, class SolidThermoType, class GasThermoType>
+void
+Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::resetReactionRates
+(
+    const volScalarField& rho
+)
+{
+    if (this->mesh().changing())
+    {
+        forAll(RRs_, i)
+        {
+            RRs_[i].setSize(rho.size());
+        }
+        forAll(RRg_, i)
+        {
+            RRg_[i].setSize(rho.size());
+        }
+    }
+
+    forAll(RRs_, i)
+    {
+        RRs_[i] = 0.0;
+    }
+    forAll(RRg_, i)
+    {
+        RRg_[i] = 0.0;
+    }
+}
 
 template<class SolidThermo, class SolidThermoType, class GasThermoType>
 Foam::scalar
@@ -1203,40 +1231,11 @@ Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasTherm
 
 template<class SolidThermo, class SolidThermoType, class GasThermoType>
 void
-Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::resetReactionRates
-(
-    const volScalarField& rho
-)
-{
-    if (this->mesh().changing())
-    {
-        forAll(RRs_, i)
-        {
-            RRs_[i].setSize(rho.size());
-        }
-        forAll(RRg_, i)
-        {
-            RRg_[i].setSize(rho.size());
-        }
-    }
-
-    forAll(RRs_, i)
-    {
-        RRs_[i] = 0.0;
-    }
-    forAll(RRg_, i)
-    {
-        RRg_[i] = 0.0;
-    }
-}
-
-template<class SolidThermo, class SolidThermoType, class GasThermoType>
-void
 Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::solveOneCell
 (
     const scalar t0,
     const scalar deltaT,
-    scalar deltaTMin,
+    scalar& deltaTMin,
     const label celli,
     const volScalarField& rho
 )
@@ -1251,7 +1250,9 @@ Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasTherm
         scalar Ti = this->solidThermo().T()[celli];
 
         scalarField initialSpecieConcentration(nSpecie_, 0.0);
+
         scalarField rR(nReaction_, 0.0);
+
         scalarField omegaPreq(omega(initialSpecieConcentration, Ti, 0.0, rR));
 
         if (showRRR_ && gSum(rR) > 0)
@@ -1281,7 +1282,7 @@ Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasTherm
         }
 
         // Update Ys0_
-        omegaPreq = omega(initialSpecieConcentration,Ti,0.0,rR,true);
+        omegaPreq = omega(initialSpecieConcentration, Ti, 0.0, rR, true);
     }
 }
 
@@ -1299,11 +1300,11 @@ Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasTherm
     const scalarField& omegaPreq
 )
 {
+    scalar t = t0;
 
     tauC_ = this->deltaTChem_[celli];
     dt_ = min(deltaT, tauC_);
 
-    scalar t = t0;
     scalar timeLeft = deltaT;
 
     // Calculate the source terms.
@@ -1311,10 +1312,10 @@ Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasTherm
     {
         tauC_ = this->solve(specieConcentration_, Ti, 0.0, celli, t, dt_);
         t += dt_;
-        // update the temperature
+        // Update the temperature.
         scalar cTot = 0.0;
 
-        //Total mass density
+        // Total mass density.
         for (label i=0; i<nSolids_; i++)
         {
             cTot += specieConcentration_[i];
@@ -1327,13 +1328,13 @@ Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasTherm
 
         if (solidReactionEnergyFromEnthalpy_)
         {
-            for (label i=0; i<nSolids_; i++)
+            for (label i=0; i < nSolids_; i++)
             {
-            scalar dYi = dcdt[i];
-            scalar Yi = specieConcentration_[i];
-            newhi -= dYi*solidThermo_[i].hf();
-            newCp += Yi*solidThermo_[i].Cp(Ti);
-            invRho += Yi/solidThermo_[i].rho(Ti);
+                scalar dYi = dcdt[i];
+                scalar Yi = specieConcentration_[i];
+                newhi -= dYi * solidThermo_[i].hf();
+                newCp += Yi * solidThermo_[i].Cp(Ti);
+                invRho += Yi / solidThermo_[i].rho(Ti);
             }
         }
         else
@@ -1341,8 +1342,8 @@ Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasTherm
             for (label i=0; i<nSolids_; i++)
             {
                 scalar Yi = specieConcentration_[i];
-                newCp += Yi*solidThermo_[i].Cp(Ti);
-                invRho += Yi/solidThermo_[i].rho(Ti);
+                newCp += Yi * solidThermo_[i].Cp(Ti);
+                invRho += Yi / solidThermo_[i].rho(Ti);
             }
             newhi += omegaPreq[nEqns()];
         }
@@ -1367,14 +1368,14 @@ void
 Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasThermoType>::updateReactionRates
 (
     const scalar deltaT,
-    scalar deltaTMin,
+    scalar& deltaTMin,
     const label celli,
     const scalar solidRho,
     const scalar gasRho,
     const scalarField& initialSpecieConcentration
 )
 {
-   const scalarField& changeOfConcentration = specieConcentration_ - initialSpecieConcentration;
+   const scalarField changeOfConcentration = specieConcentration_ - initialSpecieConcentration;
 
     forAll(RRs_, i)
     {
@@ -1412,6 +1413,5 @@ Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasTherm
             }
         }
     }
-
 }
 // ************************************************************************* //
