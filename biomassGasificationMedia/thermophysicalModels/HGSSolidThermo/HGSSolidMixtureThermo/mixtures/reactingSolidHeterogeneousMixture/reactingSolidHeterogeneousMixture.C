@@ -43,7 +43,7 @@ Foam::reactingSolidHeterogeneousMixture<ThermoSolidType>::reactingSolidHeterogen
     ),
     PtrList<solidHeterogeneousReaction>
     (
-        mesh.lookupObject<dictionary> ("chemistryProperties").lookup("reactions"),
+        mesh.lookupObject<dictionary> ("chemistryProperties").lookup("solidReactions"),
         solidHeterogeneousReaction::iNew
         (
             gasPhaseGases,

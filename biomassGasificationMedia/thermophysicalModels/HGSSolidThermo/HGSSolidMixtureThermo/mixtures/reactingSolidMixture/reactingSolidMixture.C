@@ -43,7 +43,7 @@ Foam::reactingSolidMixture<ThermoSolidType>::reactingSolidMixture
     PtrList<solidReaction>
     (
         mesh.lookupObject<dictionary>
-            ("chemistryProperties").lookup("reactions"),
+            ("chemistryProperties").lookup("solidReactions"),
         solidReaction::iNew
         (
             this->components_,
