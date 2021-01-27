@@ -50,50 +50,6 @@ namespace Foam
 
 /* * * * * * * * * * * * * * * private static data * * * * * * * * * * * * * */
 
-makeSolidMixtureThermo
-(
-    HGSSolidThermo,
-    HGSSolidMixtureThermo,
-    multiComponentSolidMixture,
-    constSolidTransport,
-    constSolidRad,
-    constSolidThermo,
-    constRho
-);
-
-makeSolidMixtureThermo
-(
-    HGSSolidThermo,
-    HGSSolidMixtureThermo,
-    multiComponentSolidMixture,
-    exponentialSolidTransport,
-    constSolidRad,
-    exponentialSolidThermo,
-    constRho
-);
-
-makeSolidMixtureThermo
-(
-    HGSSolidThermo,
-    HGSSolidMixtureThermo,
-    reactingSolidMixture,
-    exponentialSolidTransport,
-    constSolidRad,
-    exponentialSolidThermo,
-    constRho
-);
-
-makeSolidMixtureThermo
-(
-    HGSSolidThermo,
-    HGSSolidMixtureThermo,
-    reactingSolidMixture,
-    constSolidTransport,
-    constSolidRad,
-    constSolidThermo,
-    constRho
-);
-
 makeSolidHeterogeneousMixtureThermoName
 (
     HGSSolidThermo,

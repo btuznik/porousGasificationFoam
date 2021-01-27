@@ -1,13 +1,6 @@
 HGSSolidThermo/HGSSolidThermo.C
 HGSSolidThermo/HGSSolidThermoNew.C
 
-constHGSSolidThermo/constHGSSolidThermo.C
-
-interpolatedHGSSolidThermo/interpolatedHGSSolidThermo.C
-interpolatedHGSSolidThermo/interpolateSolid/interpolateSolid.C
-isotropicKHGSSolidThermo/isotropicKHGSSolidThermo.C
-directionalKHGSSolidThermo/directionalKHGSSolidThermo.C
-
 HGSSolidMixtureThermo/HGSSolidMixtureThermo/HGSSolidMixtureThermos.C
 HGSSolidMixtureThermo/mixtures/basicSolidMixture/basicSolidMixture.C
 
