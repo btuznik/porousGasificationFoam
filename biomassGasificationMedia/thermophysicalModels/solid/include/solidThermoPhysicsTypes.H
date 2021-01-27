@@ -47,7 +47,16 @@ Description
 
 namespace Foam
 {
-    typedef constSolidTransport<constSolidRad<constSolidThermo<constRho> > >
+    typedef constSolidTransport
+        <
+            constSolidRad
+            <
+                constSolidThermo
+                <
+                    constRho
+                >
+            >
+        >
         constSolidThermoPhysics;
 
     typedef constSolidTransport
