@@ -106,12 +106,14 @@ void volPyrolysis::solveSpeciesMass()
 
             volScalarField& Yi = Ys_[i];
             Yi.ref() *= whereIs_;
+            volScalarField sRhoSi = (1-porosity_)*solidChemistry_->RRs(i);
 
             fvScalarMatrix YsEqn
             (
                 fvm::ddt(rhoLoc,Yi)
              ==
-                 (1-porosity_) * solidChemistry_->RRs(i)
+                sRhoSi
+
             );
 
             YsEqn.relax();
@@ -119,6 +121,9 @@ void volPyrolysis::solveSpeciesMass()
 
             Yi.max(0.0);
             Mt += Yi*rho_;
+
+            Info << "solid "<<Ys_[i].name() << " equation solved. Sources min/max   = " << gMin(sRhoSi) << ", " << gMax(sRhoSi);
+            Info << "; values min Y = " << gMin(Ys_[i]) <<" max Y = " << gMax(Ys_[i]) << endl;
         }
 
         for (label i=0; i<Ys_.size(); i++)
@@ -149,18 +154,28 @@ void volPyrolysis::solveEnergy()
         else
         {
             volScalarField rhoCp(max(rho_*solidThermo_.Cp()*(1-porosity_),dimensionedScalar("minRhoCp",dimEnergy/dimTemperature/dimVolume,SMALL)));
-            forAll(surfF_,cellI)
+
+            // immersed boundary for heat transport in solid phase
+            fvScalarMatrix TLap
+            (
+                fvm::laplacian(composedK, T_)
+            );
+            surfaceScalarField  whereIsPatch = fvc::snGrad(whereIs_);
+            forAll(whereIsPatch,faceI)
             {
-                forAll(mesh_.cellCells()[surfF_[cellI]],cellJ)
+                if (whereIsPatch[faceI] != 0.)
                 {
-                    if (whereIs_[mesh_.cellCells()[surfF_[cellI]][cellJ]] == 0) T_[mesh_.cellCells()[surfF_[cellI]][cellJ]]=T_[surfF_[cellI]];
+                    TLap.upper()[faceI] = 0.;
                 }
             }
+            TLap.diag() = 0;
+            TLap.negSumDiag();
+
             fvScalarMatrix TEqn
             (
                 fvm::ddt(rhoCp, T_)
-              - fvm::laplacian(composedK, T_)
-             ==
+              - TLap
+            ==
                 (1. - porosity_) * chemistrySh_
               - heatTransfer()()
               - heatUpGas_
@@ -426,8 +441,7 @@ volPyrolysis::volPyrolysis
     timeChem_(1.0),
     maxDT_(1.0)
 {
-
-    HTC_ = HTC();
+    mesh.setFluxRequired(T_.name());    HTC_ = HTC();
     rho0_.ref() = rho_.ref();
     viscosityDropFactor_ = coeffs().lookupOrDefault("viscosityDropFactor",1.0);
     forAll(Ys_, fieldI)
@@ -730,6 +744,7 @@ volPyrolysis::volPyrolysis
     timeChem_(1.0),
     maxDT_(1.0)
 {
+    mesh.setFluxRequired(T_.name());    HTC_ = HTC();
 
     HTC_ = HTC();
     rho0_.ref() = rho_.ref();
@@ -952,7 +967,6 @@ void volPyrolysis::evolvePorosity()
     {
         porositySource_ = solidChemistry_->RRpor(T_)();
 
-        Info << "  Evolve porosity porosity Source max/min " <<gMax(porositySource_) << " / "<< gMin(porositySource_) << endl;
         volScalarField& por = porosity_;
 
         fvScalarMatrix porosityEqn
@@ -964,11 +978,15 @@ void volPyrolysis::evolvePorosity()
 
         porosityEqn.solve("porosity");
 
+        Info << "prosity equation solved. Sources min/max   = " << gMin(porositySource_) << ", " << gMax(porositySource_);
+        Info << "; values min Y = " << gMin(por) <<" max Y = " << gMax(por) << endl;
+
         forAll(porosity_,cellI)
         {
             if (porosity_[cellI] > 0.9999)
             {
                 porosity_[cellI] = 1.0;
+                T_[cellI] = gMin(T_);
             }
             if (porosity_[cellI] < 0.0001)
             {
@@ -1194,21 +1212,16 @@ Foam::tmp<Foam::volScalarField> volPyrolysis::heatUpGasCalc() const
 
     if (active_)
     {
-        volScalarField Tgas = gasThermo_.T();
-        volScalarField pGas = gasThermo_.p();
+        volScalarField gasCp = gasThermo_.Cp();
 
         if (equilibrium_)
         {}
         else
         {
             volScalarField tempSh = hSh_();
-            volScalarField tempDiff = ((whereIs_*T_)+(whereIsNot_*Tgas));
-            const speciesTable& gasTable = solidChemistry_->gasTable();
-            forAll(gasTable,gasI)
-            {
-                tempSh += solidThermo_.Cp()*T_*Srho(gasI)*(1-porosity_);
-            }
-            hSh_ = tempSh * whereIs_;
+            tempSh = gasThermo_.Cp() * (T_ - gasThermo_.T()) * Srho();
+            forAll(tempSh,cellI)
+            hSh_ = tempSh*whereIs_*(1-porosity_);
         }
     }
     return hSh_;
