@@ -57,12 +57,12 @@ if (adjustTimeStep)
     (
         min
         (
-            min
-            (
+//            min
+//            (
                 min(deltaTFluid, maxDeltaTSolid)*runTime.deltaT().value(),
                 maxDeltaT
-            ),
-            pyrolysisZone.maxTime()
+//            ),
+//            pyrolysisZone.maxTime()
         )
     );
     
