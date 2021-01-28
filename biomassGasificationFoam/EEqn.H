@@ -16,8 +16,10 @@ if (solveEnergy)
 
         fvScalarMatrix EEqn
         (
-            fvm::ddt(porosityF * rho, he) + mvConvection->fvmDiv(phi, he)
-          + fvc::ddt(porosityF * rho, K) + fvc::div(phi, K)
+            fvm::ddt(porosityF * rho, he)
+          + mvConvection->fvmDiv(phi, he)
+          + fvc::ddt(porosityF * rho, K)
+          + fvc::div(phi, K)
           + (
                 he.name() == "e"
               ? fvc::div
@@ -28,27 +30,27 @@ if (solveEnergy)
                 )
               : -dpdt
             )
-            + thermophysicalTransport->divq(he)
+          + thermophysicalTransport->divq(he)
          ==
-            chemistrySh*(1.-porosityF)
-            + fvOptions(rho, he)
-            + heatTransfer
-            + heatUpGas
-            + radiation->Sh(thermo, he)
+            reaction->Qdot() * porosityF
+          + fvOptions(rho, he)
+          + heatTransfer
+          + heatUpGas
+          + radiation->Sh(thermo, he)
         );
 
-    EEqn.relax();
+        EEqn.relax();
 
-    fvOptions.constrain(EEqn);
+        fvOptions.constrain(EEqn);
 
-    EEqn.solve();
+        EEqn.solve();
 
-    fvOptions.correct(he);
+        fvOptions.correct(he);
 
-    thermo.correct();
+        thermo.correct();
 
-    Info<< " hs min/max = " << gMin(he) << ", " << gMax(he) << endl;
-    Info<< " T gas min/max   = " << gMin(T) << ", "
-        << gMax(T) << endl;
-   }
+        Info<< " hs min/max = " << gMin(he) << ", " << gMax(he) << endl;
+        Info<< " T gas min/max = " << gMin(T) << ", "
+            << gMax(T) << endl;
+    }
 }
