@@ -1,0 +1,36 @@
+/*---------------------------------------------------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.1.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.1;
+    format      binary;
+    class       dictionary;
+    location    "constant";
+    object      pyrolysisProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+active          true;
+
+heterogeneousPyrolysisModel  volPyrolysis;
+
+pyrolysisCoeffs
+{
+    filmCoupled     false;
+
+    minimumDelta    1e-8;
+
+    absorptionDepth 0.6;
+    emissionCoeff 1.0;
+
+    viscosityDropFactor 1;
+}
+
+infoOutput      true;
+
+// ************************************************************************* //

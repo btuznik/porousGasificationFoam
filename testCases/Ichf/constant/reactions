@@ -1,0 +1,56 @@
+species 	//gasous products of reactions
+(
+    targas gas CO H2O N2 O2 CO2 CH4 H2 
+);
+
+solidReactions
+(
+    irreversibleSolidArrheniusHeterogeneousReaction
+    hum = H2O
+ //gk   (1.36e1 8.9e3 301 1 2.256e6)
+     (1.36e1 6.0e3 301 2.256e6 1)   
+
+    irreversibleSolidArrheniusHeterogeneousReaction
+    wood = 0.48 char1 + 0.52 CH4 
+    (2.7e4 9.2e3 300 0.4e6 3.94) //
+
+    irreversibleSolidArrheniusHeterogeneousReaction
+    wood + 0.1 O2 = 0.29 char + 0.81 CO2
+    (2.2e6 1.0e4 300 -1.3e6 2.93 .73) //
+    
+    irreversibleSolidArrheniusHeterogeneousReaction
+    char + 1.1 O2 = 0.4 ash + 1.7 CO2 
+    (2.08e10 1.91e4 300 -18.3e6  1.62 10.69) //   era 
+   
+    irreversibleSolidArrheniusHeterogeneousReaction
+    1.0 char1 +  1.2 O2  =0.25 ash  + 1.95 CO2
+    (3.52e10 1.67e4 300 -19.8e6 1.24 10.53  ) //
+
+/*    irreversibleSolidArrheniusHeterogeneousReaction
+    lig = 0.34 CO + 0.37 CO2 + 0.29 char
+    (1.064e3 8.948e3 500 1 0.27) // rozpoczecie reakcji 553K (10E-4)
+
+    irreversibleSolidArrheniusHeterogeneousReaction
+    cel =  0.32 CO + 0.32 CO2 +  0.36 char
+    (2.1e7 1.338e4 450 1 0.27)  //rozpoczecie 513K (10E-4)
+
+    irreversibleSolidArrheniusHeterogeneousReaction
+    hem = 0.2 CO + 0.46 CO2 + 0.34 char
+    (5.8e13 1.935e4 400 1 0.27) //rozpoczecie 473 (10E-4)
+   
+    irreversibleSolidArrheniusHeterogeneousReaction
+    char + 1.0 O2  = 1.0 ash + 1.0 CO
+    (3.3e3 8.8e3 300 1 3.2e7)
+
+    irreversibleSolidArrheniusHeterogeneousReaction
+    char1 + 3.66 O2  = 4.66 CO2 
+    (4.2e6 2.6e4 300 1 3.2e7)
+*/
+);
+
+reactions
+(
+    irreversibleArrheniusReaction
+    CH4 + 2O2  = CO2 + 2H2O 
+    (5.2e21 0 14906 )
+);  //  era 14906

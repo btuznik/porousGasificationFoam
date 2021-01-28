@@ -1,0 +1,57 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.1.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.1;
+    format      binary;
+    class       dictionary;
+    location    "constant";
+    object      chemistryProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+chemistryType
+{
+    solver          ode;
+}
+
+solidChemistryType
+{
+   solver          solidOde;
+   method          ODESolidHeterogeneousChemistryModel;
+   solidThermoType const<constRad<constThermo<constRho>>>;
+   //solidThermoType constSolidThermoPhysics;
+}
+
+chemistry           on;
+
+
+initialChemicalTimeStep 1e-7;
+
+
+solidReactionEnergyFromEnthalpy false;
+stoichiometricReactions false;
+
+odeCoeffs
+{
+    solver          SIBS;
+    eps             2e-2;
+}
+
+solidOdeCoeffs
+{
+    solver      SIBS;	
+    eps			2e-2;
+}
+
+Cmix            Cmix [ 0 0 0 0 0 0 0 ] 0.5;
+
+#include "reactions"
+// ************************************************************************* //
+
+

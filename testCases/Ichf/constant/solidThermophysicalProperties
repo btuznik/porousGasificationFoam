@@ -1,0 +1,245 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.1.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.1;
+    format      ascii;
+    class       dictionary;
+    object      solidThermophysicalProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+thermoType solidMixtureThermo<constHeterogeneous>;
+
+solidComponents
+(
+  wood  hum ash char1 char tarsolid lig cel hem
+);
+
+humCoeffs
+{
+    transport
+    {
+	K0	    0.2;
+	A	    0.0;
+	K           0.58;
+    }
+    radiation
+    {
+        sigmaS      0.0;
+        kappa       0.0;  //opaque
+        emissivity  0.17;
+    }
+    thermodynamics
+    {
+        Cp          4200;
+        Hf         -15.86e6;
+    }
+    density
+    {
+        rho         630;
+    }
+};
+
+char1Coeffs
+{
+    transport
+    {
+        K           0.2;
+	K0	    0.2;
+	A	    0.0;
+    }
+    radiation
+    {
+        sigmaS      0.0;
+        kappa       0.0;  //opaque
+        emissivity  0.17;
+    }
+    thermodynamics
+    {
+        Cp          1000;
+        Hf          -2.12e4;
+    }
+    density
+    {
+         rho        630;
+    }
+};
+
+charCoeffs
+{
+    transport
+    {
+        K           0.2;
+	K0	    0.2;
+	A	    0.0;
+    }
+    radiation
+    {
+        sigmaS      0.0;
+        kappa       0.0;  //opaque
+        emissivity  0.17;
+    }
+    thermodynamics
+    {
+        Cp          1000;
+        Hf          -2.12e4;
+    }
+    density
+    {
+      rho           630;
+    }
+};
+
+ashCoeffs
+{
+    transport
+    {
+        K           0.2;
+    }
+    radiation
+    {
+        sigmaS      0.0;
+        kappa       0.0;  //opaque
+        emissivity  0.17;
+    }
+    thermodynamics
+    {
+        Cp          1000;
+        Hf          -12.38e6;
+    }
+    density
+    {
+      rho       630;
+    }
+};
+
+celCoeffs
+{
+    transport
+    {
+        K           0.2;
+    }
+    radiation
+    {
+        sigmaS      0.0;
+        kappa       0.0;  //opaque
+        emissivity  0.17;
+    }
+    thermodynamics
+    {
+        Cp          1380;
+        Hf          -1.04e6;
+    }
+    density
+    {
+      rho          630; // 1480;
+    }
+};
+
+hemCoeffs
+{
+    transport
+    {
+        K           0.2;
+    }
+    radiation
+    {
+        sigmaS      0.0;
+        kappa       0.0;  //opaque
+        emissivity  0.17;
+    }
+    thermodynamics
+    {
+        Cp          1380;
+        Hf          -8.47e5;
+    }
+    density
+    {
+      rho         630; //1480;
+    }
+};
+
+ligCoeffs
+{
+    transport
+    {
+        K           0.2;
+    }
+    radiation
+    {
+        sigmaS      0.0;
+        kappa       0.0;  //opaque
+        emissivity  0.17;
+    }
+    thermodynamics
+    {
+        Cp          1380;
+        Hf          -9.22e5;
+    }
+    density
+    {
+      rho        630; //1480;
+    }
+};
+
+woodCoeffs
+{
+    transport
+    {
+        K           0.25;
+    }
+    radiation
+    {
+        sigmaS      0.0;
+        kappa       0.0;  //opaque
+        emissivity  0.17;
+    }
+    thermodynamics
+    {
+        Cp          1000;
+        Hf          -1.04e6;
+    }
+    density
+    {
+  // gk      rho         1480;
+        rho 630;
+    }
+};
+
+
+tarsolidCoeffs
+{
+    transport
+    {
+        K           0.35;
+    }
+    radiation
+    {
+        sigmaS      0.0;
+        kappa       0.0;  //opaque
+        emissivity  0.17;
+    }
+    thermodynamics
+    {
+        Cp          1500;
+        Hf          -8.47e5;
+    }
+    density
+    {
+  //gk      rho         1200;
+
+        rho 630;
+    }
+};
+
+
+
+
+
+// ************************************************************************* //
