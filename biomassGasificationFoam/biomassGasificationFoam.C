@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
 
     Info<< "\nStarting time loop\n" << endl;
 
-    while (pimple.run(runTime))
+    while (runTime.run())
     {
         #include "readTimeControls.H"
 
@@ -119,7 +119,14 @@ int main(int argc, char *argv[])
             // --- Pressure corrector loop
             while (pimple.correct())
             {
-                #include "pEqn.H"
+                if (pimple.consistent())
+                {
+                    #include "pcEqn.H"
+                }
+                else
+                {
+                    #include "pEqn.H"
+                }
             }
 
             if (pimple.turbCorr())
@@ -130,6 +137,9 @@ int main(int argc, char *argv[])
 
             rho = thermo.rho();
         }
+
+        rho = thermo.rho();
+
 
         runTime.write();
 
