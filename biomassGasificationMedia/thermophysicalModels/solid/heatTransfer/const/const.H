@@ -49,26 +49,26 @@ namespace Foam
                            Class const Declaration
 \*---------------------------------------------------------------------------*/
 
-class constHTC
+class constCONV
 :
     public heatTransferModel
 {
 private:
 
-    scalar HTCCoeff_;
-    scalar borderHTCCoeff_;
+    scalar CONVCoeff_;
+    scalar borderCONVCoeff_;
     scalar surfaceCoeff_;
 
 public:
 
     //- Runtime type information
-    TypeName("constHTC");
+    TypeName("constCONV");
 
 
     // Constructors
 
         //- Construct from components
-        constHTC
+        constCONV
         (
             const volScalarField& porosity,
             const volScalarField& initialPorosity
@@ -78,7 +78,7 @@ public:
     // Selectors
 
         //- Return a reference to the selected heatTransfer model
-        static autoPtr<constHTC> New
+        static autoPtr<constCONV> New
         (
             const volScalarField& porosity,
             const volScalarField& initialPorosity
@@ -86,17 +86,17 @@ public:
 
 
     //- Destructor
-    virtual ~constHTC()
+    virtual ~constCONV()
     {}
 
 
     // Member Functions
 
         //- Return the heatTransfer viscosity, i.e. 0 for const flow
-        virtual tmp<volScalarField> HTC() const;
+        virtual tmp<volScalarField> CONV() const;
 
         //- Return the field for heat transfer between solid/gas on surfaces
-        virtual tmp<volScalarField> borderHTC() const;
+        virtual tmp<volScalarField> borderCONV() const;
 
         //- Correct the const viscosity
         virtual void correct();

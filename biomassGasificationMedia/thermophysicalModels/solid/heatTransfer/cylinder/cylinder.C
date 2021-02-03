@@ -40,20 +40,20 @@ namespace Foam
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
-defineTypeNameAndDebug(cylinderHTC, 0);
-addToRunTimeSelectionTable(heatTransferModel, cylinderHTC, porosity);
+defineTypeNameAndDebug(cylinderCONV, 0);
+addToRunTimeSelectionTable(heatTransferModel, cylinderCONV, porosity);
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-cylinderHTC::cylinderHTC
+cylinderCONV::cylinderCONV
 (
     const volScalarField& por,
     const volScalarField& por0
 )
 :
     heatTransferModel(por,por0),
-    HTCCoeff_(1.0),
-    borderHTCCoeff_(1.0),
+    CONVCoeff_(1.0),
+    borderCONVCoeff_(1.0),
     pipeRadius_(1.0)
 {
    read();
@@ -62,16 +62,16 @@ cylinderHTC::cylinderHTC
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-tmp<volScalarField> cylinderHTC::HTC()
+tmp<volScalarField> cylinderCONV::CONV()
 {
 
-    Foam::tmp<Foam::volScalarField> HTCloc_ = Foam::tmp<Foam::volScalarField>
+    Foam::tmp<Foam::volScalarField> CONVloc_ = Foam::tmp<Foam::volScalarField>
     (
         new volScalarField
         (
             IOobject
             (
-                "HTCloc",
+                "CONVloc",
                 runTime_.timeName(),
                 mesh_,
                 IOobject::NO_READ,
@@ -85,22 +85,22 @@ tmp<volScalarField> cylinderHTC::HTC()
         )
      );
 
-     HTCloc_ = pow(1 - porosity(),0.5)*pow(1-initialPorosity(),0.5)*2.0/pipeRadius_*HTCCoeff_;
+     CONVloc_ = pow(1 - porosity(),0.5)*pow(1-initialPorosity(),0.5)*2.0/pipeRadius_*CONVCoeff_;
 
-     return HTCloc_;
+     return CONVloc_;
 
 }
 
 
-tmp<volScalarField> cylinderHTC::borderHTC()
+tmp<volScalarField> cylinderCONV::borderCONV()
 {
-    Foam::tmp<Foam::volScalarField> borderHTCloc_ = Foam::tmp<Foam::volScalarField>
+    Foam::tmp<Foam::volScalarField> borderCONVloc_ = Foam::tmp<Foam::volScalarField>
     (
         new volScalarField
         (
             IOobject
             (
-                "HTCBorder",
+                "CONVBorder",
                 runTime_.timeName(),
                 mesh_,
                 IOobject::NO_READ,
@@ -109,24 +109,24 @@ tmp<volScalarField> cylinderHTC::borderHTC()
             mesh_,
             dimensionedScalar
             (
-                "HTC", dimEnergy/dimTime/dimTemperature/dimVolume, 0.0
+                "CONV", dimEnergy/dimTime/dimTemperature/dimVolume, 0.0
             )
         )
     );
 
-    borderHTCloc_ = pow(1 - porosity(),0.5)*pow(1-initialPorosity(),0.5)*2.0/pipeRadius_*borderHTCCoeff_;
+    borderCONVloc_ = pow(1 - porosity(),0.5)*pow(1-initialPorosity(),0.5)*2.0/pipeRadius_*borderCONVCoeff_;
 
-return borderHTCloc_;
+return borderCONVloc_;
 }
 
 
-void cylinderHTC::correct()
+void cylinderCONV::correct()
 {
     heatTransferModel::correct();
 }
 
 
-bool cylinderHTC::read()
+bool cylinderCONV::read()
 {
 
 	IOdictionary dict
@@ -144,8 +144,8 @@ bool cylinderHTC::read()
 
     const dictionary& params = dict.subDict("Parameters");
 
-    params.lookup("HTC") >> HTCCoeff_;
-    params.lookup("borderHTC") >> borderHTCCoeff_;
+    params.lookup("CONV") >> CONVCoeff_;
+    params.lookup("borderCONV") >> borderCONVCoeff_;
     params.lookup("poreRadius") >> pipeRadius_;
 
     return true;

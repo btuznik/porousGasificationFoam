@@ -166,7 +166,7 @@ protected:
         //- Reference to heat transport model
         autoPtr<heatTransferModel> HTmodel_;
 
-        volScalarField HTC_;
+        volScalarField CONV_;
 
         volScalarField radiationSh_;
 
@@ -322,8 +322,8 @@ public:
             //- Return enthalpy source - Eulerian phase only
             virtual Foam::tmp<Foam::volScalarField> heatTransfer();
 
-            //- Return HTC
-            virtual Foam::tmp<Foam::volScalarField> HTC() const;
+            //- Return CONV
+            virtual Foam::tmp<Foam::volScalarField> CONV() const;
 
             //- Return enthalpy needed to heat up gas
             virtual Foam::tmp<Foam::volScalarField> heatUpGasCalc() const;

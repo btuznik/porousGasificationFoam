@@ -38,20 +38,20 @@ namespace Foam
 //{
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
-defineTypeNameAndDebug(constHTC, 0);
-addToRunTimeSelectionTable(heatTransferModel, constHTC, porosity);
+defineTypeNameAndDebug(constCONV, 0);
+addToRunTimeSelectionTable(heatTransferModel, constCONV, porosity);
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-constHTC::constHTC
+constCONV::constCONV
 (
     const volScalarField& por,
     const volScalarField& por0
 )
 :
     heatTransferModel(por,por0),
-    HTCCoeff_(1.0),
-    borderHTCCoeff_(1.0),
+    CONVCoeff_(1.0),
+    borderCONVCoeff_(1.0),
     surfaceCoeff_(1.0)
 {
    read(); 
@@ -60,15 +60,15 @@ constHTC::constHTC
 
 // * * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * //
 
-autoPtr<constHTC> constHTC::New
+autoPtr<constCONV> constCONV::New
 (
     const volScalarField& por,
     const volScalarField& por0
 )
 {
-    return autoPtr<constHTC>
+    return autoPtr<constCONV>
     (
-        new constHTC( por,por0)
+        new constCONV( por,por0)
     );
 }
 
@@ -77,7 +77,7 @@ autoPtr<constHTC> constHTC::New
 
 
 
-tmp<volScalarField> constHTC::HTC() const
+tmp<volScalarField> constCONV::CONV() const
 {
     return tmp<volScalarField>
     (
@@ -85,7 +85,7 @@ tmp<volScalarField> constHTC::HTC() const
         (
             IOobject
             (
-                "HTCconst",
+                "CONVconst",
                 runTime_.timeName(),
                 mesh_,
                 IOobject::NO_READ,
@@ -94,15 +94,15 @@ tmp<volScalarField> constHTC::HTC() const
             mesh_,
             dimensionedScalar
             (
-                "HTC", dimEnergy/dimTime/dimTemperature/dimVolume,
-                HTCCoeff_ * surfaceCoeff_
+                "CONV", dimEnergy/dimTime/dimTemperature/dimVolume,
+                CONVCoeff_ * surfaceCoeff_
             )
         )
     );
 }
 
 
-tmp<volScalarField> constHTC::borderHTC() const
+tmp<volScalarField> constCONV::borderCONV() const
 {
     return tmp<volScalarField>
     (
@@ -119,21 +119,21 @@ tmp<volScalarField> constHTC::borderHTC() const
             mesh_,
             dimensionedScalar
             (
-                "HTC", dimEnergy/dimTime/dimTemperature/dimVolume,
-                borderHTCCoeff_ * surfaceCoeff_
+                "CONV", dimEnergy/dimTime/dimTemperature/dimVolume,
+                borderCONVCoeff_ * surfaceCoeff_
             )
         )
     );
 }
 
 
-void constHTC::correct()
+void constCONV::correct()
 {
     heatTransferModel::correct();
 }
 
 
-bool constHTC::read()
+bool constCONV::read()
 {
 
 	IOdictionary dict
@@ -151,8 +151,8 @@ bool constHTC::read()
 
     const dictionary& params = dict.subDict("Parameters");
 
-    params.lookup("HTC") >> HTCCoeff_;
-    params.lookup("borderHTC") >> borderHTCCoeff_;
+    params.lookup("CONV") >> CONVCoeff_;
+    params.lookup("borderCONV") >> borderCONVCoeff_;
     params.lookup("surface") >> surfaceCoeff_;    
 
     return true;

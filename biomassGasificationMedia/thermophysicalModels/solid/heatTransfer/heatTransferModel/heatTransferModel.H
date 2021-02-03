@@ -157,10 +157,10 @@ public:
             return initialPorosity_;
         }
         //- Return the heatTransfer coefficient
-        virtual tmp<volScalarField> HTC() const = 0;
+        virtual tmp<volScalarField> CONV() const = 0;
 
         //- Return the field for heat transfer between solid/gas on surfaces
-        virtual tmp<volScalarField> borderHTC() const = 0;
+        virtual tmp<volScalarField> borderCONV() const = 0;
 
         //- Solve the heatTransfer equations and correct the heatTransfer viscosity
         virtual void correct() = 0;

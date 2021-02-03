@@ -50,40 +50,40 @@ namespace Foam
 \*---------------------------------------------------------------------------*/
 
 /**
- * cylinderHTC class.
+ * cylinderCONV class.
  * Prosity is modelled as a collection of parallel pipes. This models assumes
  * that the porous medium with initial void fraction \f$ \gamma_0 \f$ has a regular
  * lattice of parallel pipes with initial radius \f$ a_0 \f$.
  */
 
-class cylinderHTC
+class cylinderCONV
 :
     public heatTransferModel
 {
 private:
 
-    scalar HTCCoeff_;
-    scalar borderHTCCoeff_;
+    scalar CONVCoeff_;
+    scalar borderCONVCoeff_;
     scalar pipeRadius_;
 
 public:
 
     //- Runtime type information
-    TypeName("cylinderHTC");
+    TypeName("cylinderCONV");
 
 
     // Constructors
 
         /** @brief Construct from porosity and porosity_0
         */
-        cylinderHTC
+        cylinderCONV
         (
             const volScalarField& porosity,
             const volScalarField& initialPorosity
         );
 
     //- Destructor
-    virtual ~cylinderHTC()
+    virtual ~cylinderCONV()
     {}
 
 
@@ -98,10 +98,10 @@ public:
           \f]
          * @return volScalarField with surface per volume in the porous medium.
          */
-        virtual tmp<volScalarField> HTC();
+        virtual tmp<volScalarField> CONV();
 
         //- Return the field for heat transfer between solid/gas on surfaces
-        virtual tmp<volScalarField> borderHTC();
+        virtual tmp<volScalarField> borderCONV();
 
         //- Correct the const viscosity
         virtual void correct();

@@ -393,11 +393,11 @@ volPyrolysis::volPyrolysis
         scalar(1.0)
     ),
     HTmodel_(heatTransferModel::New(porosity_,porosityArch_)),
-    HTC_
+    CONV_
     (
         IOobject
         (
-            "HTCvol",
+            "CONVvol",
             time_.timeName(),
             mesh_,
             IOobject::NO_READ,
@@ -441,7 +441,7 @@ volPyrolysis::volPyrolysis
     timeChem_(1.0),
     maxDT_(1.0)
 {
-    mesh.setFluxRequired(T_.name());    HTC_ = HTC();
+    mesh.setFluxRequired(T_.name());    CONV_ = CONV();
     rho0_.ref() = rho_.ref();
     viscosityDropFactor_ = coeffs().lookupOrDefault("viscosityDropFactor",1.0);
     forAll(Ys_, fieldI)
@@ -697,11 +697,11 @@ volPyrolysis::volPyrolysis
         scalar(1.0)
     ),
     HTmodel_(heatTransferModel::New(porosity_,porosityArch_)),
-    HTC_
+    CONV_
     (
         IOobject
         (
-            "HTCvol",
+            "CONVvol",
             time_.timeName(),
             mesh_,
             IOobject::NO_READ,
@@ -744,9 +744,9 @@ volPyrolysis::volPyrolysis
     timeChem_(1.0),
     maxDT_(1.0)
 {
-    mesh.setFluxRequired(T_.name());    HTC_ = HTC();
+    mesh.setFluxRequired(T_.name());    CONV_ = CONV();
 
-    HTC_ = HTC();
+    CONV_ = CONV();
     rho0_.ref() = rho_.ref();
     viscosityDropFactor_ = coeffs().lookupOrDefault("viscosityDropFactor",1.0);
 
@@ -933,7 +933,7 @@ void volPyrolysis::evolveRegion()
     {}
     else
     {
-        HTC_ = HTC();
+        CONV_ = CONV();
     }
 
     timeChem_ = solidChemistry_->solve
@@ -1148,21 +1148,21 @@ Foam::tmp<Foam::volScalarField> volPyrolysis::heatTransfer()
     else
     {
         volScalarField Tgas = gasThermo_.T();
-        volScalarField HT(HTC_ * (T_-Tgas));
+        volScalarField HT(CONV_ * (T_-Tgas));
         Sh_ = HT * whereIs_;
     }
     return Sh_;
 }
 
-Foam::tmp<Foam::volScalarField> volPyrolysis::HTC() const
+Foam::tmp<Foam::volScalarField> volPyrolysis::CONV() const
 {
-    Foam::tmp<Foam::volScalarField> HTCloc_ = Foam::tmp<Foam::volScalarField>
+    Foam::tmp<Foam::volScalarField> CONVloc_ = Foam::tmp<Foam::volScalarField>
     (
         new volScalarField
         (
             IOobject
             (
-                "HTC",
+                "CONV",
                 time_.timeName(),
                 mesh_,
                 IOobject::NO_READ,
@@ -1174,19 +1174,19 @@ Foam::tmp<Foam::volScalarField> volPyrolysis::HTC() const
         )
     );
 
-    volScalarField borderHTC=HTmodel_->borderHTC();
+    volScalarField borderCONV=HTmodel_->borderCONV();
 
     if(equilibrium_)
     {}
     else
     {
-        HTCloc_ = HTmodel_->HTC()*whereIs_;
+        CONVloc_ = HTmodel_->CONV()*whereIs_;
         forAll(surfF_,cellI)
         {
-            HTCloc_.ref()[surfF_[cellI]] = borderHTC[surfF_[cellI]];
+            CONVloc_.ref()[surfF_[cellI]] = borderCONV[surfF_[cellI]];
         }
     }
-    return HTCloc_;
+    return CONVloc_;
 }
 
 Foam::tmp<Foam::volScalarField> volPyrolysis::heatUpGasCalc() const
