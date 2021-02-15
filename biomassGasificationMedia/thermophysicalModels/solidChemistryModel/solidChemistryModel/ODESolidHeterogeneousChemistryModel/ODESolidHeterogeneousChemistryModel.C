@@ -690,7 +690,9 @@ void Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, Gas
     dcdt = 0.0;
     scalarField rR(nReaction_,0.0);
 
-    scalarField omegaPreq(omega(c,T,0,rR));
+    label celli = cellCounter_;
+
+    scalarField omegaPreq(omega(c,T,0,rR) * (1. - porosityF_[celli]));
     if (solidReactionEnergyFromEnthalpy_)
     {
     dcdt = omegaPreq;
@@ -753,6 +755,7 @@ void Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, Gas
     scalarSquareMatrix& dfdc
 ) const
 {
+
     label cellI = cellCounter_;
 
     scalar T = c[nSpecie_];
@@ -773,7 +776,7 @@ void Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, Gas
         }
     }
 
-    scalarField omegaPreq(omega(c2,T,0.0,rR));
+    scalarField omegaPreq(omega(c2,T,0.0,rR)*(1.-porosityF_[cellI]));
     if (solidReactionEnergyFromEnthalpy_)
     {
         dcdt = omegaPreq;
@@ -792,22 +795,42 @@ void Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, Gas
 
         scalar kf0 = R.kf(T, 0.0, c2);
 
-        forAll(R.slhs(), j)
-        {
-            label sj = R.slhs()[j];
-            scalar kf = kf0;
-            forAll(R.slhs(), i)
-            {
+        const label Ns = R.slhs().size();
+        const label Ng = R.glhs().size();
 
-                label si = R.slhs()[i];
-                scalar exp = R.nReact()[0];
-                if (i == j)
+        for (label rSj=0; rSj < Ns + Ng; rSj++)
+        {
+            label sj;
+            if (rSj < Ns)
+            {
+                sj = R.slhs()[rSj];
+            }
+            else
+            {
+                sj = R.glhs()[rSj-Ns] +  nSolids_;
+            }
+            scalar kf = kf0;
+
+            for (label rSi=0; rSi < Ns + Ng; rSi++)
+            {
+                label si;
+                if (rSi < Ns)
                 {
-                    if (exp < 1.0)
+                    si = R.slhs()[rSi];
+                }
+                else
+                {
+                    si = R.glhs()[rSi-Ns] +  nSolids_;
+                }
+
+                scalar el = R.nReact()[rSi];
+                if (rSi == rSj)
+                {
+                    if (el < 1.0)
                     {
                         if (c2[si]>SMALL)
                         {
-                            kf *= exp*pow(c2[si] + VSMALL, exp - 1.0);
+                            kf *= el*pow(c2[si] + VSMALL, el - 1.0);
                         }
                         else
                         {
@@ -816,33 +839,38 @@ void Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, Gas
                     }
                     else
                     {
-                        kf *= exp*pow(c2[si], exp - 1.0);
+                        kf *= el*pow(c2[si], el - 1.0);
                     }
-        if (R.glhs().size() > 0)
-        {
-            forAll(R.glhs(),i)
-            {
-            kf *= gasPhaseGases_[R.glhs()[i]].internalField()[cellI];
-            }
                 }
-        }
                 else
                 {
-                    Info<< "Solid reactions have only elements on slhs"
-                        << endl;
-                    kf = 0.0;
+                    kf *= pow(c2[si], el);
                 }
             }
 
-            forAll(R.slhs(), i)
+            for (label rSi=0; rSi < Ns + Ng; rSi++)
             {
-                label si = R.slhs()[i];
+                label si;
+                if (rSi < Ns)
+                {
+                    si = R.slhs()[rSi];
+                }
+                else
+                {
+                    si = R.glhs()[rSi-Ns] +  nSolids_;
+                }
                 dfdc[si][sj] -= kf;
             }
+
             forAll(R.srhs(), i)
             {
                 label si = R.srhs()[i];
                 dfdc[si][sj] += kf;
+            }
+            forAll(R.grhs(), i)
+            {
+                label gi = R.grhs()[i];
+                dfdc[gi+nSolids_][sj] += kf;
             }
         }
     }
@@ -851,7 +879,7 @@ void Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, Gas
     scalar delta = 1.0e-8;
 
     scalarField dcdT0(dcdt);
-    omegaPreq = omega(c2,T - delta ,0,rR);
+    omegaPreq = omega(c2,T - delta ,0,rR)*(1.-porosityF_[cellI]);
     if (solidReactionEnergyFromEnthalpy_)
     {
         dcdT0 = omegaPreq;
@@ -866,7 +894,7 @@ void Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, Gas
 
 
     scalarField dcdT1(dcdt);
-    omegaPreq = omega(c2,T + delta,0,rR);
+    omegaPreq = omega(c2,T + delta,0,rR)*(1.-porosityF_[cellI]);
     if (solidReactionEnergyFromEnthalpy_)
     {
         dcdT1 = omegaPreq;
@@ -1245,7 +1273,7 @@ Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasTherm
         cellCounter_ = celli;
 
         // Initialises properties of the cell.
-        scalar solidRho = rho[celli] * (1 - porosityF_[celli]);
+        scalar solidRho = rho[celli] * (1. - porosityF_[celli]);
         scalar gasRho = rhoG_[celli] * porosityF_[celli];
         scalar Ti = this->solidThermo().T()[celli];
 
@@ -1253,7 +1281,7 @@ Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasTherm
 
         scalarField rR(nReaction_, 0.0);
 
-        scalarField omegaPreq(omega(initialSpecieConcentration, Ti, 0.0, rR));
+        scalarField omegaPreq(omega(initialSpecieConcentration, Ti, 0.0, rR) * (1. - porosityF_[celli]));
 
         if (showRRR_ && gSum(rR) > 0)
         {
@@ -1280,9 +1308,6 @@ Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasTherm
         {
             shReactionHeat_[celli] = omegaPreq[nEqns()];
         }
-
-        // Update Ys0_
-        omegaPreq = omega(initialSpecieConcentration, Ti, 0.0, rR, true);
     }
 }
 
