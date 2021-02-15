@@ -1,16 +1,16 @@
 #!/bin/sh
 
 cd $FOAM_HGS/fieldPorosityModel
-wmake libso
+wclean libso
 
 cd $FOAM_HGS/radiationModels
-wmake libso
+wclean libso
 
 cd $FOAM_HGS/thermophysicalModels
-./Allwmake
+./Allwclean
 
 cd $FOAM_HGS/pyrolysisModels
-wmake libso
+wclean libso
 
 cd $WM_PROJECT_USER_DIR/applications/porousGasificationFoam
-wmake
+wclean

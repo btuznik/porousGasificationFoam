@@ -1,3 +1,0 @@
-biomassGasificationFoam.C
-
-EXE = $(FOAM_USER_APPBIN)/biomassGasificationFoam

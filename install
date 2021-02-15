@@ -1,14 +1,14 @@
 #!/bin/sh
 
-source ./biomassGasificationMediaDirectories
+source ./porousGasificationMediaDirectories
 
 mkdir -p $FOAM_HGS
 
-cp -r biomassGasificationFoam $WM_PROJECT_USER_DIR/applications/
-cp -r biomassGasificationMedia/fieldPorosityModel $FOAM_HGS/
-cp -r biomassGasificationMedia/thermophysicalModels $FOAM_HGS/
-cp -r biomassGasificationMedia/pyrolysisModels $FOAM_HGS/
-cp -r biomassGasificationMedia/radiationModels $FOAM_HGS/
+cp -r porousGasificationFoam $WM_PROJECT_USER_DIR/applications/
+cp -r porousGasificationMedia/fieldPorosityModel $FOAM_HGS/
+cp -r porousGasificationMedia/thermophysicalModels $FOAM_HGS/
+cp -r porousGasificationMedia/pyrolysisModels $FOAM_HGS/
+cp -r porousGasificationMedia/radiationModels $FOAM_HGS/
 cp install $FOAM_HGS/
 
 ./Allwmake

@@ -25,11 +25,29 @@ Class
     Foam::porosityModel
 
 Description
-    Top level model for porosity models
+    Porous zone definition based on cell zones.
+
+    Porous zone definition based on cell zones and parameters obtained from a
+    control dictionary constructed from the given stream. The orientation of
+    the porous region is defined with the same notation as a coordinateSystem,
+    but only a Cartesian coordinate system is valid.
+
+    Implemented porosity models:
+
+    Darcy (@e d parameter)
+    @f[
+        S = - (\mu \, d ) U
+    @f]
+
+    Since negative Darcy/Forchheimer parameters are invalid, they can be used
+    to specify a multiplier (of the max component).
+
+    The porousReactingZones method porousReactingZones::ddt() mirrors the normal fvm::ddt()
+    method, but accounts for the effective volume of the cells.
 
 SourceFiles
    fieldPorosityModel.C
-   fieldPorosityModelNew.C
+   fieldPorosityModelTemplates.C
 
 \*---------------------------------------------------------------------------*/
 

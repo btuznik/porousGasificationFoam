@@ -31,7 +31,7 @@ Application
     biomassGasificationFoam
 
 Description
-    Solver for combustion with chemical reactions.
+    Solver for reactive flow through porous medium
 
 \*---------------------------------------------------------------------------*/
 

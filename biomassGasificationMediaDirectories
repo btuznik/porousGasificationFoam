@@ -1,9 +1,0 @@
-### biomassGasificationFoam install and running directory
-### as a default is is set to ~/OpenFoam/<user>-7/applications/biomassGasificationMedia
-DIR=$WM_PROJECT_USER_DIR/applications/biomassGasificationMedia
-#DIR=$WM_PROJECT_USER_DIR/applications/biomassGasificationMedia
-### end of user editable part ###
-export FOAM_HGS=$DIR
-export LIB_HGS_DIR=$FOAM_HGS/lib
-export LD_LIBRARY_PATH=$LIB_HGS_DIR:$LD_LIBRARY_PATH
-### end of biomassGasificationFoam install and running directory

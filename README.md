@@ -1,4 +1,4 @@
-# biomassGasificationFoam
+# porousGasificationFoam
 
 Table of content:
 1. [Installation guide](#installation)
@@ -11,7 +11,7 @@ Table of content:
 The installation guide is prepared under assumption 
 that OpenFOAM is installed in standard location: `/opt/OpenFoam-8/`
 
-To install the 'biomassGasificationMedia':
+To install the 'porousGasificationMedia':
 1. Set the OpenFOAM environmental paths by typing (modify the commend if your
    OpenFOAM is installed elsewhere):
 
@@ -23,12 +23,12 @@ To install the 'biomassGasificationMedia':
    
 
 3. Optionally change the destination path. The default path is: `$WM_PROJECT_USER_DIR/`.
-   To change destination path edit file biomassGasificationMediaDirectories located
+   To change destination path edit file porousGasificationMediaDirectories located
    in the library installation folder.
 
 4. Set the package environment by typing:
 
-    `$ source biomassGasificationMediaDirectories`
+    `$ source porousGasificationMediaDirectories`
 
 5. Run the install script:
 
@@ -36,7 +36,7 @@ To install the 'biomassGasificationMedia':
 
 6. Test the installation by running the solver:
 
-    `$ biomassGasificationFoam`
+    `$ porousGasificationFoam`
 
 In case of errors:
 1. Make sure the OpenFoam is correctly installed,
@@ -46,13 +46,13 @@ In case of errors:
 2. Open new terminal and again set the nessesary paths:
 
     `$ source source /opt/OpenFoam-8/etc/bashrc`\
-    `$ source <PATH TO biomassGasificationMediaDirectories>/biomassGasificationMediaDirectiories`
+    `$ source <PATH TO porousGasificationMediaDirectories>/porousGasificationMediaDirectiories`
 
 3. Check the setting:
 
     run: `icoFoam -help` (output should be 'usage info')\
     `echo $WM_PROJECT_USER_DIR (typically $HOME/OpenFoam/<user_name>-8/`\
-    `echo $FOAM_HGS` (typically `$HOME/OpenFoam/<user_name>-7/biomassGasificationMedia`)\
+    `echo $FOAM_HGS` (typically `$HOME/OpenFoam/<user_name>-7/porousGasificationMedia`)\
     
     If missing set these variables manually.
 4. Make sure all required packages have been installed by typing:
@@ -81,7 +81,7 @@ Files for installation and sourcing paths:
 
 * `./README.md` -- readme file
 
-* `./biomassGasificationMediaDirectories` -- file adding paths to installation folder and libraries
+* `./porousGasificationMediaDirectories` -- file adding paths to installation folder and libraries
 
 * `./install` -- installation script
 
@@ -105,41 +105,41 @@ Utility for creating porosity fields:
 ./setPorosity/Make/files
 ```
 
-###  biomassGasificationFoam solver
+###  porousGasificationFoam solver
 
- biomassGasificationFoam solver main code, that uses biomassGasificationMedia library.
+ porousGasificationFoam solver main code, that uses porousGasificationMedia library.
  All calculations are scheduled here.
 
 ```
 # Main solver file.
-./biomassGasificationFoam/biomassGasificationFoam.C
+./porousGasificationFoam/porousGasificationFoam.C
 
 # The solver executable source code.
-./biomassGasificationFoam/createFields.H
-./biomassGasificationFoam/readPyrolysisTimeControls.H
-./biomassGasificationFoam/setMultiRegionDeltaT.H
-./biomassGasificationFoam/createPyrolysisModel.H
-./biomassGasificationFoam/createPorosity.H
-./biomassGasificationFoam/createHeterogeneousRadiationModel.H
-./biomassGasificationFoam/chemistry.H
-./biomassGasificationFoam/readChemistryProperties.H
-./biomassGasificationFoam/UEqn.H
-./biomassGasificationFoam/rhoEqn.H
-./biomassGasificationFoam/solidRegionDiffusionNo.H
-./biomassGasificationFoam/pEqn.H
-./biomassGasificationFoam/hsEqn.H
-./biomassGasificationFoam/YEqn.H
-./biomassGasificationFoam/radiation.H
+./porousGasificationFoam/createFields.H
+./porousGasificationFoam/readPyrolysisTimeControls.H
+./porousGasificationFoam/setMultiRegionDeltaT.H
+./porousGasificationFoam/createPyrolysisModel.H
+./porousGasificationFoam/createPorosity.H
+./porousGasificationFoam/createHeterogeneousRadiationModel.H
+./porousGasificationFoam/chemistry.H
+./porousGasificationFoam/readChemistryProperties.H
+./porousGasificationFoam/UEqn.H
+./porousGasificationFoam/rhoEqn.H
+./porousGasificationFoam/solidRegionDiffusionNo.H
+./porousGasificationFoam/pEqn.H
+./porousGasificationFoam/hsEqn.H
+./porousGasificationFoam/YEqn.H
+./porousGasificationFoam/radiation.H
 
 # Wmake files.
-./biomassGasificationFoam/Make/options
-./biomassGasificationFoam/Make/files
+./porousGasificationFoam/Make/options
+./porousGasificationFoam/Make/files
 
 ```
 
-### biomassGasificationMedia library
+### porousGasificationMedia library
 
-biomassGasificationMedia library inculding three major parts:
+porousGasificationMedia library inculding three major parts:
 1. fieldPorosityModel -- implementation of mechanical properties of porous medium.
 2. thermophysicalModels -- implementation of thermophysical and chemical properties od porous medium.
 3. pyrolysisModels -- classes that evaluate porous medium state and properties.
@@ -152,15 +152,15 @@ Mechanical properties of porous medium, can be used as standalone library
 
 ```
 # Base class for mechanical properties of porous zones.
-./biomassGasificationMedia/fieldPorosityModel/fieldPorosityModelTemplates.C
+./porousGasificationMedia/fieldPorosityModel/fieldPorosityModelTemplates.C
 
 # Darcy law porous medium implementation.
-./biomassGasificationMedia/fieldPorosityModel/fieldPorosityModel.H
-./biomassGasificationMedia/fieldPorosityModel/fieldPorosityModel.C
+./porousGasificationMedia/fieldPorosityModel/fieldPorosityModel.H
+./porousGasificationMedia/fieldPorosityModel/fieldPorosityModel.C
 
 # wmake files.
-./biomassGasificationMedia/fieldPorosityModel/Make/options
-./biomassGasificationMedia/fieldPorosityModel/Make/files
+./porousGasificationMedia/fieldPorosityModel/Make/options
+./porousGasificationMedia/fieldPorosityModel/Make/files
 ```
 
 
@@ -168,22 +168,22 @@ Mechanical properties of porous medium, can be used as standalone library
 
 Script building all files in thermophysicalModels library:
 
-`./biomassGasificationMedia/thermophysicalModels/Allwmake`
+`./porousGasificationMedia/thermophysicalModels/Allwmake`
 
 ##### solid
 
 ```
 # Base class for heat transfer model.
-./biomassGasificationMedia/thermophysicalModels/solid/heatTransfer/heatTransferModel/heatTransferModel.C
-./biomassGasificationMedia/thermophysicalModels/solid/heatTransfer/heatTransferModel/heatTransferModel.H
+./porousGasificationMedia/thermophysicalModels/solid/heatTransfer/heatTransferModel/heatTransferModel.C
+./porousGasificationMedia/thermophysicalModels/solid/heatTransfer/heatTransferModel/heatTransferModel.H
 
 # Cylinder pores based heat transfer model
-./biomassGasificationMedia/thermophysicalModels/solid/heatTransfer/cylinder/cylinder.C
-./biomassGasificationMedia/thermophysicalModels/solid/heatTransfer/cylinder/cylinder.H
+./porousGasificationMedia/thermophysicalModels/solid/heatTransfer/cylinder/cylinder.C
+./porousGasificationMedia/thermophysicalModels/solid/heatTransfer/cylinder/cylinder.H
 
 # Constant heat transfer model
-./biomassGasificationMedia/thermophysicalModels/solid/heatTransfer/const/const.H
-./biomassGasificationMedia/thermophysicalModels/solid/heatTransfer/const/const.C
+./porousGasificationMedia/thermophysicalModels/solid/heatTransfer/const/const.H
+./porousGasificationMedia/thermophysicalModels/solid/heatTransfer/const/const.C
 ```
 
 ####  pyrolysisModels
@@ -191,19 +191,19 @@ Libraries where properites of solid phase are calculated
 
 ```
 # Base class for heterogenous pyrolysis models.
-./biomassGasificationMedia/pyrolysisModels/pyrolysisModel/heterogeneousPyrolysisModel/heterogeneousPyrolysisModel.C
-./biomassGasificationMedia/pyrolysisModels/pyrolysisModel/heterogeneousPyrolysisModel/heterogeneousPyrolysisModelI.H
-./biomassGasificationMedia/pyrolysisModels/pyrolysisModel/heterogeneousPyrolysisModel/heterogeneousPyrolysisModel.H
-./biomassGasificationMedia/pyrolysisModels/pyrolysisModel/heterogeneousPyrolysisModel/heterogeneousPyrolysisModelNew.C
+./porousGasificationMedia/pyrolysisModels/pyrolysisModel/heterogeneousPyrolysisModel/heterogeneousPyrolysisModel.C
+./porousGasificationMedia/pyrolysisModels/pyrolysisModel/heterogeneousPyrolysisModel/heterogeneousPyrolysisModelI.H
+./porousGasificationMedia/pyrolysisModels/pyrolysisModel/heterogeneousPyrolysisModel/heterogeneousPyrolysisModel.H
+./porousGasificationMedia/pyrolysisModels/pyrolysisModel/heterogeneousPyrolysisModel/heterogeneousPyrolysisModelNew.C
 
 # Implementation of volumetric prolysis model volPyrolysis.
-./biomassGasificationMedia/pyrolysisModels/pyrolysisModel/volPyrolysis/volPyrolysisI.H
-./biomassGasificationMedia/pyrolysisModels/pyrolysisModel/volPyrolysis/volPyrolysis.H
-./biomassGasificationMedia/pyrolysisModels/pyrolysisModel/volPyrolysis/volPyrolysis.C
+./porousGasificationMedia/pyrolysisModels/pyrolysisModel/volPyrolysis/volPyrolysisI.H
+./porousGasificationMedia/pyrolysisModels/pyrolysisModel/volPyrolysis/volPyrolysis.H
+./porousGasificationMedia/pyrolysisModels/pyrolysisModel/volPyrolysis/volPyrolysis.C
 
 # wmake files.
-./biomassGasificationMedia/pyrolysisModels/Make/options
-./biomassGasificationMedia/pyrolysisModels/Make/files
+./porousGasificationMedia/pyrolysisModels/Make/options
+./porousGasificationMedia/pyrolysisModels/Make/files
 ```
 
 ##### radiationModels
