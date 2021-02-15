@@ -36,72 +36,63 @@ const volVectorField& Ccells = porosityF.mesh().C();
 forAll(Ccells, celli)
 {
 
-// example: const value in whole space
-//	porosityF[celli]=0.46;
+// Example: const value in whole space.
+// porosityF[celli]=0.46;
 
-// example: a half plane x < 0
-//<<<<<<< HEAD
-	if ((Ccells[celli].x() < 0.1) && (Ccells[celli].x() > -0.1) && (Ccells[celli].y() < 0.1) 
-		&& (Ccells[celli].y() > -0.1) && (Ccells[celli].z() < 0.0) && (Ccells[celli].z() > -0.1))
-	{
-		porosityF[celli]=0.6;
-//=======
-//	if ((Ccells[celli].x() < 0.0016) && (Ccells[celli].x() > -0.0016) && (Ccells[celli].y() < 0.0016) 
-//		&& (Ccells[celli].y() > -0.0016) && (Ccells[celli].z() < 0.0016) && (Ccells[celli].z() > -0.0016))
-//	{
-//       		porosityF[celli]=0.1;
-//>>>>>>> bd1366d589e0f6b9f14c68b48f4e94f7c43166f8
-	}
-	else
-	{
-		porosityF[celli]=1.0;
-	}
+// Example: a half plane x < 0.
+    if ((Ccells[celli].x() < 0.1) && (Ccells[celli].x() > -0.1) && (Ccells[celli].y() < 0.1)
+        && (Ccells[celli].y() > -0.1) && (Ccells[celli].z() < 0.0) && (Ccells[celli].z() > -0.1))
+    {
+        porosityF[celli] = 0.6;
+    }
+    else
+    {
+        porosityF[celli] = 1.0;
+    }
 
 }
 
 
-// base vectors of the local coordinate system in which porosity tensor is diagonal
+// Base vectors of the local coordinate system in which porosity tensor is diagonal
 // v1 - x, v2 - y, v3 = v1xv2
 vector v1;
 vector v2;
 vector v3;
 
-//v1
-v1.x()=1;
-v1.y()=0;
-v1.z()=0;
+v1.x() = 1;
+v1.y() = 0;
+v1.z() = 0;
 
-//v2
-v2.x()=0;
-v2.y()=1;
-v2.z()=0;
+v2.x() = 0;
+v2.y() = 1;
+v2.z() = 0;
 
-//normalization
-v1=v1/mag(v1);
-v2=v2/mag(v2);
+// Normalization.
+v1 = v1 / mag(v1);
+v2 = v2 / mag(v2);
 
-//v3
-v3=v1^v2;
-	
-//matrix of transformation to local coordinate system
+
+v3 = v1 ^ v2;
+
+// Matrix of transformation to local coordinate system.
 tensor T_loc(v1,v2,v3);	
 
-//porosity tensor in local coordinates (chosen for porosity tensor to be diagonal)
-tensor D_loc(0,0,0,0,0,0,0,0,0);
-tensor anisotropyK_loc(0,0,0,0,0,0,0,0,0);
+// Porosity tensor in local coordinates (chosen for porosity tensor to be diagonal).
+tensor D_loc(0, 0, 0, 0, 0, 0, 0, 0, 0);
+tensor anisotropyK_loc(0, 0, 0, 0, 0, 0, 0, 0, 0);
 
 forAll(Ccells,celli){
-//values of porosity in the local coordinates 
-	D_loc.xx()=16e8;
-	D_loc.yy()=16e8;
-	D_loc.zz()=16e8;
+    D_loc.xx() = 16e8;
+    D_loc.yy() = 16e8;
+    D_loc.zz() = 16e8;
 
-	anisotropyK_loc.xx()=1;
-	anisotropyK_loc.yy()=1;
-	anisotropyK_loc.zz()=1;
-//transformation of porosity tensor to normal base in cartesian coordinates	
-	Df[celli] = (T_loc & D_loc & T_loc.T());
-	anisotropyK[celli] = (T_loc & anisotropyK_loc & T_loc.T());
+    anisotropyK_loc.xx() = 1;
+    anisotropyK_loc.yy() = 1;
+    anisotropyK_loc.zz() = 1;
+
+// Transformation of porosity tensor to normal base in cartesian coordinates.
+    Df[celli] = (T_loc & D_loc & T_loc.T());
+    anisotropyK[celli] = (T_loc & anisotropyK_loc & T_loc.T());
 }
 
 Df.correctBoundaryConditions();
