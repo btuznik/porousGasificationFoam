@@ -441,7 +441,9 @@ volPyrolysis::volPyrolysis
     timeChem_(1.0),
     maxDT_(1.0)
 {
-    mesh.setFluxRequired(T_.name());    CONV_ = CONV();
+    mesh.setFluxRequired(T_.name());
+
+    CONV_ = CONV();
     rho0_.ref() = rho_.ref();
     viscosityDropFactor_ = coeffs().lookupOrDefault("viscosityDropFactor",1.0);
     forAll(Ys_, fieldI)
@@ -744,7 +746,7 @@ volPyrolysis::volPyrolysis
     timeChem_(1.0),
     maxDT_(1.0)
 {
-    mesh.setFluxRequired(T_.name());    CONV_ = CONV();
+    mesh.setFluxRequired(T_.name());
 
     CONV_ = CONV();
     rho0_.ref() = rho_.ref();
@@ -973,7 +975,7 @@ void volPyrolysis::evolvePorosity()
         (
             fvm::ddt(por)
          ==
-            porositySource_
+            (1. - porosity_) * porositySource_
         );
 
         porosityEqn.solve("porosity");
@@ -1174,17 +1176,11 @@ Foam::tmp<Foam::volScalarField> volPyrolysis::CONV() const
         )
     );
 
-    volScalarField borderCONV=HTmodel_->borderCONV();
-
     if(equilibrium_)
     {}
     else
     {
         CONVloc_ = HTmodel_->CONV()*whereIs_;
-        forAll(surfF_,cellI)
-        {
-            CONVloc_.ref()[surfF_[cellI]] = borderCONV[surfF_[cellI]];
-        }
     }
     return CONVloc_;
 }

@@ -26,8 +26,6 @@ Class
 
 Description
     Reacting and radiating volumetric pyrolysis model
-    created by Kamil Kwiatkowski & Pawel Zuk (biomassgasification.eu project)
-
 SourceFiles
     volPyrolysis.C
 

@@ -26,7 +26,6 @@ Class
 
 Description
     base class for heterogeneusPyrolysisModel
-    created by Kamil Kwiatkowski & Pawel Zuk (biomassgasification.eu project)
 
 SourceFiles
     heterogeneousPyrolysisModelI.H
