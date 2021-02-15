@@ -119,14 +119,6 @@ autoPtr<heatTransferModel> heatTransferModel::New
 
 }
 
-
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-void heatTransferModel::correct()
-{
-   // transportModel_.correct();
-}
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 

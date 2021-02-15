@@ -52,9 +52,15 @@ cylinderCONV::cylinderCONV
 )
 :
     heatTransferModel(por,por0),
-    CONVCoeff_(1.0),
-    borderCONVCoeff_(1.0),
-    pipeRadius_(1.0)
+    hCoeff_(1.0),
+    poreRadius_(1.0),
+    cylinderRadius_(1.0),
+    constHTC_(true),
+    Up_(db().lookupObject<volVectorField>("U")),
+    rhop_(db().lookupObject<volScalarField>("rho")),
+    alphap_(db().lookupObject<volScalarField>("thermo:alpha")),
+    mup_(db().lookupObject<volScalarField>("thermo:mu")),
+    thermop_(db().lookupObject<fluidThermo>("thermophysicalProperties"))
 {
    read();
 }
@@ -85,46 +91,30 @@ tmp<volScalarField> cylinderCONV::CONV()
         )
      );
 
-     CONVloc_ = pow(1 - porosity(),0.5)*pow(1-initialPorosity(),0.5)*2.0/pipeRadius_*CONVCoeff_;
+    if (constHTC_)
+    {
+        forAll (CONVloc_(),cellI)
+        {
+            CONVloc_.ref()[cellI] = pow(1 - porosity()[cellI],0.5)*pow(1-initialPorosity()[cellI],0.5)*2.0/poreRadius_*hCoeff_;
+        }
+    }
+    else
+    {
+        volScalarField& Cp = thermop_.Cp().ref();
 
-     return CONVloc_;
+        forAll (CONVloc_(),cellI)
+        {
+            CONVloc_.ref()[cellI] = pow(1 - porosity()[cellI],0.5)*pow(1-initialPorosity()[cellI],0.5)*2.0/poreRadius_*
+                  (1. + 0.55
+                    *Foam::pow(2*cylinderRadius_*rhop_[cellI]*mag(Up_[cellI])/mup_[cellI],0.6)
+                    *Foam::pow(mup_[cellI]/alphap_[cellI],0.33333333333))
+                    *Cp[cellI]*alphap_[cellI]*rhop_[cellI]/cylinderRadius_;  //eqZx2uHGn019 eqZx2uHGn020
+        }
+    }
+
+    return CONVloc_;
 
 }
-
-
-tmp<volScalarField> cylinderCONV::borderCONV()
-{
-    Foam::tmp<Foam::volScalarField> borderCONVloc_ = Foam::tmp<Foam::volScalarField>
-    (
-        new volScalarField
-        (
-            IOobject
-            (
-                "CONVBorder",
-                runTime_.timeName(),
-                mesh_,
-                IOobject::NO_READ,
-                IOobject::NO_WRITE
-            ),
-            mesh_,
-            dimensionedScalar
-            (
-                "CONV", dimEnergy/dimTime/dimTemperature/dimVolume, 0.0
-            )
-        )
-    );
-
-    borderCONVloc_ = pow(1 - porosity(),0.5)*pow(1-initialPorosity(),0.5)*2.0/pipeRadius_*borderCONVCoeff_;
-
-return borderCONVloc_;
-}
-
-
-void cylinderCONV::correct()
-{
-    heatTransferModel::correct();
-}
-
 
 bool cylinderCONV::read()
 {
@@ -144,9 +134,18 @@ bool cylinderCONV::read()
 
     const dictionary& params = dict.subDict("Parameters");
 
-    params.lookup("CONV") >> CONVCoeff_;
-    params.lookup("borderCONV") >> borderCONVCoeff_;
-    params.lookup("poreRadius") >> pipeRadius_;
+    dict.lookup("constHTC") >> constHTC_;
+    if (constHTC_)
+    {
+        params.lookup("h") >> hCoeff_;
+        params.lookup("poreRadius") >> poreRadius_;
+    }
+    else
+    {
+        params.lookup("h") >> hCoeff_;
+        params.lookup("poreRadius") >> poreRadius_;
+        params.lookup("cylinderRadius") >> poreRadius_;
+    }
 
     return true;
 }

@@ -36,6 +36,7 @@ SourceFiles
 #define cylinder_H
 
 #include "heatTransferModel.H"
+#include "fluidThermo.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -62,9 +63,15 @@ class cylinderCONV
 {
 private:
 
-    scalar CONVCoeff_;
-    scalar borderCONVCoeff_;
-    scalar pipeRadius_;
+    scalar hCoeff_;
+    scalar poreRadius_;
+    scalar cylinderRadius_;
+    Switch constHTC_;
+    const volVectorField& Up_;
+    const volScalarField& rhop_;
+    const volScalarField& alphap_;
+    const volScalarField& mup_;
+    const fluidThermo& thermop_;
 
 public:
 
@@ -99,12 +106,6 @@ public:
          * @return volScalarField with surface per volume in the porous medium.
          */
         virtual tmp<volScalarField> CONV();
-
-        //- Return the field for heat transfer between solid/gas on surfaces
-        virtual tmp<volScalarField> borderCONV();
-
-        //- Correct the const viscosity
-        virtual void correct();
 
         //- Read heatTransferProperties dictionary
         virtual bool read();

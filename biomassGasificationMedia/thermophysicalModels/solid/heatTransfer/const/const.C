@@ -49,10 +49,16 @@ constCONV::constCONV
     const volScalarField& por0
 )
 :
-    heatTransferModel(por,por0),
-    CONVCoeff_(1.0),
-    borderCONVCoeff_(1.0),
-    surfaceCoeff_(1.0)
+  heatTransferModel(por,por0),
+  hCoeff_(0.0),
+  SAV_(0.0),
+  cylinderRadius_(1.0),
+  constHTC_(true),
+  Up_(db().lookupObject<volVectorField>("U")),
+  rhop_(db().lookupObject<volScalarField>("rho")),
+  alphap_(db().lookupObject<volScalarField>("thermo:alpha")),
+  mup_(db().lookupObject<volScalarField>("thermo:mu")),
+  thermop_(db().lookupObject<fluidThermo>("thermophysicalProperties"))
 {
    read(); 
 }
@@ -79,58 +85,63 @@ autoPtr<constCONV> constCONV::New
 
 tmp<volScalarField> constCONV::CONV() const
 {
-    return tmp<volScalarField>
-    (
-        new volScalarField
+// eqZx2uHGn006
+    if (constHTC_)
+    {
+        return tmp<volScalarField>
         (
-            IOobject
+            new volScalarField
             (
-                "CONVconst",
-                runTime_.timeName(),
+                IOobject
+                (
+                    "CONVconst",
+                    runTime_.timeName(),
+                    mesh_,
+                    IOobject::NO_READ,
+                    IOobject::AUTO_WRITE
+                ),
                 mesh_,
-                IOobject::NO_READ,
-                IOobject::AUTO_WRITE
-            ),
-            mesh_,
-            dimensionedScalar
-            (
-                "CONV", dimEnergy/dimTime/dimTemperature/dimVolume,
-                CONVCoeff_ * surfaceCoeff_
+                dimensionedScalar
+                (
+                    "CONV", dimEnergy/dimTime/dimTemperature/dimVolume, hCoeff_*SAV_
+                )
             )
-        )
-    );
-}
-
-
-tmp<volScalarField> constCONV::borderCONV() const
-{
-    return tmp<volScalarField>
-    (
-        new volScalarField
+        );
+    }
+    else
+    {
+        Foam::tmp<Foam::volScalarField> CONVloc_ = Foam::tmp<Foam::volScalarField>
         (
-            IOobject
+            new volScalarField
             (
-                "HTBorder",
-                runTime_.timeName(),
+                IOobject
+                (
+                    "CONVconst",
+                    runTime_.timeName(),
+                    mesh_,
+                    IOobject::NO_READ,
+                    IOobject::AUTO_WRITE
+                ),
                 mesh_,
-                IOobject::NO_READ,
-                IOobject::NO_WRITE
-            ),
-            mesh_,
-            dimensionedScalar
-            (
-                "CONV", dimEnergy/dimTime/dimTemperature/dimVolume,
-                borderCONVCoeff_ * surfaceCoeff_
+                dimensionedScalar
+                (
+                    "zero", dimEnergy/dimTime/dimTemperature/dimVolume, 0.0
+                )
             )
-        )
-    );
+        );
+        volScalarField& Cp = thermop_.Cp().ref();
+        forAll (CONVloc_(),cellI)
+        {
+            CONVloc_.ref()[cellI] = SAV_*(1.
+                    + 0.55
+                    *Foam::pow(2*cylinderRadius_*rhop_[cellI]*mag(Up_[cellI])/mup_[cellI],0.6)
+                    *Foam::pow(mup_[cellI]/alphap_[cellI],0.33333333333))
+                    *Cp[cellI]*alphap_[cellI]*rhop_[cellI]/cylinderRadius_;  //eqZx2uHGn019 eqZx2uHGn020
+        }
+        return CONVloc_;
+    }
 }
 
-
-void constCONV::correct()
-{
-    heatTransferModel::correct();
-}
 
 
 bool constCONV::read()
@@ -150,10 +161,17 @@ bool constCONV::read()
         );
 
     const dictionary& params = dict.subDict("Parameters");
-
-    params.lookup("CONV") >> CONVCoeff_;
-    params.lookup("borderCONV") >> borderCONVCoeff_;
-    params.lookup("surface") >> surfaceCoeff_;    
+    dict.lookup("constHTC") >> constHTC_;
+    params.lookup("SAV") >> SAV_;
+    if (constHTC_)
+    {
+        params.lookup("h") >> hCoeff_;
+    }
+    else
+    {
+        params.lookup("h") >> hCoeff_;
+        params.lookup("cylinderRadius") >> cylinderRadius_;
+    }
 
     return true;
 }

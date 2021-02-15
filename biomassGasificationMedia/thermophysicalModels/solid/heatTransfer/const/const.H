@@ -36,6 +36,7 @@ SourceFiles
 #define const_H
 
 #include "heatTransferModel.H"
+#include "fluidThermo.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -55,9 +56,15 @@ class constCONV
 {
 private:
 
-    scalar CONVCoeff_;
-    scalar borderCONVCoeff_;
-    scalar surfaceCoeff_;
+    scalar hCoeff_;
+    scalar SAV_;
+    scalar cylinderRadius_;
+    Switch constHTC_;
+    const volVectorField& Up_;
+    const volScalarField& rhop_;
+    const volScalarField& alphap_;
+    const volScalarField& mup_;
+    const fluidThermo& thermop_;
 
 public:
 
@@ -92,14 +99,8 @@ public:
 
     // Member Functions
 
-        //- Return the heatTransfer viscosity, i.e. 0 for const flow
+        //- Return the field for heat transfer between solid/gas.
         virtual tmp<volScalarField> CONV() const;
-
-        //- Return the field for heat transfer between solid/gas on surfaces
-        virtual tmp<volScalarField> borderCONV() const;
-
-        //- Correct the const viscosity
-        virtual void correct();
 
         //- Read heatTransferProperties dictionary
         virtual bool read();
@@ -109,7 +110,6 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-//} // End namespace heatTransfer
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

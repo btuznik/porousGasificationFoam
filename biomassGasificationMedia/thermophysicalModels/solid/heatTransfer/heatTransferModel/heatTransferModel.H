@@ -41,7 +41,7 @@ SourceFiles
 \*---------------------------------------------------------------------------*/
 
 /** @file
- * Imnterface of the base class for heat transfer models.
+ * Interface of the base class for heat transfer models.
  */
 
 #ifndef heatTransferModel_H
@@ -56,14 +56,12 @@ SourceFiles
 #include "autoPtr.H"
 #include "runTimeSelectionTables.H"
 #include "fvMesh.H"
+#include "fluidThermo.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-
-//namespace heatTransfer
-//{
 
 /*---------------------------------------------------------------------------*\
                            Class heatTransferModel Declaration
@@ -159,13 +157,7 @@ public:
         //- Return the heatTransfer coefficient
         virtual tmp<volScalarField> CONV() const = 0;
 
-        //- Return the field for heat transfer between solid/gas on surfaces
-        virtual tmp<volScalarField> borderCONV() const = 0;
-
-        //- Solve the heatTransfer equations and correct the heatTransfer viscosity
-        virtual void correct() = 0;
-
-        //- Read LESProperties or RASProperties dictionary
+        //- Read heatTransferProperties dictionary
         virtual bool read() = 0;
 
         //- Default dummy write function
