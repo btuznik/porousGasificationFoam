@@ -64,7 +64,8 @@ heterogeneousConstantAbsorptionEmission::heterogeneousConstantAbsorptionEmission
     e_(coeffsDict_.lookup("e")),
     es_(coeffsDict_.lookup("es")),
     borderEs_(coeffsDict_.lookup("borderEs")),
-    E_(coeffsDict_.lookup("E"))
+    E_(coeffsDict_.lookup("E")),
+    borderL_(coeffsDict_.lookup("borderL"))
 {}
 
 
@@ -166,5 +167,10 @@ heterogeneousConstantAbsorptionEmission::ECont(const label bandI) const
     );
 }
 
-
+Foam::dimensionedScalar
+Foam::radiationModels::heterogeneousAbsorptionEmissionModels::
+heterogeneousConstantAbsorptionEmission::borderL(const label bandI) const
+{
+    return  dimensionedScalar("borderL", borderL_.dimensions(), borderL_.value());
+}
 // ************************************************************************* //

@@ -88,8 +88,8 @@ class heterogeneousP1
         //- Emission contribution
         volScalarField E_;
 
-	    //- ratio of the projected area to the volume
-	    volScalarField surfToVol_;
+        //- Emission contribution
+        dimensionedScalar borderL_;
 
         //- porosity field
         const volScalarField& porosityF_;

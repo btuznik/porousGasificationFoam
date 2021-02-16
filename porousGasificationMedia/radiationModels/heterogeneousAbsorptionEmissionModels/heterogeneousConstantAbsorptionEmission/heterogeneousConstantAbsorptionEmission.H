@@ -81,6 +81,8 @@ class heterogeneousConstantAbsorptionEmission
         //- Emission contribution / [kg/(m s^3)]
         dimensionedScalar E_;
 
+        //- Emission contribution / [1/m]
+        dimensionedScalar borderL_;
 
 public:
 
@@ -135,6 +137,8 @@ public:
                 //- Emission contribution for continuous phase
                 tmp<volScalarField> ECont(const label bandI = 0) const;
 
+                // Border thickness layer
+                virtual dimensionedScalar borderL(const label bandI = 0) const;
 
     // Member Functions
 

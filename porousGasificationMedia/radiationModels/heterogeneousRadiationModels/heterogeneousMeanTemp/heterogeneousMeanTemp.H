@@ -73,6 +73,9 @@ class heterogeneousMeanTemp
         volScalarField e_;
 
         //- Emission contribution
+        dimensionedScalar borderL_;
+
+        //- Emission contribution
         volScalarField E_;
 
         //- porosity field

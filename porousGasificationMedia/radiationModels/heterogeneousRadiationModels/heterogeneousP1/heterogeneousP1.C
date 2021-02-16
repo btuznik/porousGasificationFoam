@@ -177,18 +177,9 @@ Foam::radiationModels::heterogeneousP1::heterogeneousP1
         mesh_,
         dimensionedScalar(dimMass/dimLength/pow3(dimTime), 0)
     ),
-    surfToVol_
+    borderL_
     (
-        IOobject
-        (
-            "surfToVol",
-            mesh_.time().timeName(),
-            mesh_,
-            IOobject::NO_READ,
-            IOobject::NO_WRITE
-        ),
-        mesh_,
-        dimensionedScalar(dimless/dimLength, 1)
+        dimensionedScalar("borderL", dimLength, 0.0)
     ),
     porosityF_(porosityF),
     surfL_(surfF),
@@ -247,19 +238,17 @@ Foam::radiationModels::heterogeneousP1::heterogeneousP1
 {
     forAll(porosityF_,cellI)
     {
-        if (porosityF_[cellI] > (1.0 - pow(10.0,-8.0)))
+        if (porosityF_[cellI] > (1.0 - pow(10.0, -8.0)))
         {
-	    whereIs_[cellI] = 0.0;
-	    whereIsNot_[cellI] = 1.0;
+            whereIs_[cellI] = 0.0;
+            whereIsNot_[cellI] = 1.0;
         }
         else
         {
-	    whereIs_[cellI] = 1.0;
-	    whereIsNot_[cellI] = 0.0;
+            whereIs_[cellI] = 1.0;
+            whereIsNot_[cellI] = 0.0;
         }
     }
-    surfToVol_.ref() = 1./(pow(mesh_.V(),1./3.)*6.);
-
 }
 
 
@@ -293,29 +282,43 @@ void Foam::radiationModels::heterogeneousP1::calculate()
     es_ = heterogeneousAbsorptionEmission_->esCont();
     borderEs_ = heterogeneousAbsorptionEmission_->borderEsCont();
     E_ = heterogeneousAbsorptionEmission_->ECont();
+    borderL_  = heterogeneousAbsorptionEmission_->borderL();
     const volScalarField sigmaEff(scatter_->sigmaEff());
-
-    const dimensionedScalar a0 ("a0", a_.dimensions(), rootVSmall);
-
     surfF_ = surfF_*0;
+
+    scalar totalSurf = 0;
+
+//    const dimensionedScalar a0 ("a0", a_.dimensions(), rootVSmall);
+
     forAll(surfL_,cellI)
     {
-        surfF_[surfL_[cellI]] = 1.0;
+        scalar volume = mesh_.V()[surfL_[cellI]];
+        scalar surfArea = 0.;
+        forAll(mesh_.cells()[surfL_[cellI]],faceI)
+        {
+            surfArea += mesh_.magSf()[mesh_.cells()[surfL_[cellI]][faceI]];
+        }
+        surfF_[surfL_[cellI]] = borderL_.value() * surfArea / 6. / volume;
+        totalSurf += borderL_.value() * surfArea / 6.;
     }
 
-    forAll(porosityF_,cellI)
+    scalar totalVol = 0;
+    forAll(porosityF_, cellI)
     {
-        if (porosityF_[cellI] > (1.0 - pow(10.0,-8.0)))  //this is an ad hoc threshold
+        if (porosityF_[cellI] > (1.0 - pow(10.0, -8.0)))  //this is an ad hoc threshold
         {
-	           whereIs_[cellI] = 0.0;
-	           whereIsNot_[cellI] = 1.0;
+            whereIs_[cellI] = 0.0;
+            whereIsNot_[cellI] = 1.0;
         }
         else
         {
-	           whereIs_[cellI] = 1.0;
-	           whereIsNot_[cellI] = 0.0;
+            whereIs_[cellI] = 1.0;
+            whereIsNot_[cellI] = 0.0;
+            totalVol += mesh_.V()[cellI];
         }
     }
+
+    Info << "Radiation active volume to porous media volume ratio: " << totalSurf/max(totalVol,SMALL) << endl;
 
     // Construct diffusion
     const volScalarField gamma
@@ -328,32 +331,33 @@ void Foam::radiationModels::heterogeneousP1::calculate()
             IOobject::NO_READ,
             IOobject::NO_WRITE
         ),
-        1.0/(3.0*(a_ + as_*(whereIs_-surfF_) + borderAs_*surfF_) + sigmaEff + a0)
+        1.0/(3.0*(a_ + as_*whereIs_ + borderAs_*surfF_ ) + sigmaEff)  // eqZx2uHGn010
     );
 
-    volScalarField solidRadiation = (es_*(whereIs_-surfF_) + borderEs_*surfF_ )*physicoChemical::sigma*pow4(Ts_);
+    // eqZx2uHGn013
+    volScalarField solidRadiation = (es_*whereIs_ + borderEs_*surfF_ ) * physicoChemical::sigma * pow4(Ts_);
 
     // Solve G transport equation
     solve
     (
         fvm::laplacian(gamma, G_)
-      - fvm::Sp((a_ + as_*(whereIs_-surfF_) + borderAs_*surfF_ ), G_)
-     ==
-      - 4.0*(e_*physicoChemical::sigma*pow4(T_) + solidRadiation) - E_
+        - fvm::Sp((a_ + as_ * whereIs_ + borderAs_ * surfF_ ), G_)
+       ==
+        - 4.0 * (e_ * physicoChemical::sigma * pow4(T_) + solidRadiation)
     );
 
-    volScalarField Gair=G_;
+//    volScalarField Gair=G_;
 
+    // eqZx2uHGn012
     forAll(G_,cellI)
     {
-        if (surfF_[cellI]==0)
+        if (surfF_[cellI] == 0)
         {
-            solidSh_[cellI] = (G_[cellI]*as_[cellI] - 4.0*solidRadiation[cellI])*whereIs_[cellI];
+            solidSh_[cellI] = (G_[cellI] * as_[cellI] - 4.0 * solidRadiation[cellI]) * whereIs_[cellI];
         }
         else
         {
-            solidSh_[cellI] = (G_[cellI]*borderAs_[cellI] - 4.0*solidRadiation[cellI])*whereIs_[cellI];
-        }
+            solidSh_[cellI] = (G_[cellI] * (as_[cellI] + surfF_[cellI] * borderAs_[cellI]) - 4.0 * solidRadiation[cellI]) * whereIs_[cellI];        }
     }
 
     volScalarField::Boundary& qrBf = qr_.boundaryFieldRef();

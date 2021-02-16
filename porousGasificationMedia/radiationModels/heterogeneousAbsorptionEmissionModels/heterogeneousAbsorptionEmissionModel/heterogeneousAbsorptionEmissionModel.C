@@ -225,6 +225,11 @@ Foam::radiationModels::heterogeneousAbsorptionEmissionModel::EDisp(const label b
     );
 }
 
+Foam::dimensionedScalar
+Foam::radiationModels::heterogeneousAbsorptionEmissionModel::borderL(const label bandI) const
+{
+    return  dimensionedScalar("borderL", dimLength, 0.0);
+}
 
 Foam::label Foam::radiationModels::heterogeneousAbsorptionEmissionModel::nBands() const
 {

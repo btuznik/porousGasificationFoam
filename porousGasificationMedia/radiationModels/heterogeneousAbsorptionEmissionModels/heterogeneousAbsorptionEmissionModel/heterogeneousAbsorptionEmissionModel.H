@@ -182,6 +182,8 @@ public:
                 //- Emission contribution for dispersed phase
                 virtual tmp<volScalarField> EDisp(const label bandI = 0) const;
 
+            // Border thickness layer
+            virtual dimensionedScalar borderL(const label bandI = 0) const;
 
             //- Const access to the number of bands - defaults to 1 for grey
             //  absorption/emission
