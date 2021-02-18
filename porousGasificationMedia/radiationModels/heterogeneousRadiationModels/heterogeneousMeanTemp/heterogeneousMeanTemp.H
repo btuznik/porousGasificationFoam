@@ -42,12 +42,13 @@ SourceFiles
 #define heterogeneousRadiationModelheterogeneousMeanTemp_H
 
 #include "heterogeneousRadiationModel.H"
+#include "volFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-namespace radiation
+namespace radiationModels
 {
 
 /*---------------------------------------------------------------------------*\
@@ -58,48 +59,40 @@ class heterogeneousMeanTemp
 :
     public heterogeneousRadiationModel
 {
-    // Private data
+        // Private data
 
-        //- Incident radiation / [W/m2]
-        volScalarField G_;
+            //- Incident radiation / [W/m2]
+            volScalarField G_;
 
-        //- Total radiative heat flux [W/m2]
-        volScalarField Qr_;
+            //- Total radiative heat flux [W/m2]
+            volScalarField Qr_;
 
-        //- Absorption coefficient
-        volScalarField a_;
+            //- Absorption coefficient
+            volScalarField borderAs_;
 
-        //- Emission coefficient
-        volScalarField e_;
+            //- Emission coefficient
+            volScalarField borderEs_;
 
-        //- Emission contribution
-        dimensionedScalar borderL_;
+            //- Emission contribution
+            dimensionedScalar borderL_;
 
-        //- Emission contribution
-        volScalarField E_;
+            //- porosity field
+            const volScalarField& porosityF_;
 
-        //- porosity field
-        const volScalarField& porosityF_;
+            //- porosity field
+            const List<label>& surfL_;
 
-        //- porosity field
-        const List<label>& surfF_;
+            //- porosity field
+            volScalarField surfF_;
 
-	//- field where porosity is
-	volScalarField whereIs_;
+            //- field where porosity is
+            volScalarField whereIs_;
 
-	//- field where is no porosity
-	volScalarField whereIsNot_;
+            //- field where is no porosity
+            volScalarField whereIsNot_;
 
-        //- magnitude of G_ field gradient
-	volScalarField solidSh_;
-
-    // Private Member Functions
-
-        //- Disallow default bitwise copy construct
-        heterogeneousMeanTemp(const heterogeneousMeanTemp&);
-
-        //- Disallow default bitwise assignment
-        void operator=(const heterogeneousMeanTemp&);
+                //- magnitude of G_ field gradient
+            volScalarField solidSh_;
 
 
 public:
@@ -111,7 +104,16 @@ public:
     // Constructors
 
         //- Construct from components
-        heterogeneousMeanTemp(const volScalarField& T, const volScalarField& porosityF, const List<label>& surfF, const volScalarField& Ts);
+        heterogeneousMeanTemp
+        (
+            const volScalarField& T,
+            const volScalarField& porosityF,
+            const List<label>& surfF,
+            const volScalarField& Ts
+        );
+
+        //- Disallow default bitwise copy construction
+        heterogeneousMeanTemp(const heterogeneousMeanTemp&) = delete;
 
 
     //- Destructor
@@ -140,12 +142,16 @@ public:
             //- Source term component (constant)
             virtual tmp<volScalarField> solidSh() const;
 
+    // Member Operators
+
+        //- Disallow default bitwise assignment
+        void operator=(const heterogeneousMeanTemp&) = delete;
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace radiation
+} // End namespace radiationModels
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

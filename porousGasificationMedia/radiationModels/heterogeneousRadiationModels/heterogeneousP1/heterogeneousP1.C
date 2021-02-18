@@ -284,11 +284,9 @@ void Foam::radiationModels::heterogeneousP1::calculate()
     E_ = heterogeneousAbsorptionEmission_->ECont();
     borderL_  = heterogeneousAbsorptionEmission_->borderL();
     const volScalarField sigmaEff(scatter_->sigmaEff());
-    surfF_ = surfF_*0;
+    surfF_ = surfF_ * 0;
 
     scalar totalSurf = 0;
-
-//    const dimensionedScalar a0 ("a0", a_.dimensions(), rootVSmall);
 
     forAll(surfL_,cellI)
     {
