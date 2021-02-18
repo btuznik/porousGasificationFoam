@@ -14,3 +14,6 @@ wmake libso
 
 cd $WM_PROJECT_USER_DIR/applications/porousGasificationFoam
 wmake
+
+cd $WM_PROJECT_USER_DIR/applications/utilities
+./Allwmake
