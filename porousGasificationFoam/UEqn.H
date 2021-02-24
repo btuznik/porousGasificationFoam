@@ -6,7 +6,7 @@ tmp<fvVectorMatrix> tUEqn
 (
     fvm::ddt(rho, U) + fvm::div(phi, U)
   + MRF.DDt(rho, U)
-  + pyrolysisZone.viscosityDrop()() * turbulence->divDevTau(U)
+  + turbulence->divDevTau(U)
  ==
     fvOptions(rho, U)
   + rho * g

@@ -299,10 +299,6 @@ public:
             //- Return enthalpy needed to heat up gas
             virtual Foam::tmp<Foam::volScalarField> solidChemistrySh() const;
 
-            //- Return viscosityDrop
-            virtual Foam::tmp<Foam::volScalarField> viscosityDrop();
-
-
 };
 
 

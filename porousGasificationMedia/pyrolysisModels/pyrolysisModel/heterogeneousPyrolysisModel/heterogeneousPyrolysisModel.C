@@ -268,16 +268,6 @@ Foam::tmp<Foam::volScalarField> heterogeneousPyrolysisModel::solidChemistrySh() 
 
     return Foam::tmp<Foam::volScalarField>(NULL);
 }
-
-Foam::tmp<Foam::volScalarField> heterogeneousPyrolysisModel::viscosityDrop()
-{
-    notImplemented
-    (
-        "tmp<DimensionedField<scalar, volMesh> > heterogeneousPyrolysisModel::viscosityDrop()"
-    )
-
-    return Foam::tmp<Foam::volScalarField>(NULL);
-}
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace heterogeneousPyrolysisModels

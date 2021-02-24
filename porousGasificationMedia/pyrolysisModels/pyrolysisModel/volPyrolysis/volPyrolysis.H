@@ -116,9 +116,8 @@ protected:
     /// Switch for equilibrium/nonequilibrium model
     Switch equilibrium_;
 
-    //- Switch for equilibrium/nonequilibrium model
-    scalar viscosityDropFactor_;
-
+    //- Switch for temporal subintegration of heatTransfer model
+    Switch subintegrateSwitch_;
 
     // Solution parameters
 
@@ -158,8 +157,6 @@ protected:
         volScalarField whereIsNot_;
 
         volScalarField heatUpGas_;
-
-        volScalarField viscosityDrop_;
 
         //- Reference to heat transport model
         autoPtr<heatTransferModel> HTmodel_;
@@ -331,9 +328,6 @@ public:
 
             //- Return enthalpy needed to heat up gas  GK  or to pyrolyse the solid into gas ???
             virtual Foam::tmp<Foam::volScalarField> solidChemistrySh() const;
-
-            //- Return cells where viscosity drops for numerical purpose
-            virtual Foam::tmp<Foam::volScalarField> viscosityDrop();
 
         // I-O
 

@@ -27,7 +27,7 @@ tmp<fv::convectionScheme<scalar>> mvConvection
              ==
                 reaction->R(Yi)
               + fvOptions(rho, Yi)
-              + (1.-porosityF)*pyrolysisZone.Srho(i)
+              + pyrolysisZone.Srho(i)
             );
 
             YiEqn.relax();
