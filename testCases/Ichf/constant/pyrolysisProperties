@@ -28,7 +28,8 @@ pyrolysisCoeffs
     absorptionDepth 0.6;
     emissionCoeff 1.0;
 
-    viscosityDropFactor 1;
+    subintegrateHeatTransfer true;
+
 }
 
 infoOutput      true;

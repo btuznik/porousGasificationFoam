@@ -28,9 +28,6 @@ heterogeneousConstantAbsorptionEmissionCoeffs
     a               a  [ 0 -1  0 0 0 0 0 ] 20.0;
     as              as [ 0 -1  0 0 0 0 0 ] 20.0;
     borderAs        borderAs [ 0 -1  0 0 0 0 0 ] 20.0;
-    e               e  [ 0 -1 0 0 0 0 0 ] 20.0;
-    es              es [ 0 -1 0 0 0 0 0 ] 20.0;
-    borderEs        borderEs [ 0 -1 0 0 0 0 0 ] 20.0;
     E               E  [ 1 -1 -3 0 0 0 0 ] 0.0;
     borderL         borderL [ 0 1 0 0 0 0 0 ] 5e-3;
 }
