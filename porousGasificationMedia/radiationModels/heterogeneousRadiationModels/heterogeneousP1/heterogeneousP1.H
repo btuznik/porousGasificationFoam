@@ -76,15 +76,6 @@ class heterogeneousP1
         //- Absorption coefficient
         volScalarField borderAs_;
 
-        //- Emission coefficient
-        volScalarField e_;
-
-        //- Emission coefficient
-        volScalarField es_;
-
-        //- Emission coefficient
-        volScalarField borderEs_;
-
         //- Emission contribution
         volScalarField E_;
 

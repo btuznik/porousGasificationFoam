@@ -61,9 +61,6 @@ heterogeneousConstantAbsorptionEmission::heterogeneousConstantAbsorptionEmission
     a_(coeffsDict_.lookup("a")),
     as_(coeffsDict_.lookup("as")),
     borderAs_(coeffsDict_.lookup("borderAs")),
-    e_(coeffsDict_.lookup("e")),
-    es_(coeffsDict_.lookup("es")),
-    borderEs_(coeffsDict_.lookup("borderEs")),
     E_(coeffsDict_.lookup("E")),
     borderL_(coeffsDict_.lookup("borderL"))
 {}
@@ -102,7 +99,6 @@ heterogeneousConstantAbsorptionEmission::asCont(const label bandI) const
     );
 }
 
-
 Foam::tmp<Foam::volScalarField>
 Foam::radiationModels::heterogeneousAbsorptionEmissionModels::
 heterogeneousConstantAbsorptionEmission::borderAsCont(const label bandI) const
@@ -114,46 +110,6 @@ heterogeneousConstantAbsorptionEmission::borderAsCont(const label bandI) const
         borderAs_
     );
 }
-
-
-Foam::tmp<Foam::volScalarField>
-Foam::radiationModels::heterogeneousAbsorptionEmissionModels::
-heterogeneousConstantAbsorptionEmission::eCont(const label bandI) const
-{
-    return volScalarField::New
-    (
-        "e",
-        mesh_,
-        e_
-    );
-}
-
-
-Foam::tmp<Foam::volScalarField>
-Foam::radiationModels::heterogeneousAbsorptionEmissionModels::
-heterogeneousConstantAbsorptionEmission::esCont(const label bandI) const
-{
-    return volScalarField::New
-    (
-        "es",
-        mesh_,
-        es_
-    );
-}
-
-
-Foam::tmp<Foam::volScalarField>
-Foam::radiationModels::heterogeneousAbsorptionEmissionModels::
-heterogeneousConstantAbsorptionEmission::borderEsCont(const label bandI) const
-{
-    return volScalarField::New
-    (
-        "borderEs",
-        mesh_,
-        borderEs_
-    );
-}
-
 
 Foam::tmp<Foam::volScalarField>
 Foam::radiationModels::heterogeneousAbsorptionEmissionModels::

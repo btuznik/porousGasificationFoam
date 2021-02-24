@@ -69,15 +69,6 @@ class heterogeneousConstantAbsorptionEmission
         //- Absorption coefficient / [1/m]
         dimensionedScalar borderAs_;
 
-        //- Emission coefficient / [1/m]
-        dimensionedScalar e_;
-
-        //- Emission coefficient / [1/m]
-        dimensionedScalar es_;
-
-        //- Emission coefficient / [1/m]
-        dimensionedScalar borderEs_;
-
         //- Emission contribution / [kg/(m s^3)]
         dimensionedScalar E_;
 
@@ -118,19 +109,6 @@ public:
 
                 //- Absorption coefficient for continuous phase
                 tmp<volScalarField> borderAsCont(const label bandI = 0) const;
-
-
-            // Emission coefficient
-
-                //- Emission coefficient for continuous phase
-                tmp<volScalarField> eCont(const label bandI = 0) const;
-
-                //- Emission coefficient for continuous phase
-                tmp<volScalarField> esCont(const label bandI = 0) const;
-
-                //- Emission coefficient for continuous phase
-                tmp<volScalarField> borderEsCont(const label bandI = 0) const;
-
 
             // Emission contribution
 

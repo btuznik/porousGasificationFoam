@@ -125,45 +125,6 @@ Foam::radiationModels::heterogeneousP1::heterogeneousP1
         mesh_,
         dimensionedScalar(dimless/dimLength, 0)
     ),
-    e_
-    (
-        IOobject
-        (
-            "e",
-            mesh_.time().timeName(),
-            mesh_,
-            IOobject::NO_READ,
-            IOobject::NO_WRITE
-        ),
-        mesh_,
-        dimensionedScalar(dimless/dimLength, 0)
-    ),
-    es_
-    (
-        IOobject
-        (
-            "es",
-            mesh_.time().timeName(),
-            mesh_,
-            IOobject::NO_READ,
-            IOobject::NO_WRITE
-        ),
-        mesh_,
-        dimensionedScalar(dimless/dimLength, 0)
-    ),
-    borderEs_
-    (
-        IOobject
-        (
-            "borderEs",
-            mesh_.time().timeName(),
-            mesh_,
-            IOobject::NO_READ,
-            IOobject::NO_WRITE
-        ),
-        mesh_,
-        dimensionedScalar(dimless/dimLength, 0)
-    ),
     E_
     (
         IOobject
@@ -278,9 +239,6 @@ void Foam::radiationModels::heterogeneousP1::calculate()
     a_ = heterogeneousAbsorptionEmission_->aCont();
     as_ = heterogeneousAbsorptionEmission_->asCont();
     borderAs_ = heterogeneousAbsorptionEmission_->borderAsCont();
-    e_ = heterogeneousAbsorptionEmission_->eCont();
-    es_ = heterogeneousAbsorptionEmission_->esCont();
-    borderEs_ = heterogeneousAbsorptionEmission_->borderEsCont();
     E_ = heterogeneousAbsorptionEmission_->ECont();
     borderL_  = heterogeneousAbsorptionEmission_->borderL();
     const volScalarField sigmaEff(scatter_->sigmaEff());
@@ -316,6 +274,9 @@ void Foam::radiationModels::heterogeneousP1::calculate()
         }
     }
 
+    reduce(totalSurf, sumOp<scalar>());
+    reduce(totalVol, sumOp<scalar>());
+
     Info << "Radiation active volume to porous media volume ratio: " << totalSurf/max(totalVol,SMALL) << endl;
 
     // Construct diffusion
@@ -333,7 +294,7 @@ void Foam::radiationModels::heterogeneousP1::calculate()
     );
 
     // eqZx2uHGn013
-    volScalarField solidRadiation = (es_*whereIs_ + borderEs_*surfF_ ) * physicoChemical::sigma * pow4(Ts_);
+    volScalarField solidRadiation = (as_ * whereIs_ + borderAs_ * surfF_) * physicoChemical::sigma * pow4(Ts_);
 
     // Solve G transport equation
     solve
@@ -341,7 +302,7 @@ void Foam::radiationModels::heterogeneousP1::calculate()
         fvm::laplacian(gamma, G_)
         - fvm::Sp((a_ + as_ * whereIs_ + borderAs_ * surfF_ ), G_)
        ==
-        - 4.0 * (e_ * physicoChemical::sigma * pow4(T_) + solidRadiation)
+        - 4.0 * (a_ * physicoChemical::sigma * pow4(T_) + solidRadiation)
     );
 
 //    volScalarField Gair=G_;

@@ -70,9 +70,6 @@ class heterogeneousMeanTemp
             //- Absorption coefficient
             volScalarField borderAs_;
 
-            //- Emission coefficient
-            volScalarField borderEs_;
-
             //- Emission contribution
             dimensionedScalar borderL_;
 

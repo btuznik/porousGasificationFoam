@@ -99,19 +99,6 @@ Foam::radiationModels::heterogeneousMeanTemp::heterogeneousMeanTemp
         mesh_,
         dimensionedScalar(dimless/dimLength, 0)
     ),
-    borderEs_
-    (
-        IOobject
-        (
-            "borderEs",
-            mesh_.time().timeName(),
-            mesh_,
-            IOobject::NO_READ,
-            IOobject::NO_WRITE
-        ),
-        mesh_,
-        dimensionedScalar(dimless/dimLength, 0)
-    ),
     borderL_
     (
         dimensionedScalar("borderL", dimLength, 0.0)
@@ -211,7 +198,6 @@ bool Foam::radiationModels::heterogeneousMeanTemp::read()
 void Foam::radiationModels::heterogeneousMeanTemp::calculate()
 {
     borderAs_ = heterogeneousAbsorptionEmission_->borderAsCont();
-    borderEs_ = heterogeneousAbsorptionEmission_->borderEsCont();
     borderL_  = heterogeneousAbsorptionEmission_->borderL();
     const volScalarField sigmaEff(scatter_->sigmaEff());
     surfF_ = surfF_ * 0;
@@ -248,6 +234,9 @@ void Foam::radiationModels::heterogeneousMeanTemp::calculate()
         }
     }
 
+    reduce(totalSurf, sumOp<scalar>());
+    reduce(totalVol, sumOp<scalar>());
+
     Info << "Radiation active volume to porous media volume ratio: " << totalSurf/max(totalVol,SMALL) << endl;
 
     dimensionedScalar boundaryMeanTemp("boundaryMeanTemp",dimless,0.0);
@@ -277,7 +266,7 @@ void Foam::radiationModels::heterogeneousMeanTemp::calculate()
 
 
     // eqZx2uHGn016
-    volScalarField solidRadiation = borderEs_ * surfF_ * physicoChemical::sigma * pow4(Ts_);
+    volScalarField solidRadiation = borderAs_ * surfF_ * physicoChemical::sigma * pow4(Ts_);
 
     scalar radiationEnergy = (physicoChemical::sigma * pow4(boundaryMeanTemp / boundarySurface)).value();
 
