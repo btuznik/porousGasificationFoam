@@ -241,7 +241,7 @@ public:
                 virtual const volScalarField& K() const = 0;
 
                 //- Return list of cells in surface layer inside solid
-                virtual const List<label>& surf() const = 0;
+                virtual const volScalarField& surf() const = 0;
 
 
         // Evolution

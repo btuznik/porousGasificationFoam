@@ -77,18 +77,12 @@ class heterogeneousMeanTemp
             const volScalarField& porosityF_;
 
             //- porosity field
-            const List<label>& surfL_;
+            const volScalarField& surfFI_;
 
             //- porosity field
             volScalarField surfF_;
 
-            //- field where porosity is
-            volScalarField whereIs_;
-
-            //- field where is no porosity
-            volScalarField whereIsNot_;
-
-                //- magnitude of G_ field gradient
+            //- magnitude of G_ field gradient
             volScalarField solidSh_;
 
 
@@ -105,7 +99,7 @@ public:
         (
             const volScalarField& T,
             const volScalarField& porosityF,
-            const List<label>& surfF,
+            const volScalarField& surfF,
             const volScalarField& Ts
         );
 

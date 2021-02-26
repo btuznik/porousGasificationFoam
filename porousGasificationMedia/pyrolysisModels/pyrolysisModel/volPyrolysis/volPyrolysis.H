@@ -168,7 +168,7 @@ protected:
         volTensorField anisotropyK_;
 
         //- border cells inside solid body
-        List<label> surfF_;
+        volScalarField surfF_;
 
     // Checks
 
@@ -267,7 +267,7 @@ public:
                 virtual const volScalarField& K() const;
 
                 //- Return list of cells in surface layer inside solid
-                virtual const List<label>& surf() const;
+                virtual const volScalarField& surf() const;
 
         // Parametrs from main region
 

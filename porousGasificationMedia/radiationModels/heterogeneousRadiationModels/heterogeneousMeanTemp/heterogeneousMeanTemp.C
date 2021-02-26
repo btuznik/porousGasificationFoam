@@ -56,7 +56,7 @@ Foam::radiationModels::heterogeneousMeanTemp::heterogeneousMeanTemp
 (
     const volScalarField& T,
     const volScalarField& porosityF,
-    const List<label>& surfF,
+    const volScalarField& surfF,
     const volScalarField& Ts
 )
 :
@@ -104,38 +104,15 @@ Foam::radiationModels::heterogeneousMeanTemp::heterogeneousMeanTemp
         dimensionedScalar("borderL", dimLength, 0.0)
     ),
     porosityF_(porosityF),
-    surfL_(surfF),
+    surfFI_
+    (
+        surfF
+    ),
     surfF_
     (
         IOobject
         (
-            "surfF",
-            mesh_.time().timeName(),
-            mesh_,
-            IOobject::NO_READ,
-            IOobject::NO_WRITE
-        ),
-        mesh_,
-        scalar(0.0)
-    ),
-    whereIs_
-    (
-        IOobject
-        (
-            "whereIs",
-            mesh_.time().timeName(),
-            mesh_,
-            IOobject::NO_READ,
-            IOobject::NO_WRITE
-        ),
-        mesh_,
-        scalar(1.0)
-    ),
-    whereIsNot_
-    (
-        IOobject
-        (
-            "whereIsNot",
+            "surfF_",
             mesh_.time().timeName(),
             mesh_,
             IOobject::NO_READ,
@@ -157,21 +134,7 @@ Foam::radiationModels::heterogeneousMeanTemp::heterogeneousMeanTemp
         mesh_,
         dimensionedScalar(dimMass/dimLength/pow3(dimTime), 0)
     )
-{
-    forAll(porosityF_,cellI)
-    {
-        if (porosityF_[cellI] > (1.0 - pow(10.0, -8.0)))
-        {
-            whereIs_[cellI] = 0.0;
-            whereIsNot_[cellI] = 1.0;
-        }
-        else
-        {
-            whereIs_[cellI] = 1.0;
-            whereIsNot_[cellI] = 0.0;
-        }
-    }
-}
+{}
 
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
@@ -200,44 +163,23 @@ void Foam::radiationModels::heterogeneousMeanTemp::calculate()
     borderAs_ = heterogeneousAbsorptionEmission_->borderAsCont();
     borderL_  = heterogeneousAbsorptionEmission_->borderL();
     const volScalarField sigmaEff(scatter_->sigmaEff());
-    surfF_ = surfF_ * 0;
 
-    scalar totalSurf = 0;
+    volScalarField surfV = surfF_*0;
+    surfV.ref() = borderL_*pow(mesh_.V(),2./3.)*surfFI_.internalField();
+    surfF_.ref() = borderL_/pow(mesh_.V(),1./3.)*surfFI_.internalField();
+    scalar totSur = gSum(surfV);
 
-//    const dimensionedScalar a0 ("a0", a_.dimensions(), rootVSmall);
-
-    forAll(surfL_,cellI)
+    scalar totVol = 0;
+    forAll(porosityF_,cellI)
     {
-        scalar volume = mesh_.V()[surfL_[cellI]];
-        scalar surfArea = 0.;
-        forAll(mesh_.cells()[surfL_[cellI]],faceI)
+        if (porosityF_[cellI] < (1.0 - pow(10.0,-8.0)))  //this is an ad hoc threshold
         {
-            surfArea += mesh_.magSf()[mesh_.cells()[surfL_[cellI]][faceI]];
-        }
-        surfF_[surfL_[cellI]] = borderL_.value() * surfArea / 6. / volume;
-        totalSurf += borderL_.value() * surfArea / 6.;
-    }
-
-    scalar totalVol = 0;
-    forAll(porosityF_, cellI)
-    {
-        if (porosityF_[cellI] > (1.0 - pow(10.0, -8.0)))  //this is an ad hoc threshold
-        {
-            whereIs_[cellI] = 0.0;
-            whereIsNot_[cellI] = 1.0;
-        }
-        else
-        {
-            whereIs_[cellI] = 1.0;
-            whereIsNot_[cellI] = 0.0;
-            totalVol += mesh_.V()[cellI];
+            totVol += mesh_.V()[cellI];
         }
     }
+    reduce(totVol, sumOp<scalar>());
 
-    reduce(totalSurf, sumOp<scalar>());
-    reduce(totalVol, sumOp<scalar>());
-
-    Info << "Radiation active volume to porous media volume ratio: " << totalSurf/max(totalVol,SMALL) << endl;
+    Info << "Radiation active volume to porous media volume ratio: " << totSur/max(totVol,SMALL) << " " << totSur << " " << totVol << endl;
 
     dimensionedScalar boundaryMeanTemp("boundaryMeanTemp",dimless,0.0);
     dimensionedScalar boundarySurface("boundarySurface",dimless,0.0);
@@ -255,6 +197,8 @@ void Foam::radiationModels::heterogeneousMeanTemp::calculate()
         }
     }
 
+    Info << "Radiation mean wall temperature [K] " << boundaryMeanTemp.value()/boundarySurface.value() << endl;
+
     if (not thereIsWall)
     {
         FatalErrorIn("Foam::radiation::heterogeneousMeanTemp")
@@ -266,16 +210,16 @@ void Foam::radiationModels::heterogeneousMeanTemp::calculate()
 
 
     // eqZx2uHGn016
-    volScalarField solidRadiation = borderAs_ * surfF_ * physicoChemical::sigma * pow4(Ts_);
+    volScalarField solidRadiation = borderAs_*physicoChemical::sigma*pow4(Ts_);
 
-    scalar radiationEnergy = (physicoChemical::sigma * pow4(boundaryMeanTemp / boundarySurface)).value();
+    scalar radiationEnergy = (physicoChemical::sigma*pow4(boundaryMeanTemp/boundarySurface)).value();
 
     forAll(G_,cellI)
     {
         G_[cellI] = radiationEnergy;
-        if (surfF_[cellI]==1)
+        if (surfF_[cellI] != 0)
         {
-            solidSh_[cellI] = 4.0*(G_[cellI]*borderAs_[cellI] - solidRadiation[cellI])*whereIs_[cellI];
+            solidSh_[cellI] = 4.0*(G_[cellI]*borderAs_[cellI] - solidRadiation[cellI])*surfF_[cellI];
         }
     }
 }
@@ -347,8 +291,7 @@ Foam::radiationModels::heterogeneousMeanTemp::solidSh() const
                 mesh_.time().timeName(),
                 mesh_,
                 IOobject::NO_READ,
-                IOobject::NO_WRITE,
-                false
+                IOobject::AUTO_WRITE
             ),
             solidSh_
         )

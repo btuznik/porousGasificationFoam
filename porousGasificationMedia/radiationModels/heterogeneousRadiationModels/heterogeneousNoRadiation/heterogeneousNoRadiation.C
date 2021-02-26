@@ -53,7 +53,7 @@ Foam::radiationModels::heterogeneousNoRadiation::heterogeneousNoRadiation
 (
     const volScalarField& T,
     const volScalarField& porosityF,
-    const List<label>& surfF,
+    const volScalarField& surfF,
     const volScalarField& Ts
 )
 :

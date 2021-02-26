@@ -155,38 +155,15 @@ void volPyrolysis::solveEnergy()
         {
             volScalarField rhoCp(max(rho_*solidThermo_.Cp()*(1-porosity_),dimensionedScalar("minRhoCp",dimEnergy/dimTemperature/dimVolume,SMALL)));
 
-            // immersed boundary for heat transport in solid phase
+            // simplistic immersed boundary for heat transport in solid phase
             fvScalarMatrix TLap
             (
                 fvm::laplacian(composedK, T_)
             );
 
-            //          approach 1) to setting face fluxes 0
-            //            forAll(surfF_,cellI)
-            //            {
-            //                label cellId = surfF_[cellI];
-            //                forAll(mesh_.cellCells()[cellId],cellJ)
-            //                {
-            //                    if( whereIs_[mesh_.cellCells()[cellId][cellJ]] == 0.0 )
-            //                    {
-            //                        forAll(mesh_.cells()[cellId],faceId)
-            //                        {
-            //                            forAll(mesh_.cells()[mesh_.cellCells()[cellId][cellJ]],faceJ)
-            //                            {
-            //                                TLap.upper()[mesh_.cells()[mesh_.cellCells()[cellId][cellJ]][faceJ]] = 0.;
-            //                                if( mesh_.cells()[cellId][faceId]  == mesh_.cells()[mesh_.cellCells()[cellId][cellJ]][faceJ] )
-            //                                {
-            //                                    TLap.upper()[mesh_.cells()[cellId][faceId]] = 0.;
-            //                                }
-            //                            }
-            //                        }
-            //                    }
-            //                }
-            //            }
+            // setting face fluxes otutside porous media to 0
+            surfaceScalarField  whereIsPatch  = fvc::snGrad(whereIs_);
 
-            //          approach 2) to setting face fluxes 0
-
-            surfaceScalarField  whereIsPatch = fvc::snGrad(whereIs_);
             forAll(whereIsPatch,faceI)
             {
                 if (whereIsPatch[faceI] != 0.)
@@ -195,17 +172,14 @@ void volPyrolysis::solveEnergy()
                 }
             }
 
-            //  both approaches make errors if laplacian scheme
-            //  Gauss linear corrected
-            //  is used on non-hexagonal meshes
-            //  Gauss linear uncorrected
-            //  is fine.
-            //  For hexagonal meshes
-            //  Gauss linear corrected
-            //  is fine
-
             TLap.diag() = 0;
             TLap.negSumDiag();
+
+            // Correct on orthogonal meshes
+            // For non-orthogona meshes
+            // TLap.source() = 0. cancels the non-orthogonal correction from the divergence of composedK,
+            // which is spurious on the edges of porous media and negiligble inside porous media in most cases.
+            TLap.source() = 0.;
 
             fvScalarMatrix TEqn
             (
@@ -457,7 +431,7 @@ volPyrolysis::volPyrolysis
         mesh_,
         dimensionedTensor("one", dimless, tensor(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0))
     ),
-    surfF_(),
+    surfF_(whereIs_),
     lostSolidMass_(dimensionedScalar("zero", dimMass, 0.0)),
     addedGasMass_(dimensionedScalar("zero", dimMass, 0.0)),
     totalGasMassFlux_(dimensionedScalar("zero", dimMass/dimTime, 0.0)),
@@ -531,7 +505,7 @@ volPyrolysis::volPyrolysis
         read();
     }
 
-    DynamicList<label> dSurfF;
+    surfF_ = 0;
     forAll(whereIs_,cellI)
     {
         if (whereIs_[cellI] == 1)
@@ -541,10 +515,9 @@ volPyrolysis::volPyrolysis
             {
                     if (whereIs_[mesh_.cellCells()[cellI][cellJ]] == 0) surfC = true;
             }
-            if (surfC) dSurfF.append(cellI);
+            if (surfC) surfF_[cellI] = 1;
         }
     }
-    surfF_ = dSurfF.shrink();
 
     forAll(rho_,cellI)
     {
@@ -751,7 +724,19 @@ volPyrolysis::volPyrolysis
         mesh_,
         dimensionedTensor("one", dimless, tensor(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0))
     ),
-    surfF_(),
+    surfF_
+    (
+        IOobject
+        (
+            "surfF",
+            time_.timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        mesh_,
+        scalar(0.0)
+    ),
     lostSolidMass_(dimensionedScalar("zero", dimMass, 0.0)),
     addedGasMass_(dimensionedScalar("zero", dimMass, 0.0)),
     totalGasMassFlux_(dimensionedScalar("zero", dimMass/dimTime, 0.0)),
@@ -789,11 +774,11 @@ volPyrolysis::volPyrolysis
 
     forAll(rho_,cellI)
     {
-    if (porosity_[cellI] < 1.)
-    {
-         whereIsNot_[cellI] = 0.;
-         whereIs_[cellI] = 1.;
-    }
+        if (porosity_[cellI] < 1.)
+        {
+             whereIsNot_[cellI] = 0.;
+             whereIs_[cellI] = 1.;
+        }
         else
         {
              whereIsNot_[cellI] = 1.;
@@ -807,20 +792,29 @@ volPyrolysis::volPyrolysis
         read();
     }
 
-    DynamicList<label> dSurfF;
-    forAll(whereIs_,cellI)
+    surfF_ = 0;
+    surfaceScalarField  whereIsPatch  = fvc::interpolate(whereIs_);
+
+    forAll(whereIs_, cellI)
     {
-    if (whereIs_[cellI] == 1)
-    {
+        if (whereIs_[cellI] == 1)
+        {
             bool surfC = false;
-            forAll(mesh_.cellCells()[cellI],cellJ)
+            forAll(mesh_.cells()[cellI],faceI)
             {
-                    if (whereIs_[mesh_.cellCells()[cellI][cellJ]] == 0) surfC = true;
+                label faceIl = mesh_.cells()[cellI][faceI];
+                if (mesh_.isInternalFace(faceIl))
+                {
+                    if (whereIs_[mesh_.faceOwner()[faceIl]] != whereIs_[mesh_.faceNeighbour()[faceIl]]) surfC = true;
+                }
+                else
+                {
+                    //if (whereIsPatch[faceIl] != 0) surfC = true;
+                }
             }
-            if (surfC) dSurfF.append(cellI);
+            if (surfC) surfF_[cellI] = 1;
+        }
     }
-    }
-    surfF_ = dSurfF.shrink();
 }
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
@@ -863,7 +857,7 @@ const volScalarField& volPyrolysis::K() const
     return K_;
 }
 
-const List<label>& volPyrolysis::surf() const
+const volScalarField& volPyrolysis::surf() const
 {
     return surfF_;
 }
@@ -988,7 +982,7 @@ void volPyrolysis::evolvePorosity()
         (
             fvm::ddt(por)
          ==
-            (1. - porosity_) * porositySource_
+            porositySource_
         );
 
         porosityEqn.solve("porosity");
@@ -1019,20 +1013,20 @@ void volPyrolysis::evolvePorosity()
             }
         }
 
-        DynamicList<label> dSurfF;
-        forAll(whereIs_,cellI)
-        {
-            if (whereIs_[cellI] == 1)
-            {
-                bool surfC = false;
-                forAll(mesh_.cellCells()[cellI],cellJ)
-                {
-                        if (whereIs_[mesh_.cellCells()[cellI][cellJ]] == 0) surfC = true;
-                }
-                if (surfC) dSurfF.append(cellI);
-            }
-        }
-        surfF_ = dSurfF.shrink();
+//        DynamicList<label> dSurfF;
+//        forAll(whereIs_,cellI)
+//        {
+//            if (whereIs_[cellI] == 1)
+//            {
+//                bool surfC = false;
+//                forAll(mesh_.cellCells()[cellI],cellJ)
+//                {
+//                        if (whereIs_[mesh_.cellCells()[cellI][cellJ]] == 0) surfC = true;
+//                }
+//                if (surfC) dSurfF.append(cellI);
+//            }
+//        }
+//        surfF_ = dSurfF.shrink();
     }
     else
     {}
@@ -1295,9 +1289,9 @@ void volPyrolysis::info() const
         << addedGasMass_.value() << nl
         << indent << "Total solid mass lost    [kg] = "
         << lostSolidMass_.value() << nl
-        << indent << "Total realese of pyrolysis gases  [kg/s] = "
+        << indent << "Realese rate of pyrolysis gases  [kg/s] = "
         << totalGasMassFlux_.value() << nl
-        << indent << "Total heat release rate [J/s] = "
+        << indent << "Heat release rate [J/s] = "
         << totalHeatRR_.value() << nl;
 
         if (timeChem_ < GREAT )

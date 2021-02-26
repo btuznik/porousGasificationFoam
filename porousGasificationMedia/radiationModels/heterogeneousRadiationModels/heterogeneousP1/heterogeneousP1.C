@@ -56,7 +56,7 @@ Foam::radiationModels::heterogeneousP1::heterogeneousP1
 (
     const volScalarField& T,
     const volScalarField& porosityF,
-    const List<label>& surfF,
+    const volScalarField& surfF,
     const volScalarField& Ts
 )
 :
@@ -143,7 +143,10 @@ Foam::radiationModels::heterogeneousP1::heterogeneousP1
         dimensionedScalar("borderL", dimLength, 0.0)
     ),
     porosityF_(porosityF),
-    surfL_(surfF),
+    surfFI_
+    (
+        surfF
+    ),
     surfF_
     (
         IOobject
@@ -233,7 +236,6 @@ bool Foam::radiationModels::heterogeneousP1::read()
     }
 }
 
-
 void Foam::radiationModels::heterogeneousP1::calculate()
 {
     a_ = heterogeneousAbsorptionEmission_->aCont();
@@ -242,26 +244,16 @@ void Foam::radiationModels::heterogeneousP1::calculate()
     E_ = heterogeneousAbsorptionEmission_->ECont();
     borderL_  = heterogeneousAbsorptionEmission_->borderL();
     const volScalarField sigmaEff(scatter_->sigmaEff());
-    surfF_ = surfF_ * 0;
 
-    scalar totalSurf = 0;
-
-    forAll(surfL_,cellI)
-    {
-        scalar volume = mesh_.V()[surfL_[cellI]];
-        scalar surfArea = 0.;
-        forAll(mesh_.cells()[surfL_[cellI]],faceI)
-        {
-            surfArea += mesh_.magSf()[mesh_.cells()[surfL_[cellI]][faceI]];
-        }
-        surfF_[surfL_[cellI]] = borderL_.value() * surfArea / 6. / volume;
-        totalSurf += borderL_.value() * surfArea / 6.;
-    }
+    volScalarField surfV = surfF_ * 0;
+    surfV.ref() = borderL_ * pow(mesh_.V(), 2. / 3.) * surfFI_.internalField() * dimensionedScalar("tmp",dimensionSet(0, -3, 0, 0, 0),1.);
+    surfF_.ref() = borderL_ / pow(mesh_.V(), 1./3.) * surfFI_.internalField();
+    scalar totalSurf = gSum(surfV);
 
     scalar totalVol = 0;
     forAll(porosityF_, cellI)
     {
-        if (porosityF_[cellI] > (1.0 - pow(10.0, -8.0)))  //this is an ad hoc threshold
+        if (porosityF_[cellI] > (1.0 - pow(10.0, -8.0)))
         {
             whereIs_[cellI] = 0.0;
             whereIsNot_[cellI] = 1.0;
@@ -274,10 +266,10 @@ void Foam::radiationModels::heterogeneousP1::calculate()
         }
     }
 
-    reduce(totalSurf, sumOp<scalar>());
     reduce(totalVol, sumOp<scalar>());
 
-    Info << "Radiation active volume to porous media volume ratio: " << totalSurf/max(totalVol,SMALL) << endl;
+    Info << "Radiation active volume to porous media volume ratio: " << totalSurf/max(totalVol,SMALL)
+         <<  " " << totalSurf << " " << totalVol << endl;
 
     // Construct diffusion
     const volScalarField gamma

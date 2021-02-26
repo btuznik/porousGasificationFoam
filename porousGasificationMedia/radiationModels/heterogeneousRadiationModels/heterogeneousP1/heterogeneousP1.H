@@ -86,7 +86,7 @@ class heterogeneousP1
         const volScalarField& porosityF_;
 
         //- porosity field
-        const List<label>& surfL_;
+        const volScalarField& surfFI_;
 
         //- porosity field
         volScalarField surfF_;
@@ -114,7 +114,7 @@ public:
         (
             const volScalarField& T,
             const volScalarField& porosityF,
-            const List<label>& surfF,
+            const volScalarField& surfF,
             const volScalarField& Ts
         );
 
