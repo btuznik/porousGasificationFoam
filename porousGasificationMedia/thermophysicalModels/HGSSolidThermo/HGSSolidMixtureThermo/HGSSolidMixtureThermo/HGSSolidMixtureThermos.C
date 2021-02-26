@@ -39,7 +39,6 @@ License
 #include "HGSSolidThermo.H"
 
 #include "multiComponentSolidMixture.H"
-#include "reactingSolidMixture.H"
 
 #include "reactingSolidHeterogeneousMixture.H"
 
