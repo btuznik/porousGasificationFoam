@@ -64,9 +64,7 @@ class cylinderCONV
 private:
 
     scalar hCoeff_;
-    scalar poreRadius_;
     scalar cylinderRadius_;
-    Switch constHTC_;
     const volVectorField& Up_;
     const volScalarField& rhop_;
     const volScalarField& alphap_;

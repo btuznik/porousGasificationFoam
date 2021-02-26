@@ -36,7 +36,6 @@ SourceFiles
 #define const_H
 
 #include "heatTransferModel.H"
-#include "fluidThermo.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -58,13 +57,6 @@ private:
 
     scalar hCoeff_;
     scalar SAV_;
-    scalar cylinderRadius_;
-    Switch constHTC_;
-    const volVectorField& Up_;
-    const volScalarField& rhop_;
-    const volScalarField& alphap_;
-    const volScalarField& mup_;
-    const fluidThermo& thermop_;
 
 public:
 

@@ -47,15 +47,13 @@ addToRunTimeSelectionTable(heatTransferModel, cylinderCONV, porosity);
 
 cylinderCONV::cylinderCONV
 (
-    const volScalarField& por,
-    const volScalarField& por0
+    const volScalarField& porosity,
+    const volScalarField& initialPorosity
 )
 :
-    heatTransferModel(por,por0),
+    heatTransferModel(porosity,initialPorosity),
     hCoeff_(1.0),
-    poreRadius_(1.0),
     cylinderRadius_(1.0),
-    constHTC_(true),
     Up_(db().lookupObject<volVectorField>("U")),
     rhop_(db().lookupObject<volScalarField>("rho")),
     alphap_(db().lookupObject<volScalarField>("thermo:alpha")),
@@ -70,56 +68,42 @@ cylinderCONV::cylinderCONV
 
 tmp<volScalarField> cylinderCONV::CONV()
 {
-
-    Foam::tmp<Foam::volScalarField> CONVloc_ = Foam::tmp<Foam::volScalarField>
-    (
-        new volScalarField
+    // eqZx2uHGn007
+        Foam::tmp<Foam::volScalarField> CONVloc_ = Foam::tmp<Foam::volScalarField>
         (
-            IOobject
+            new volScalarField
             (
-                "CONVloc",
-                runTime_.timeName(),
+                IOobject
+                (
+                    "CONVloc",
+                    runTime_.timeName(),
+                    mesh_,
+                    IOobject::NO_READ,
+                    IOobject::AUTO_WRITE
+                ),
                 mesh_,
-                IOobject::NO_READ,
-                IOobject::AUTO_WRITE
-            ),
-            mesh_,
-            dimensionedScalar
-            (
-                "zero", dimEnergy/dimTime/dimTemperature/dimVolume, 0.0
+                dimensionedScalar
+                (
+                    "zero", dimEnergy/dimTime/dimTemperature/dimVolume, 0.0
+                )
             )
-        )
-     );
+        );
 
-    if (constHTC_)
-    {
+        const volScalarField& Cp = thermop_.Cp();
         forAll (CONVloc_(),cellI)
         {
-            CONVloc_.ref()[cellI] = pow(1 - porosity()[cellI],0.5)*pow(1-initialPorosity()[cellI],0.5)*2.0/poreRadius_*hCoeff_;
+            CONVloc_.ref()[cellI] = pow(1 - porosity()[cellI], 0.5) * pow(1 - initialPorosity()[cellI], 0.5) * 2.0 / cylinderRadius_ *
+                                    (1. + 0.55 * Foam::pow(2 * cylinderRadius_ * rhop_[cellI] * mag(Up_[cellI]) / mup_[cellI], 0.6)
+                                    * Foam::pow(mup_[cellI]/alphap_[cellI],0.33333333333))
+                                    * Cp[cellI]*alphap_[cellI]*rhop_[cellI]/cylinderRadius_;  //eqZx2uHGn019 eqZx2uHGn020
         }
-    }
-    else
-    {
-        volScalarField& Cp = thermop_.Cp().ref();
 
-        forAll (CONVloc_(),cellI)
-        {
-            CONVloc_.ref()[cellI] = pow(1 - porosity()[cellI],0.5)*pow(1-initialPorosity()[cellI],0.5)*2.0/poreRadius_*
-                  (1. + 0.55
-                    *Foam::pow(2*cylinderRadius_*rhop_[cellI]*mag(Up_[cellI])/mup_[cellI],0.6)
-                    *Foam::pow(mup_[cellI]/alphap_[cellI],0.33333333333))
-                    *Cp[cellI]*alphap_[cellI]*rhop_[cellI]/cylinderRadius_;  //eqZx2uHGn019 eqZx2uHGn020
-        }
-    }
-
-    return CONVloc_;
-
+        return CONVloc_;
 }
 
 bool cylinderCONV::read()
 {
-
-	IOdictionary dict
+    IOdictionary dict
         (
             IOobject
             (
@@ -134,18 +118,9 @@ bool cylinderCONV::read()
 
     const dictionary& params = dict.subDict("Parameters");
 
-    dict.lookup("constHTC") >> constHTC_;
-    if (constHTC_)
-    {
-        params.lookup("h") >> hCoeff_;
-        params.lookup("poreRadius") >> poreRadius_;
-    }
-    else
-    {
-        params.lookup("h") >> hCoeff_;
-        params.lookup("poreRadius") >> poreRadius_;
-        params.lookup("cylinderRadius") >> poreRadius_;
-    }
+    params.lookup("h") >> hCoeff_;
+    params.lookup("cylinderRadius") >> cylinderRadius_;
+
 
     return true;
 }
