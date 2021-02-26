@@ -7,6 +7,7 @@ reaction/heterogeneousReactions/makeSolidHeterogeneousReactionThermoReactions.C
 
 heatTransfer/heatTransferModel/heatTransferModel.C
 heatTransfer/const/const.C
+heatTransfer/pipe/pipe.C
 heatTransfer/cylinder/cylinder.C
 
 LIB = $(FOAM_USER_LIBBIN)/libHGSsolid
