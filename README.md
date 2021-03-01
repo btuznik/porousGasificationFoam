@@ -101,11 +101,12 @@ porousGasificationMedia library inculding four major parts:
 The documentation of the model can be generated with Doxygen software. To build
 the documentation the doxygen and graphviz packages are required.
 For Ubuntu users the packages can be obtained with the following command:
+
      `sudo apt-get install doxygen graphviz`
 
-* Running Doxygen
-  In the `$POROUS_DOC_SRC/doc/Doxygen` directory type:
+To generate the documentation go to the `$POROUS_DOC_SRC/doc/Doxygen` directory
+and type:
     `./Allwmake`
   
-In order to view to view the documentation open
-`$WM_PROJECT_DIR/doc/Doxygen/html/index.html` in a desired internet browser.
+In order to view to view the documentation open the 
+$WM_PROJECT_DIR/doc/Doxygen/html/index.html` in a desired internet browser.
