@@ -68,6 +68,7 @@ int main(int argc, char *argv[])
     #include "createPyrolysisModel.H"
     #include "readPyrolysisTimeControls.H"
     #include "createHeterogeneousRadiationModel.H"
+    #include "readChemistryTimeControls.H"
 
     turbulence->validate();
     if (!LTS)
@@ -93,6 +94,9 @@ int main(int argc, char *argv[])
             #include "compressibleCourantNo.H"
             #include "solidRegionDiffusionNo.H"
             #include "setMultiRegionDeltaT.H"
+            #include "updateChemistryTimeStep.H"
+
+            Info<< "deltaT = " <<  runTime.deltaT().value() << endl;
         }
 
         runTime++;
