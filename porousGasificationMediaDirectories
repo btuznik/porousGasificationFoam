@@ -8,5 +8,6 @@ DIR=$WM_PROJECT_USER_DIR/applications/porousGasificationMedia
 export FOAM_HGS=$DIR
 export LIB_HGS_DIR=$FOAM_HGS/lib
 export LD_LIBRARY_PATH=$LIB_HGS_DIR:$LD_LIBRARY_PATH
+export POROUS_DOC_SRC=$(pwd)
 
 ### end of porousGasificationFoam install and running directory
