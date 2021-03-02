@@ -1,5 +1,18 @@
 #!/bin/sh
 
+source ./porousGasificationMediaDirectories
+
+mkdir -p $WM_PROJECT_USER_DIR
+mkdir -p $WM_PROJECT_USER_DIR/applications
+mkdir -p $FOAM_HGS
+
+cp -r utilities $WM_PROJECT_USER_DIR/applications/
+cp -r porousGasificationFoam $WM_PROJECT_USER_DIR/applications/
+cp -r porousGasificationMedia/fieldPorosityModel $FOAM_HGS/
+cp -r porousGasificationMedia/thermophysicalModels $FOAM_HGS/
+cp -r porousGasificationMedia/pyrolysisModels $FOAM_HGS/
+cp -r porousGasificationMedia/radiationModels $FOAM_HGS/
+
 cd $FOAM_HGS/fieldPorosityModel
 wmake libso
 

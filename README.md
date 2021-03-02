@@ -106,6 +106,7 @@ For Ubuntu users the packages can be obtained with the following command:
 
 To generate the documentation go to the `$POROUS_DOC_SRC/doc/Doxygen` directory
 and type:
+
     `./Allwmake`
   
 In order to view to view the documentation open the 

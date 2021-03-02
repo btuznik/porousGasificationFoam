@@ -49,7 +49,7 @@ if (adjustTimeStep)
     scalar deltaTFluid =
         min
         (
-            min(maxDeltaTFluid, 1.0 + 0.1*maxDeltaTFluid),
+            min(maxDeltaTFluid, 1.0 + 0.1 * maxDeltaTFluid),
             1.2
         );
 
@@ -57,12 +57,12 @@ if (adjustTimeStep)
     (
         min
         (
-//            min
-//            (
+            min
+            (
                 min(deltaTFluid, maxDeltaTSolid)*runTime.deltaT().value(),
                 maxDeltaT
-//            ),
-//            pyrolysisZone.maxTime()
+            ),
+            pyrolysisZone.maxTime()
         )
     );
     
