@@ -19,7 +19,7 @@ if (solveEnergy)
         fvScalarMatrix EEqn
         (
             fvm::ddt(porosityF * rho, he)
-          + mvConvection->fvmDiv(phi, he)
+          + fvm::div(phi, he)
           + fvc::ddt(porosityF * rho, K)
           + fvc::div(phi, K)
           + (
