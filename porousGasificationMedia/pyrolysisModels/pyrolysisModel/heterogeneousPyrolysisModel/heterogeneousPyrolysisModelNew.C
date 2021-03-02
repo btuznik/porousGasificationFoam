@@ -41,9 +41,10 @@ autoPtr<heterogeneousPyrolysisModel> heterogeneousPyrolysisModel::New
     const fvMesh& mesh,
     HGSSolidThermo& solidThermo,
     psiReactionThermo& gasThermo,
-    volScalarField& whereIs)
+    volScalarField& whereIs
+)
 {
-    // get model name, but do not register the dictionary
+    // Get model name, but do not register the dictionary.
     const word modelType
     (
         IOdictionary
@@ -86,7 +87,7 @@ autoPtr<heterogeneousPyrolysisModel> heterogeneousPyrolysisModel::New
     volScalarField& radiation
 )
 {
-    // get model name, but do not register the dictionary
+    // Get model name, but do not register the dictionary.
     const word modelType
     (
         IOdictionary
@@ -121,7 +122,7 @@ autoPtr<heterogeneousPyrolysisModel> heterogeneousPyrolysisModel::New
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace surfaceFilmModels
+} // End namespace heterogeneousPyrolysisModels
 } // End namespace Foam
 
 // ************************************************************************* //

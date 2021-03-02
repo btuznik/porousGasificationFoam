@@ -22,20 +22,24 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::heterogeneousPyrolysisModel
+    Foam::heterogeneousPyrolysisModels::heterogeneousPyrolysisModel
 
 Description
     base class for heterogeneusPyrolysisModel
+
+    The heterogeneousPyrolysisModel class.
+    It is an implementation of a base class for different pyrolysis models. This
+    class creates all necessary fields of solid properties (e.g., mass fields of
+    solid components) and integrates physical submodels for the solid state
+    (e.g., radiation, kinetics, conduction). For each cell containing the solid
+    phase, the source terms for the gas- and solid-phase equations
+    are calculated.
 
 SourceFiles
     heterogeneousPyrolysisModelI.H
     heterogeneousPyrolysisModel.C
 
 \*---------------------------------------------------------------------------*/
-
-/** @file
- * Interface of base class for pyrolysis models
- */
 
 #ifndef heterogeneousPyrolysisModel_H
 #define heterogeneousPyrolysisModel_H
@@ -59,18 +63,9 @@ namespace heterogeneousPyrolysisModels
 {
 
 /*---------------------------------------------------------------------------*\
-                      Class heterogeneousPyrolysisModel Declaration
+                        heterogeneousPyrolysisModel
 \*---------------------------------------------------------------------------*/
 
-/**
- * The heterogeneousPyrolysisModel class.
- * It is an implementation of a base class for different pyrolysis models. This
- * class creates all necessary fields of solid properties (e.g., mass fields of
- * solid components) and integrates physical submodels for the solid state
- * (e.g., radiation, kinetics, conduction). For each cell containing the solid
- * phase (where γ < 1), the source terms for the gas- and solid-phase equations
- * are calculated.
- */
 class heterogeneousPyrolysisModel
 :
     public IOdictionary
@@ -79,19 +74,19 @@ protected:
 
     // Protected Data
 
-        /// Reference to the mesh database
+        //- Reference to the mesh database
         const fvMesh& mesh_;
 
-        /// Reference to the time database
+        //- Reference to the time database
         const Time& time_;
 
-        /// Active flag
+        //- Active flag
         Switch active_;
 
-        /// Active information output
+        //- Active information output
         Switch infoOutput_;
 
-        /// Model coefficients dictionary
+        //- Model coefficients dictionary
         dictionary coeffs_;
 
         //-  Numerical control parameter
@@ -99,10 +94,10 @@ protected:
 
     // Protected Member Functions
 
-        ///- Read control parameters
+        //- Read control parameters
         virtual bool read();
 
-        ///- Read control parameters from dictionary
+        //- Read control parameters from dictionary
         virtual bool read(const dictionary& dict);
 
 private:
@@ -112,10 +107,10 @@ private:
         //- Read pyrolysis controls
         void readPyrolysisControls();
 
-        ///- Disallow default bitwise copy construct
+        //- Disallow default bitwise copy construct
         heterogeneousPyrolysisModel(const heterogeneousPyrolysisModel&);
 
-        ///- Disallow default bitwise assignment
+        //- Disallow default bitwise assignment
         void operator=(const heterogeneousPyrolysisModel&);
 
 public:
@@ -168,14 +163,14 @@ public:
 
     // Constructors
 
-        ///- Construct from type name and mesh
+        //- Construct from type name and mesh
         heterogeneousPyrolysisModel
         (
             const word& modelType,
             const fvMesh& mesh
         );
 
-        ///- Cunstruct from type name and mesh and gas species list
+        //- Cunstruct from type name and mesh and gas species list
         heterogeneousPyrolysisModel
         (
             const word& modelType,
@@ -185,7 +180,7 @@ public:
             volScalarField& whereIs
         );
         
-        //- Constructor from type name, mesh, gas species list and radiation
+        //- Construct from type name, mesh, gas species list and radiation
         heterogeneousPyrolysisModel
         (
             const word& modelType,
@@ -246,13 +241,13 @@ public:
 
         // Evolution
 
-            /// Pre-evolve region
+            //- Pre-evolve region
             virtual void preEvolveRegion();
 
-            /// Evolve the region
+            //- Evolve the region
             virtual void evolveRegion();
 
-            /// Evolve the film
+            //- Evolve the film
             virtual void evolve();
 
 
@@ -264,13 +259,13 @@ public:
             //- Return max diffusivity allowed in the solid
             virtual scalar maxDiff() const;
 
-            /// Returm time modification factor
+            //- Returm time modification factor
             virtual scalar maxTime() const;
 
-            /// Return equilbirium model switch
+            //- Return equilbirium model switch
             virtual Switch equilibrium() const;
 
-            ///- Return the solution dictionary
+            //- Return the solution dictionary
             inline const dictionary& solution() const;
 
             //- Return the model coefficients dictionary

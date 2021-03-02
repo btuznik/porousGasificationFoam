@@ -22,9 +22,10 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::volPyrolysis
+    Foam::heterogeneousPyrolysisModels::volPyrolysis
 
 Description
+
     Reacting and radiating volumetric pyrolysis model
 SourceFiles
     volPyrolysis.C
@@ -57,28 +58,28 @@ private:
 
     // Private member functions
 
-        /// Disallow default bitwise copy construct
+        //- Disallow default bitwise copy construct
         volPyrolysis(const volPyrolysis&);
 
-        /// Disallow default bitwise assignment
+        //- Disallow default bitwise assignment
         void operator=(const volPyrolysis&);
 
-        /// Read model controls
+        //- Read model controls
         void readReactingOneDimControls();
 
 
 protected:
 
-    ///- Thermophysical properties of gaseous species.
+    //- Thermophysical properties of gaseous species.
     psiReactionThermo& gasThermo_;
 
+    //- List of gas components
     PtrList<volScalarField>& Ygas_;
 
-    ///- Thermophysical properties of solid phase
+    //- Thermophysical properties of solid phase
     HGSSolidThermo& solidThermo_;
 
-    ///- Solid chemistry model
-    //autoPtr<BasicSolidChemistryModel<psiReactionThermo>> solidChemistry_;
+    //- Solid chemistry model
     autoPtr<BasicSolidChemistryModel<HGSSolidThermo>> solidChemistry_;
 
     // Reference to solid thermo properties
@@ -92,7 +93,7 @@ protected:
         //- Density [kg/m3]
         volScalarField& rho_;
 
-        //- Density for initial moment
+        //- Density for the initial moment
         volScalarField rho0_;
 
         //- List of solid components
@@ -101,10 +102,10 @@ protected:
        //- List of solid component masses
         PtrList<volScalarField> Ym_;
 
-        //- List of solid component masses  //gk  [kg]
+        //- List of solid component masses [kg]
         PtrList<volScalarField> Msolid_;
 
-        //- solid total mass  //gk  [kg]
+        //- solid total mass [kg]
         volScalarField Msolidtotal_;
 
         // Non-const access to temperature
@@ -113,7 +114,7 @@ protected:
     //- Name of the radiative flux in the primary region
     word primaryRadFluxName_;
 
-    /// Switch for equilibrium/nonequilibrium model
+    ///-Switch for equilibrium/nonequilibrium model
     Switch equilibrium_;
 
     //- Switch for temporal subintegration of heatTransfer model
@@ -121,23 +122,24 @@ protected:
 
     // Solution parameters
 
-        /// Number of non-orthogonal correctors
+        //- Number of non-orthogonal correctors
         label nNonOrthCorr_;
-        /// Maximum diffussivity
+        //- Maximum diffussivity
         scalar maxDiff_;
 
     // Reference to main region fields
 
-        //- porosity
+        //- Porosity
         volScalarField& porosity_;
 
+        //- InitialPorosity
         volScalarField porosity0_;
 
         volScalarField porosityArch_;
 
         volScalarField voidFraction_;
 
-        //- radiation
+        //- Dadiation
         volScalarField& radiation_;
 
     // Fields
@@ -148,10 +150,10 @@ protected:
         //- Heat release [J/s/m3]
         volScalarField chemistrySh_;
 
-        //- porosity growthw [1/s]
+        //- Porosity growth [1/s]
         volScalarField porositySource_;
 
-        //- masks for equations
+        //- Masks for equations
         volScalarField whereIs_;
 
         volScalarField whereIsNot_;

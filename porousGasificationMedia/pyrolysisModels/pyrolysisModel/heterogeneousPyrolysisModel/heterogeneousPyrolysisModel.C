@@ -23,9 +23,6 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-/** @file
- * Base class for pyrolysis models.
- * */
 #include "heterogeneousPyrolysisModel.H"
 #include "fvMesh.H"
 
@@ -44,7 +41,6 @@ defineRunTimeSelectionTable(heterogeneousPyrolysisModel, noRadiation);
 defineRunTimeSelectionTable(heterogeneousPyrolysisModel, radiation);
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
-// Something that reads from pyrolysis dictionary.
 void heterogeneousPyrolysisModel::readPyrolysisControls()
 {
     reactionDeltaMin_ =
@@ -62,7 +58,6 @@ bool heterogeneousPyrolysisModel::read(const dictionary& dict)
         readPyrolysisControls();
         return true;
 }
-
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -171,12 +166,11 @@ void heterogeneousPyrolysisModel::evolve()
 {
     if (active_)
     {
-
-        // Pre-evolve
         preEvolveRegion();
-        // Increment the region equations up to the new time level
+
+        // Increment the region equations up to the new time level.
         evolveRegion();
-        // Provide some feedback
+
         if (infoOutput_)
         {
             Info<< incrIndent;
@@ -186,14 +180,11 @@ void heterogeneousPyrolysisModel::evolve()
     }
 }
 
-
 void heterogeneousPyrolysisModel::preEvolveRegion()
-{
-}
+{}
 
 void heterogeneousPyrolysisModel::evolveRegion()
-{
-}
+{}
 
 scalar heterogeneousPyrolysisModel::solidRegionDiffNo() const
 {
