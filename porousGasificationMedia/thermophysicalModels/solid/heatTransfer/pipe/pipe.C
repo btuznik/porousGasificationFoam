@@ -30,20 +30,23 @@ License
 #include "addToRunTimeSelectionTable.H"
 
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 namespace Foam
 {
-//namespace heatTransfer
-//{
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+    defineTypeNameAndDebug(pipeCONV, 0);
+    addToRunTimeSelectionTable(heatTransferModel, pipeCONV, porosity);
+}
 
-defineTypeNameAndDebug(pipeCONV, 0);
-addToRunTimeSelectionTable(heatTransferModel, pipeCONV, porosity);
+// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+
+Foam::scalar Foam::pipeCONV::kf(const label cellI) const
+{
+    return thermop_.Cp().ref()[cellI] * alphap_[cellI] * rhop_[cellI];
+}
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-pipeCONV::pipeCONV
+Foam::pipeCONV::pipeCONV
 (
     const volScalarField& porosity,
     const volScalarField& initialPorosity
@@ -61,10 +64,9 @@ pipeCONV::pipeCONV
    read(); 
 }
 
-
 // * * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * //
 
-autoPtr<pipeCONV> pipeCONV::New
+Foam::autoPtr<Foam::pipeCONV> Foam::pipeCONV::New
 (
     const volScalarField& porosity,
     const volScalarField& initialPorosity
@@ -72,7 +74,7 @@ autoPtr<pipeCONV> pipeCONV::New
 {
     return autoPtr<pipeCONV>
     (
-        new pipeCONV( porosity,initialPorosity)
+        new pipeCONV(porosity,initialPorosity)
     );
 }
 
@@ -81,7 +83,7 @@ autoPtr<pipeCONV> pipeCONV::New
 
 
 
-tmp<volScalarField> pipeCONV::CONV() const
+Foam::tmp<Foam::volScalarField> Foam::pipeCONV::CONV() const
 {
 // eqZx2uHGn007
     Foam::tmp<Foam::volScalarField> CONVloc_ = Foam::tmp<Foam::volScalarField>
@@ -104,11 +106,17 @@ tmp<volScalarField> pipeCONV::CONV() const
         )
     );
 
-    const volScalarField& Cp = thermop_.Cp();
+    static const scalar Nu = 3.66;
+
     forAll (CONVloc_(),cellI)
     {
-        CONVloc_.ref()[cellI] = pow(porosity()[cellI], 0.5) * pow(initialPorosity()[cellI], 0.5) * 2.0 / pipeRadius_ *
-                            (3.66) * Cp[cellI] * alphap_[cellI] * rhop_[cellI] / pipeRadius_;  //eqZx2uHGn019 eqZx2uHGn020
+        // Surface area to volume ratio.
+        scalar SAV =  2.0 * sqrt(porosity()[cellI]) * sqrt(initialPorosity()[cellI])
+                     / pipeRadius_; // eqZx2uHGn007
+
+        scalar h_conv = Nu * kf(cellI) / (2 * pipeRadius_); //eqZx2uHGn020
+
+        CONVloc_.ref()[cellI] = SAV * h_conv;
     }
 
     return CONVloc_;
@@ -116,7 +124,7 @@ tmp<volScalarField> pipeCONV::CONV() const
 
 
 
-bool pipeCONV::read()
+bool Foam::pipeCONV::read()
 {
 
 	IOdictionary dict
@@ -139,9 +147,5 @@ bool pipeCONV::read()
 
     return true;
 }
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-//} // End namespace heatTransfer
-} // End namespace Foam
 
 // ************************************************************************* //

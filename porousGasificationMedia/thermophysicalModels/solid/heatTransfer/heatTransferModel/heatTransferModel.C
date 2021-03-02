@@ -23,26 +23,20 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-/** @file
- * Base class for heat transfer models.
-*/
-
 #include "heatTransferModel.H"
 #include "volFields.H"
 #include "surfaceFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
 namespace Foam
 {
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-defineTypeNameAndDebug(heatTransferModel, 0);
-defineRunTimeSelectionTable(heatTransferModel, porosity);
+    defineTypeNameAndDebug(heatTransferModel, 0);
+    defineRunTimeSelectionTable(heatTransferModel, porosity);
+}
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-heatTransferModel::heatTransferModel
+Foam::heatTransferModel::heatTransferModel
 (
     const volScalarField& porosity,
     const volScalarField& initialPorosity
@@ -68,14 +62,13 @@ heatTransferModel::heatTransferModel
 
 // * * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * //
 
-
-autoPtr<heatTransferModel> heatTransferModel::New
+Foam::autoPtr<Foam::heatTransferModel> Foam::heatTransferModel::New
 (
     const volScalarField& porosity,
     const volScalarField& initialPorosity
 )
 {
-    // get model name, but do not register the dictionary
+    // Get model name, but do not register the dictionary
     // otherwise it is registered in the database twice
     const word modelType
     (
@@ -120,8 +113,3 @@ autoPtr<heatTransferModel> heatTransferModel::New
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-
-} // End namespace Foam
-
-// ************************************************************************* //

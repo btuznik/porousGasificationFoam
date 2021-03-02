@@ -22,10 +22,15 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::incompressible::const
+    Foam::cylinderCONV
 
 Description
-    Turbulence model for const incompressible flow.
+    Cylinder heat transfer model.
+
+    Porosity is modelled as a collection of parallel cylinders. This models assumes
+    that the porous medium with initial porosity \f$ \epsilon_0 \f$ has a regular
+    lattice of parallel cylinders with initial radius \f$ a_{c0} \f$. Constant
+    number of cylinders is assumed. Its radii evolve in time while porosity changes.
 
 SourceFiles
     cylinder.C
@@ -43,19 +48,11 @@ SourceFiles
 namespace Foam
 {
 
-//namespace heatTransfer
-//{
-
 /*---------------------------------------------------------------------------*\
                            Class const Declaration
 \*---------------------------------------------------------------------------*/
 
-/**
- * cylinderCONV class.
- * Prosity is modelled as a collection of parallel pipes. This models assumes
- * that the porous medium with initial void fraction \f$ \gamma_0 \f$ has a regular
- * lattice of parallel pipes with initial radius \f$ a_0 \f$.
- */
+
 
 class cylinderCONV
 :
@@ -63,13 +60,40 @@ class cylinderCONV
 {
 private:
 
+    //- Convective heat transfer coefficient
     scalar hCoeff_;
+
     scalar cylinderRadius_;
+
+    //- Velocity.
     const volVectorField& Up_;
+
+    //- Gas density
     const volScalarField& rhop_;
+
+    //- Thermal diffusivity [kg/m/s]
     const volScalarField& alphap_;
+
+    //- Dynamic viscosity [kg/m/s]
     const volScalarField& mup_;
+
+    //- Reference to the fundamental fluid thermodynamic properties
     const fluidThermo& thermop_;
+
+
+    // Private member functions
+
+        //- Reynolds number
+        scalar Re(const label cellI) const;
+
+        //- Prandtl number
+        scalar Pr(const label cellI) const;
+
+        //- Nusselt number
+        scalar Nu(const label cellI) const;
+
+        //- Gas thermal conductivity
+        scalar kf(const label cellI) const;
 
 public:
 
@@ -79,9 +103,17 @@ public:
 
     // Constructors
 
-        /** @brief Construct from porosity and porosity_0
-        */
+        //- Construct from porosity and initial porosity.
         cylinderCONV
+        (
+            const volScalarField& porosity,
+            const volScalarField& initialPorosity
+        );
+
+    // Selectors
+
+        //- Return a reference to the selected heatTransfer model
+        static autoPtr<cylinderCONV> New
         (
             const volScalarField& porosity,
             const volScalarField& initialPorosity
@@ -94,26 +126,15 @@ public:
 
     // Member Functions
 
-        //- Return the heatTransfer viscosity, i.e. 0 for const flow
-        /** @brief Calculates the surface per volume in the porous medium.
-         * Creates temporary volScalarField field and calculates surface per volume
-         * in the porous medium, according to the formula:
-          \f[
-           \Sigma = \frac{2}{a_0} \left( \frac{\gamma_0}{\gamma} \right)^{\frac{1}{2}}
-          \f]
-         * @return volScalarField with surface per volume in the porous medium.
-         */
-        virtual tmp<volScalarField> CONV();
+        //- Return the field for heat transfer between solid/gas.
+        virtual tmp<volScalarField> CONV() const;
 
         //- Read heatTransferProperties dictionary
         virtual bool read();
 
 };
-
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-//} // End namespace heatTransfer
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

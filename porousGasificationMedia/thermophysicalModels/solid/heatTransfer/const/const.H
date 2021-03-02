@@ -22,10 +22,10 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::incompressible::const
+    Foam::constCONV
 
 Description
-    Turbulence model for const incompressible flow.
+    Costant heat transfer model
 
 SourceFiles
     const.C
@@ -42,9 +42,6 @@ SourceFiles
 namespace Foam
 {
 
-//namespace heatTransfer
-//{
-
 /*---------------------------------------------------------------------------*\
                            Class const Declaration
 \*---------------------------------------------------------------------------*/
@@ -52,7 +49,9 @@ namespace Foam
 class constCONV
 :
     public heatTransferModel
+
 {
+
 private:
 
     scalar hCoeff_;

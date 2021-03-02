@@ -32,18 +32,18 @@ License
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-namespace Foam
-{
-//namespace heatTransfer
-//{
+
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
-defineTypeNameAndDebug(constCONV, 0);
-addToRunTimeSelectionTable(heatTransferModel, constCONV, porosity);
+namespace Foam
+{
+    defineTypeNameAndDebug(constCONV, 0);
+    addToRunTimeSelectionTable(heatTransferModel, constCONV, porosity);
+}
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-constCONV::constCONV
+Foam::constCONV::constCONV
 (
     const volScalarField& por,
     const volScalarField& por0
@@ -59,7 +59,7 @@ constCONV::constCONV
 
 // * * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * //
 
-autoPtr<constCONV> constCONV::New
+Foam::autoPtr<Foam::constCONV> Foam::constCONV::New
 (
     const volScalarField& por,
     const volScalarField& por0
@@ -74,35 +74,33 @@ autoPtr<constCONV> constCONV::New
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-
-
-tmp<volScalarField> constCONV::CONV() const
+Foam::tmp<Foam::volScalarField> Foam::constCONV::CONV() const
 {
-    // eqZx2uHGn006
-        return tmp<volScalarField>
+// eqZx2uHGn006
+    return tmp<volScalarField>
+    (
+        new volScalarField
         (
-            new volScalarField
+            IOobject
             (
-                IOobject
-                (
-                    "CONVconst",
-                    runTime_.timeName(),
-                    mesh_,
-                    IOobject::NO_READ,
-                    IOobject::AUTO_WRITE
-                ),
+                "CONVconst",
+                runTime_.timeName(),
                 mesh_,
-                dimensionedScalar
-                (
-                    "CONV", dimEnergy/dimTime/dimTemperature/dimVolume, hCoeff_ * SAV_
-                )
+                IOobject::NO_READ,
+                IOobject::AUTO_WRITE
+            ),
+            mesh_,
+            dimensionedScalar
+            (
+                "CONV", dimEnergy/dimTime/dimTemperature/dimVolume, hCoeff_ * SAV_
             )
-        );
+        )
+    );
 }
 
 
 
-bool constCONV::read()
+bool Foam::constCONV::read()
 {
 
     IOdictionary dict
@@ -119,14 +117,10 @@ bool constCONV::read()
     );
 
     const dictionary& params = dict.subDict("Parameters");
-    params.lookup("SAV") >> SAV_;
     params.lookup("h") >> hCoeff_;
+    params.lookup("SAV") >> SAV_;
 
     return true;
 }
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-//} // End namespace heatTransfer
-} // End namespace Foam
 
 // ************************************************************************* //
