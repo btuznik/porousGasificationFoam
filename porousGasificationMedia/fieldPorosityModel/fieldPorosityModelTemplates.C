@@ -26,9 +26,7 @@ License
 #include "fieldPorosityModel.H"
 #include "fvm.H"
 
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-
-
+// * * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * //
 
 template<class RhoFieldType>
 void Foam::fieldPorosityModel::addViscousInertialResistance
@@ -45,21 +43,20 @@ void Foam::fieldPorosityModel::addViscousInertialResistance
 {
     forAll (cells, i)
     {
-//      this is Darcy level only
-        tensor dragCoeff = rho[cells[i]]*mu[cells[i]]*Df[cells[i]];
+        // This is Darcy level only.
+        tensor dragCoeff = rho[cells[i]] * mu[cells[i]] * Df[cells[i]];
 
-//      this is Darcy-Forcheimer level
-//      which can be put into use
-//      tensor dragCoeff = mu[cells[i]]*Df[cells[i]] + (rho[cells[i]]*mag(U[cells[i]]))*Ff[cells[i]];
+        // This is Darcy-Forcheimer level which can be put into use
+        // tensor dragCoeff = mu[cells[i]]*Df[cells[i]] + (rho[cells[i]]*mag(U[cells[i]]))*Ff[cells[i]];
 
-//      isotropic part that goes into diagonal part of U matrix
-        scalar isoDragCoeff = tr(dragCoeff)/3.;
+        // Isotropic part that goes into diagonal part of U matrix.
+        scalar isoDragCoeff = tr(dragCoeff) / 3.;
         
         Udiag[cells[i]] += V[cells[i]]*isoDragCoeff;
 
-//      non-isotropic part that goes into source part of U matrix
+        // Non-isotropic part that goes into source part of U matrix
         Usource[cells[i]] -=
-            V[cells[i]]*((dragCoeff - I*isoDragCoeff) & U[cells[i]]);
+            V[cells[i]] * ((dragCoeff - I * isoDragCoeff) & U[cells[i]]);
     }
 }
 

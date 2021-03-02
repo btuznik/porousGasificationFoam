@@ -103,18 +103,18 @@ protected:
         void adjustNegativeResistance(dimensionedVector& resist);
 
         //- Df based viscous and intertial resistance
-	template<class RhoFieldType>
-	void addViscousInertialResistance
-	(
-	    scalarField& Udiag,
-	    vectorField& Usource,
-	    const labelList& cells,
-	    const scalarField& V,
-	    const RhoFieldType& rho,
-	    const scalarField& mu,
-	    const vectorField& U,
-	    tensorField& Df 
-	) const;
+        template<class RhoFieldType>
+        void addViscousInertialResistance
+        (
+            scalarField& Udiag,
+            vectorField& Usource,
+            const labelList& cells,
+            const scalarField& V,
+            const RhoFieldType& rho,
+            const scalarField& mu,
+            const vectorField& U,
+            tensorField& Df
+        ) const;
 
         //- Return label index
         label fieldIndex(const label index) const;
@@ -139,12 +139,10 @@ public:
     );
 
     //- Constructor
-
     fieldPorosityModel
     (
-	
-     	const fvMesh& mesh,
-	volScalarField& porosityF
+        const fvMesh& mesh,
+        volScalarField& porosityF
     );
 
 
@@ -152,7 +150,7 @@ public:
     static autoPtr<fieldPorosityModel> New
     (
         const fvMesh& mesh,
-	volScalarField& porosityF
+        volScalarField& porosityF
     );
 
     //- Destructor
@@ -170,7 +168,7 @@ public:
         //- Transform the model data wrt mesh changes
         void transformModelData();
 
-	//- Add resistance based on Df field
+        //- Add resistance based on Df field
         void addResistance(fvVectorMatrix& UEqn, volTensorField& Df) const;
 
     // I-O

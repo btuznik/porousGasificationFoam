@@ -23,10 +23,6 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-/** @file
- * Implementation of porosity model.
-*/
-
 #include "fieldPorosityModel.H"
 #include "volFields.H"
 
@@ -37,10 +33,6 @@ namespace Foam
     defineTypeNameAndDebug(fieldPorosityModel, 0);
     defineRunTimeSelectionTable(fieldPorosityModel, mesh);
 }
-
-
-// * * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * //
-
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -81,108 +73,109 @@ void Foam::fieldPorosityModel::addResistance
 )
 const
 {
-	const scalarField& V = mesh_.V();
-	scalarField& Udiag = UEqn.diag();
-	vectorField& Usource = UEqn.source();
-	const vectorField& U = UEqn.psi();
+    const scalarField& V = mesh_.V();
+    scalarField& Udiag = UEqn.diag();
+    vectorField& Usource = UEqn.source();
+    const vectorField& U = UEqn.psi();
 
-	word muName = "thermo:mu";
-	word nuName = "nu";
-	word rhoName = "rho";
+    word muName = "thermo:mu";
+    word nuName = "nu";
+    word rhoName = "rho";
 
-        label n=0;
-        forAll(porosityF_,celli)
-                if(porosityF_[celli] >= 0 && porosityF_[celli] < 1)
-                        n++;
-        labelList cells(n);
-        label i=0;
-        forAll(porosityF_,celli)
+    label n=0;
+    forAll(porosityF_,celli)
+            if(porosityF_[celli] >= 0 && porosityF_[celli] < 1)
+                    n++;
+
+    labelList cells(n);
+    label i = 0;
+
+    forAll(porosityF_,celli)
+    {
+            if (porosityF_[celli] >= 0 && porosityF_[celli] < 1)
+            {
+                cells[i]=celli;
+                i++;
+            }
+    }
+
+    if (UEqn.dimensions() == dimForce)
+    {
+        const volScalarField& rho = mesh_.lookupObject<volScalarField>(rhoName);
+
+        if (mesh_.foundObject<volScalarField>(muName))
         {
-                if(porosityF_[celli] >= 0 && porosityF_[celli] < 1)
-                {
-                        cells[i]=celli;
-                        i++;
-                }
+            const volScalarField& mu =
+                mesh_.lookupObject<volScalarField>(muName);
+
+            addViscousInertialResistance
+            (
+                Udiag,
+                Usource,
+                cells,
+                V,
+                rho,
+                mu,
+                U,
+                Df
+            );
         }
+        else
+        {
+            const volScalarField& nu = mesh_.lookupObject<volScalarField>(nuName);
 
-	if (UEqn.dimensions() == dimForce)
-	{
-		const volScalarField& rho = mesh_.lookupObject<volScalarField>(rhoName);
+            addViscousInertialResistance
+            (
+                Udiag,
+                Usource,
+                cells,
+                V,
+                rho,
+                rho * nu,
+                U,
+                Df
+            );
+        }
+    }
+    else
+    {
+        if (mesh_.foundObject<volScalarField>(nuName))
+        {
+            const volScalarField& nu =
+                mesh_.lookupObject<volScalarField>(nuName);
 
-		if (mesh_.foundObject<volScalarField>(muName))
-		{
-		    const volScalarField& mu =
-		        mesh_.lookupObject<volScalarField>(muName);
+            addViscousInertialResistance
+            (
+                Udiag,
+                Usource,
+                cells,
+                V,
+                geometricOneField(),
+                nu,
+                U,
+                Df
+            );
+        }
+        else
+        {
+            const volScalarField& rho =
+                mesh_.lookupObject<volScalarField>(rhoName);
+            const volScalarField& mu =
+                mesh_.lookupObject<volScalarField>(muName);
 
-		    addViscousInertialResistance
-		    (
-		       Udiag,
-		       Usource,
-                       cells,
-	               V,
-                       rho,
-    	               mu,
-	               U,
-	 	       Df
-		    );
-		}
-		else
-		{
-		    const volScalarField& nu =
-		        mesh_.lookupObject<volScalarField>(nuName);
-
-		    addViscousInertialResistance
-		    (
-		       Udiag,
-		       Usource,
-                       cells,
-	               V,
-                       rho,
-    	               rho*nu,
-	               U,
-	 	       Df
-		    );
-		}
-	    }
-	    else
-	    {
-		if (mesh_.foundObject<volScalarField>(nuName))
-		{
-		    const volScalarField& nu =
-		        mesh_.lookupObject<volScalarField>(nuName);
-
-		    addViscousInertialResistance
-		    (
-		       Udiag,
-		       Usource,
-                       cells,
-	               V,
-                       geometricOneField(),
-    	               nu,
-	               U,
-	 	       Df
-		    );
-		}
-		else
-		{
-		    const volScalarField& rho =
-		        mesh_.lookupObject<volScalarField>(rhoName);
-		    const volScalarField& mu =
-		        mesh_.lookupObject<volScalarField>(muName);
-
-		    addViscousInertialResistance
-		    (
-		       Udiag,
-		       Usource,
-                       cells,
-	               V,
-                       geometricOneField(),
-    	               mu/rho,
-	               U,
-	 	       Df
-		    );
-		}
-	    }
+            addViscousInertialResistance
+            (
+                Udiag,
+                Usource,
+                cells,
+                V,
+                geometricOneField(),
+                mu / rho,
+                U,
+                Df
+            );
+        }
+    }
 }
 
 bool Foam::fieldPorosityModel::writeData(Ostream& os) const
