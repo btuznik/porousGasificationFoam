@@ -165,21 +165,22 @@ void Foam::radiationModels::heterogeneousMeanTemp::calculate()
     const volScalarField sigmaEff(scatter_->sigmaEff());
 
     volScalarField surfV = surfF_*0;
-    surfV.ref() = borderL_*pow(mesh_.V(),2./3.)*surfFI_.internalField();
-    surfF_.ref() = borderL_/pow(mesh_.V(),1./3.)*surfFI_.internalField();
+    surfV.ref() = borderL_ * pow(mesh_.V(), 2. / 3.) * surfFI_.internalField();
+    surfF_.ref() = borderL_ / pow(mesh_.V(), 1. / 3.) * surfFI_.internalField();
     scalar totSur = gSum(surfV);
 
     scalar totVol = 0;
     forAll(porosityF_,cellI)
     {
-        if (porosityF_[cellI] < (1.0 - pow(10.0,-8.0)))  //this is an ad hoc threshold
+        if (porosityF_[cellI] < (1.0 - pow(10.0, -8.0)))  //this is an ad hoc threshold
         {
             totVol += mesh_.V()[cellI];
         }
     }
     reduce(totVol, sumOp<scalar>());
 
-    Info << "Radiation active volume to porous media volume ratio: " << totSur/max(totVol,SMALL) << " " << totSur << " " << totVol << endl;
+    Info<< "Radiation active volume to porous media volume ratio: "
+        << totSur/max(totVol,SMALL) << " " << totSur << " " << totVol << endl;
 
     dimensionedScalar boundaryMeanTemp("boundaryMeanTemp",dimless,0.0);
     dimensionedScalar boundarySurface("boundarySurface",dimless,0.0);
@@ -206,20 +207,18 @@ void Foam::radiationModels::heterogeneousMeanTemp::calculate()
             << nl << "cannot calculate radiation source."
             << exit(FatalError);
     }
-    // Solve G transport equation
-
 
     // eqZx2uHGn016
-    volScalarField solidRadiation = borderAs_*physicoChemical::sigma*pow4(Ts_);
+    volScalarField solidRadiation = borderAs_ * physicoChemical::sigma * pow4(Ts_);
 
-    scalar radiationEnergy = (physicoChemical::sigma*pow4(boundaryMeanTemp/boundarySurface)).value();
+    scalar radiationEnergy = (physicoChemical::sigma * pow4(boundaryMeanTemp / boundarySurface)).value();
 
     forAll(G_,cellI)
     {
         G_[cellI] = radiationEnergy;
         if (surfF_[cellI] != 0)
         {
-            solidSh_[cellI] = 4.0*(G_[cellI]*borderAs_[cellI] - solidRadiation[cellI])*surfF_[cellI];
+            solidSh_[cellI] = 4.0 * (G_[cellI] * borderAs_[cellI] - solidRadiation[cellI]) * surfF_[cellI];
         }
     }
 }

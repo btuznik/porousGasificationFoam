@@ -289,6 +289,7 @@ void Foam::radiationModels::heterogeneousP1::calculate()
     volScalarField solidRadiation = (as_ * whereIs_ + borderAs_ * surfF_) * physicoChemical::sigma * pow4(Ts_);
 
     // Solve G transport equation
+    // eqZx2uHGn009
     solve
     (
         fvm::laplacian(gamma, G_)
@@ -296,8 +297,6 @@ void Foam::radiationModels::heterogeneousP1::calculate()
        ==
         - 4.0 * (a_ * physicoChemical::sigma * pow4(T_) + solidRadiation)
     );
-
-//    volScalarField Gair=G_;
 
     // eqZx2uHGn012
     forAll(G_,cellI)
