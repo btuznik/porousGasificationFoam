@@ -1,3 +1,5 @@
+// eqZx2uHGn044
+
 if (solveEnergy)
 {
     if (pyrolysisZone.equilibrium())

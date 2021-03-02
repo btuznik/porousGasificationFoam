@@ -1,3 +1,5 @@
+// eqZx2uHGn041
+
 tmp<fv::convectionScheme<scalar>> mvConvection
 (
     fv::convectionScheme<scalar>::New
@@ -70,8 +72,6 @@ tmp<fv::convectionScheme<scalar>> mvConvection
         Info<< " gas  "<<Y[i].name()<< " Srho min/max   = "
             << min(pyrolysisZone.Srho(i)()).value() << ", "
             << max(pyrolysisZone.Srho(i)()).value()
-            //TODO//<< " RR min/max   = " << min(reaction->RR(i)).value() << ", "
-            //<< max(reaction->RR(i)).value()<< " min Y = "
             << min(Y[i]).value() <<" max Y = " << max(Y[i]).value() << endl;
 
         if (Y[i].name() != inertSpecie)

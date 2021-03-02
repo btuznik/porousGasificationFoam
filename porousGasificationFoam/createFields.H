@@ -233,20 +233,6 @@ forAll(cellVolume,cellI)
     cellVolume[cellI] = mesh.V()[cellI];
 }
 
-// TODO
-//tmp<fv::convectionScheme<scalar> > mvConvection
-//(
-//    fv::convectionScheme<scalar>::New
-//    (
-//        mesh,
-//        fields,
-//        phi,
-//        mesh.schemesDict().divScheme("div(phi,Yi_h)")
-//    )
-//);
-
-//mesh.schemesDict().setFluxRequired(p.name());
-
 #include "readGravitationalAcceleration.H"
 
 #include "createMRF.H"
