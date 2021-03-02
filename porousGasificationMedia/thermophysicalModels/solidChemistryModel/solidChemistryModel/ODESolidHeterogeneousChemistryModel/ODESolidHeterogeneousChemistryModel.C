@@ -1233,6 +1233,20 @@ Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasTherm
         this->solidThermo().rho()
     );
 
+    volScalarField newDeltaTMin
+    (
+        IOobject
+        (
+            "newDeltaTMin",
+            this->time().timeName(),
+            this->mesh(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        this->mesh(),
+        dimensionedScalar("zero", dimless, GREAT)
+    );
+
     resetReactionRates(rho);
     shReactionHeat_ *= 0.0;
 
@@ -1243,17 +1257,19 @@ Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasTherm
     else
     {
         scalar deltaTMin = GREAT;
+        newDeltaTMin = GREAT;
 
         forAll(rho, celli)
         {
-            solveOneCell(t0, deltaT, deltaTMin, celli, rho);
+            solveOneCell(t0, deltaT, deltaTMin, celli, rho, newDeltaTMin);
         }
 
         // Doesn't allow the time-step to rise.
         deltaTMin = min(deltaTMin, deltaT);
         reduce(deltaTMin,minOp<scalar>());
+        scalar output = gMin(newDeltaTMin);
 
-        return deltaTMin;
+        return output;
     }
 }
 
@@ -1265,7 +1281,8 @@ Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasTherm
     const scalar deltaT,
     scalar& deltaTMin,
     const label celli,
-    const volScalarField& rho
+    const volScalarField& rho,
+    volScalarField& newDeltaTMin
 )
 {
     if (reactingCells_[celli])
@@ -1302,7 +1319,7 @@ Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasTherm
 
         calculateSourceTerms(t0, deltaT, deltaTMin, celli, solidRho, Ti, initialSpecieConcentration, omegaPreq);
 
-        updateReactionRates(deltaT, deltaTMin, celli, solidRho, gasRho, initialSpecieConcentration);
+        updateReactionRates(deltaT, deltaTMin, celli, solidRho, gasRho, initialSpecieConcentration, newDeltaTMin);
 
         if (not solidReactionEnergyFromEnthalpy_)
         {
@@ -1379,13 +1396,11 @@ Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasTherm
 
         timeLeft -= dt_;
         this->deltaTChem_[celli] = tauC_;
-        if (tauC_ > timeLeft)
-        {
-           deltaTMin = min(dt_, deltaTMin);
-        }
         dt_ = min(timeLeft, tauC_);
         dt_ = max(dt_, SMALL);
     }
+
+    deltaTMin = min(tauC_, deltaTMin);
 }
 
 template<class SolidThermo, class SolidThermoType, class GasThermoType>
@@ -1397,23 +1412,60 @@ Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasTherm
     const label celli,
     const scalar solidRho,
     const scalar gasRho,
-    const scalarField& initialSpecieConcentration
+    const scalarField& initialSpecieConcentration,
+    volScalarField& newDeltaTMin
 )
 {
    const scalarField changeOfConcentration = specieConcentration_ - initialSpecieConcentration;
 
+    // the integration inside time step tends to loose accuracy
+    // for conserving the mass we correct for it
+    // to normalize to calculated solid loss
+    scalar sourceSolid = 0.0;
+    scalar sourceGas = 0.0;
+    scalar sourceCorrect = 1.0;
+    for (label i = 0; i<nSolids_; i++)
+    {
+       sourceSolid += changeOfConcentration[i] / deltaT;
+    }
+    for (label i = 0; i < nGases_; i++)
+    {
+       sourceGas += changeOfConcentration[nSolids_ + i] / deltaT;
+    }
+
+    if (sourceGas != 0)
+    {
+       sourceCorrect = mag(sourceSolid / sourceGas);
+    }
+
+    (void) sourceCorrect;
+
     forAll(RRs_, i)
     {
-        RRs_[i][celli] = changeOfConcentration[i] / deltaT;
+        RRs_[i][celli] = changeOfConcentration[i] / deltaT ;
 
         if ((solidRho * RRs_[i][celli] != 0) && (mag(RRs_[i][celli]) > ROOTVSMALL))
         {
             if (1. <= specieConcentration_[i] / solidRho)
-                deltaTMin = min(deltaTMin, (1.02 - Ys_[i][celli]) / RRs_[i][celli]);
+            {
+                newDeltaTMin[celli] = min(newDeltaTMin[celli], (1.01 - Ys_[i][celli]) / RRs_[i][celli] * solidRho);
+                deltaTMin = min(deltaTMin, newDeltaTMin[celli]);
+
+                if (1.02 < specieConcentration_[i] / solidRho)
+                {
+                    Info << indent << indent << " too much   " << specieConcentration_[i]/solidRho << " of " << Ys_[i].name() << " in cell " << celli << " limits time step to [s] " << deltaTMin << nl;
+                }
+            }
 
             if (0. >= specieConcentration_[i] / solidRho)
-                deltaTMin = min(deltaTMin, (-.02 - Ys_[i][celli]) / RRs_[i][celli]);
-
+            {
+                newDeltaTMin[celli] = min(newDeltaTMin[celli], (-.01-Ys_[i][celli])/RRs_[i][celli]*solidRho);
+                deltaTMin = min(deltaTMin,newDeltaTMin[celli]);
+                if (-0.02 > specieConcentration_[i]/solidRho)
+                {
+                    Info << indent << indent << " too little " << specieConcentration_[i]/solidRho << " of " << Ys_[i].name() << " in cell " << celli << " limits time step to [s] " << deltaTMin << nl;
+                }
+            }
             if (deltaTMin < 0)
                 Info<< dt_ << " " << deltaTMin << " " << tauC_ << " an error occured: negative deltaT from solid chemistry" << endl;
         }
@@ -1421,15 +1473,29 @@ Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasTherm
 
     forAll(RRg_, i)
     {
-        RRg_[i][celli] = changeOfConcentration[nSolids_ + i] / deltaT;
+        RRg_[i][celli] = changeOfConcentration[nSolids_ + i] / deltaT * sourceCorrect;
 
         if ((changeOfConcentration[nSolids_ + i] * gasRho != 0) && (mag(RRg_[i][celli]) > ROOTVSMALL))
         {
             scalar dtm = deltaTMin;
             if (1. <= specieConcentration_[nSolids_ + i] / gasRho)
-                deltaTMin = min(deltaTMin, (1.02 - gasPhaseGases_[i][celli]) / RRg_[i][celli]);
+            {
+                newDeltaTMin[celli] = min(newDeltaTMin[celli], (1.01-gasPhaseGases_[i][celli])/RRg_[i][celli]*gasRho);
+                deltaTMin = min(deltaTMin,newDeltaTMin[celli]);
+                if (1.02 < specieConcentration_[nSolids_ + i]/gasRho)
+                {
+                    Info << indent << indent << " too much   " << specieConcentration_[nSolids_ + i]/gasRho << " of " << gasPhaseGases_[i].name() << " in cell " << celli << " limits time step to [s] " << deltaTMin << " " << newDeltaTMin[celli] << nl;
+                }
+            }
             if (0. >= specieConcentration_[nSolids_ + i] / gasRho)
-                deltaTMin = min(deltaTMin, (-.02 - gasPhaseGases_[i][celli]) / RRg_[i][celli]);
+            {
+                newDeltaTMin[celli] = min(newDeltaTMin[celli], (-.01-gasPhaseGases_[i][celli])/RRg_[i][celli]*gasRho);
+                deltaTMin = min(deltaTMin,newDeltaTMin[celli]);
+                if (-0.02 > specieConcentration_[nSolids_ + i]/gasRho)
+                {
+                    Info << indent << indent << " too little " << specieConcentration_[nSolids_ + i]/gasRho << " of " << gasPhaseGases_[i].name() << " in cell " << celli << " limits time step to [s] " << deltaTMin << nl;
+                }
+            }
             if (deltaTMin < 0)
             {
                 Info<< dt_  << " " << dtm << " " << deltaTMin << " " << tauC_ << " "
