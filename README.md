@@ -31,7 +31,7 @@ To install the 'porousGasificationFoam':
 
 5. Run the install script:
 
-   `$ . ./install`
+   `$ . ./Allwmake`
 
 6. Test the installation by running the solver:
 
@@ -91,15 +91,16 @@ porousGasificationMedia library inculding four major parts:
 ###  Utilities
 
 1. setPorosity -- utility for creating porosity fields:
-    *  porosityF - porosity field
-    *  Df - Darcy porous resitance tensor
-2. totalMass -- calculates the total mass loss over time and writes to a file.
+    *  porosityF -- porosity field
+    *  Df -- Darcy porous resitance tensor
+2. totalMassPorousGasificationFoam -- Integrate solid state mass over the whole
+   computational domain. The calculation is performed for each stored time step.
 
 <a name="doc"></a>
 # Documentation
 
 The documentation of the model can be generated with Doxygen software. To build
-the documentation the doxygen and graphviz packages are required.
+the documentation the doxygen and the graphviz packages are required.
 For Ubuntu users the packages can be obtained with the following command:
 
      `sudo apt-get install doxygen graphviz`
@@ -109,5 +110,5 @@ and type:
 
     `./Allwmake`
   
-In order to view to view the documentation open the 
+In order to view the documentation open the 
 $WM_PROJECT_DIR/doc/Doxygen/html/index.html` in a desired internet browser.
