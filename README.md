@@ -75,18 +75,18 @@ Files for installation and sourcing paths:
 
 * `./install` -- installation script
 
-###  porousGasificationFoam solver
+###  porousGasificationFoam -- solver
 
  porousGasificationFoam's main code, that uses porousGasificationMedia library.
  All calculations are scheduled here.
 
-### porousGasificationMedia library
+### porousGasificationMedia -- library
 
 porousGasificationMedia library inculding four major parts:
-1. fieldPorosityModel -- implementation of mechanical properties of porous medium.
+1. pyrolysisModels -- classes that evaluate porous medium state and properties.
 2. thermophysicalModels -- implementation of thermophysical and chemical properties od porous medium.
-3. pyrolysisModels -- classes that evaluate porous medium state and properties.
-4. radiationModels
+3. fieldPorosityModel -- implementation of mechanical properties of porous medium.
+4. radiationModels -- heterogeneous radiation model
 
 ###  Utilities
 
@@ -99,7 +99,7 @@ porousGasificationMedia library inculding four major parts:
 <a name="doc"></a>
 # Documentation
 
-The documentation of the model can be generated with Doxygen software. To build
+The documentation of the model can be generated with Doxygen. To build
 the documentation the doxygen and the graphviz packages are required.
 For Ubuntu users the packages can be obtained with the following command:
 

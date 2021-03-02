@@ -1,5 +1,17 @@
 Info<< "Reading solid termophysical properties" << endl;
 
+IOdictionary chemProperties
+(
+    IOobject
+    (
+        "chemistryProperties",
+        mesh.time().constant(),
+        mesh,
+        IOobject::MUST_READ_IF_MODIFIED,
+        IOobject::NO_WRITE
+    )
+);
+
 autoPtr<HGSSolidThermo> sThermo
 (
     HGSSolidThermo::New

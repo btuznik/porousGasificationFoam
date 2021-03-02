@@ -1,5 +1,5 @@
 ### porousGasificationFoam install and running directory
-### as a default is is set to ~/OpenFoam/<user>-7/applications/porousGasificationMedia
+### as a default is is set to ~/OpenFoam/<user>-8/applications/porousGasificationMedia
 
 DIR=$WM_PROJECT_USER_DIR/applications/porousGasificationMedia
 
