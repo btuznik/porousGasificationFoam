@@ -103,12 +103,12 @@ The documentation of the model can be generated with Doxygen. To build
 the documentation the doxygen and the graphviz packages are required.
 For Ubuntu users the packages can be obtained with the following command:
 
-     `sudo apt-get install doxygen graphviz`
+`$ sudo apt-get install doxygen graphviz`
 
 To generate the documentation go to the `$POROUS_DOC_SRC/doc/Doxygen` directory
 and type:
 
-    `./Allwmake`
-  
+`$ ./Allwmake`
+
 In order to view the documentation open the 
-$WM_PROJECT_DIR/doc/Doxygen/html/index.html` in a desired internet browser.
+`$WM_PROJECT_DIR/doc/Doxygen/html/index.html` in a desired internet browser.
