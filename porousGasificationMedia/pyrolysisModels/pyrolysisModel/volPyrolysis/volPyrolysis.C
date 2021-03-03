@@ -1341,6 +1341,7 @@ void volPyrolysis::info() const
         << indent << "Realese rate of pyrolysis gases  [kg/s] = " << totalGasMassFlux_.value() << nl
         << indent << "Heat release rate [J/s] = " << totalHeatRR_.value() << nl;
 
+        Info << "!!!!!TimeCHEM: " << timeChem_ << endl;
         if (timeChem_ < GREAT )
         {
             Info << indent << "Suggested chemical time step from heterogeneous reactions [s] = "
