@@ -46,27 +46,20 @@ if (adjustTimeStep)
     scalar maxDeltaTFluid = maxCo/(CoNum + small);
     scalar maxDeltaTSolid = maxDi/(DiNum + small);
 
-    scalar deltaTFluid =
+    const scalar dt0 = runTime.deltaT().value() *
         min
         (
-            min(maxDeltaTFluid, 1.0 + 0.1*maxDeltaTFluid),
+            min
+            (
+                min(maxDeltaTFluid, 1.0 + 0.1 * maxDeltaTFluid),
+                min(maxDeltaTSolid, 1.0 + 0.1 * maxDeltaTSolid)
+            ),
             1.2
         );
 
     runTime.setDeltaT
     (
-        min
-        (
-//            min
-//            (
-                min(deltaTFluid, maxDeltaTSolid)*runTime.deltaT().value(),
-                maxDeltaT
-//            ),
-//            pyrolysisZone.maxTime()
-        )
+        min(dt0,maxDeltaT)
     );
-    
-    Info<< "deltaT = " <<  runTime.deltaT().value() << endl;
 }
-
 // ************************************************************************* //

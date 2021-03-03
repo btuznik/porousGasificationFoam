@@ -1,3 +1,4 @@
+Info<< "Reading solid termophysical properties" << endl;
 
 IOdictionary chemProperties
 (
@@ -11,25 +12,29 @@ IOdictionary chemProperties
     )
 );
 
-Info<< "Reading solid termophysical properties" << endl;
-autoPtr<HGSSolidThermo> sThermo(HGSSolidThermo::New
+autoPtr<HGSSolidThermo> sThermo
+(
+    HGSSolidThermo::New
     (
-     mesh,
-     IOdictionary
-         (
-             IOobject
+         mesh,
+         IOdictionary
              (
-                 "solidThermophysicalProperties",
-                 mesh.time().constant(),
-                 mesh,
-                 IOobject::MUST_READ,
-                 IOobject::NO_WRITE,
-                 false
-             )
-         ),
+                 IOobject
+                 (
+                     "solidThermophysicalProperties",
+                     mesh.time().constant(),
+                     mesh,
+                     IOobject::MUST_READ,
+                     IOobject::NO_WRITE,
+                     false
+                 )
+             ),
         Y
-    ));
+    )
+);
+
 HGSSolidThermo& solidThermo = sThermo();
+
 
 Info<< "\nCreating pyrolysis model" << endl;
 
@@ -80,4 +85,3 @@ volScalarField heatTransfer
     ),
     pyrolysisZone.heatTransfer()
 );
-
