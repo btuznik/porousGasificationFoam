@@ -130,7 +130,6 @@ public:
 
             //- Density [kg/m3]
             virtual tmp<scalarField> rho(const label patchI) const;
-	    //virtual tmp<scalarField> rhoT(const label patchI);
 
             //- Specific heat capacity [J/(kg.K)]
             virtual tmp<scalarField> Cp(const label patchI) const;

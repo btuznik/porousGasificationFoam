@@ -40,9 +40,9 @@ void Foam::multiComponentSolidMixture<ThermoSolidType>::correctMassFractions()
     forAll(Yt,cellI)
     {
     	if (Yt[cellI] == 0)
-	{
-	    Yt[cellI] = 1;
-	}
+        {
+            Yt[cellI] = 1;
+        }
     }
 
     forAll(Y_, n)
@@ -62,14 +62,14 @@ Foam::scalar Foam::multiComponentSolidMixture<ThermoSolidType>::X
 
     forAll(solidData_, i)
     {
-        rhoInv += Y_[i][celli]/solidData_[i].rho(T);
+        rhoInv += Y_[i][celli] / solidData_[i].rho(T);
     }
     if (rhoInv == 0)
     {
        rhoInv = 1;
     }
-    scalar X = Y_[iComp][celli]/solidData_[iComp].rho(T);
-    return (X/rhoInv);
+    scalar X = Y_[iComp][celli] / solidData_[iComp].rho(T);
+    return (X / rhoInv);
 }
 
 
@@ -120,8 +120,7 @@ Foam::scalar Foam::multiComponentSolidMixture<ThermoSolidType>::rho
 
     forAll(solidData_, i)
     {
-        tmp += solidData_[i].rho(T)*X(i, celli, T);
-	//tmp += Y_[i][celli]/solidData_[i].rho(T);
+        tmp += solidData_[i].rho(T) * X(i, celli, T);
     }
     return tmp;
 }
@@ -135,7 +134,7 @@ Foam::scalar Foam::multiComponentSolidMixture<ThermoSolidType>::hf
     scalar tmp = 0.0;
     forAll(solidData_, i)
     {
-        tmp += solidData_[i].hf()*Y_[i][celli];
+        tmp += solidData_[i].hf() * Y_[i][celli];
     }
     return tmp;
 }
@@ -210,7 +209,7 @@ Foam::scalar Foam::multiComponentSolidMixture<ThermoSolidType>::K
     scalar tmp = 0.0;
     forAll(solidData_, i)
     {
-        tmp += solidData_[i].K(T)*X(i, celli, T);
+        tmp += solidData_[i].K(T) * X(i, celli, T);
     }
     return tmp;
 }
@@ -225,7 +224,7 @@ Foam::scalar Foam::multiComponentSolidMixture<ThermoSolidType>::emissivity
     scalar tmp = 0.0;
     forAll(solidData_, i)
     {
-        tmp += solidData_[i].emissivity(T)*X(i, celli, T);
+        tmp += solidData_[i].emissivity(T) * X(i, celli, T);
     }
     return tmp;
 }
@@ -240,7 +239,7 @@ Foam::scalar Foam::multiComponentSolidMixture<ThermoSolidType>::Cp
     scalar tmp = 0.0;
     forAll(solidData_, i)
     {
-        tmp += solidData_[i].Cp(T)*Y_[i][celli];
+        tmp += solidData_[i].Cp(T) * Y_[i][celli];
     }
     return tmp;
 }

@@ -151,7 +151,6 @@ Foam::HGSSolidMixtureThermo<MixtureType>::~HGSSolidMixtureThermo()
 template<class MixtureType>
 void Foam::HGSSolidMixtureThermo<MixtureType>::correct()
 {
-//    MixtureType::correctMassFractions();
     calculate();
 }
 
@@ -292,28 +291,6 @@ Foam::tmp<Foam::scalarField> Foam::HGSSolidMixtureThermo<MixtureType>::rho
     return tRho;
 }
 
-/*
-template<class MixtureType>
-Foam::tmp<Foam::scalarField> Foam::HGSSolidMixtureThermo<MixtureType>::rhoT
-(
-    const label patchI
-)
-{
-    const scalarField& patchT = T_.boundaryField()[patchI];
-    const polyPatch& pp = mesh_.boundaryMesh()[patchI];
-    const unallocLabelList& cells = pp.faceCells();
-
-    tmp<scalarField> tRho(new scalarField(patchT.size()));
-    scalarField& Rho = tRho();
-
-    forAll(patchT, celli)
-    {
-        Rho[celli] = MixtureType::rho(patchT[celli], cells[celli]);
-    }
-
-    return tRho;
-}
-*/
 
 template<class MixtureType>
 Foam::tmp<Foam::scalarField> Foam::HGSSolidMixtureThermo<MixtureType>::Cp

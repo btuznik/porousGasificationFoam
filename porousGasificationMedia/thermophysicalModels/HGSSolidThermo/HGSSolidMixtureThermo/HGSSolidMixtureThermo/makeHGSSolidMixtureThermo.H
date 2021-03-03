@@ -89,7 +89,7 @@ defineTemplateTypeNameAndDebugWithName                                        \
 (                                                                             \
     MixtureThermo##Mixture##Transport##Radiation##Thermo##Rho##name,          \
     "solidMixtureThermo"                                                      \
-    "<"#name">",						                                      \
+    "<"#name">",                                                             \
     0                                                                         \
 );                                                                            \
                                                                               \

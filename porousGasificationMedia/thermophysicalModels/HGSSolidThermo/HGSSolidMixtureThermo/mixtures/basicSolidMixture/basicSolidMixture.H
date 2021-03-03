@@ -52,6 +52,7 @@ protected:
 
     // Protected data
 
+        //- Table of solids
         typedef speciesTable solidsTable;
 
         //- The names of the solids
@@ -111,7 +112,6 @@ public:
 
         //- Density
         virtual scalar rho(scalar T, label celli) const = 0;
-	//virtual scalar rhoT(scalar T, label celli);
 
         //- Absorption coefficient
         virtual scalar kappa(scalar T, label celli) const = 0;
