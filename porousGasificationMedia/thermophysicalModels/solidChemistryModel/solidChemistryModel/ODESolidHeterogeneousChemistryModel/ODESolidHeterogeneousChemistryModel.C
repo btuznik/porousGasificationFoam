@@ -249,8 +249,8 @@ Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasTherm
         Info<< indent << "Reaction " << i << nl << reactions_[i] << nl;
     }
 
-    Info << "solidReactionEnergyFromEnthalpy " << solidReactionEnergyFromEnthalpy_ << nl;
-    Info << "stoichiometricReactions " << stoichiometricReactions_ << nl;
+    Info<< "solidReactionEnergyFromEnthalpy " << solidReactionEnergyFromEnthalpy_ << nl;
+    Info<< "stoichiometricReactions " << stoichiometricReactions_ << nl;
 
     gasDictionary_.resize(nGases_);
     forAll(gasDictionary_,gasI)
@@ -300,7 +300,7 @@ Foam::scalarField  Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidT
 
     if (not solidReactionEnergyFromEnthalpy_)
     {
-    nEq = nEqns()+1;
+        nEq = nEqns()+1;
     }
 
     scalarField om(nEq,0.0);
@@ -367,7 +367,7 @@ Foam::scalarField  Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidT
                     massStream -= omegai*R.slhsSto()[s]/solidSubstrates;
                     if (updateC0)
                     {
-                Ys0_[si][cellI] = this->solidThermo().rho()[cellI] *Ys_[si][cellI] * V_[cellI];
+                        Ys0_[si][cellI] = this->solidThermo().rho()[cellI] *Ys_[si][cellI] * V_[cellI];
                     }
                 }
 
@@ -377,7 +377,7 @@ Foam::scalarField  Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidT
                     om[si] += sr*omegai*R.srhsSto()[s]/solidProducts;
                     if (updateC0)
                     {
-                Ys0_[si][cellI] = this->solidThermo().rho()[cellI] *Ys_[si][cellI] * V_[cellI];
+                        Ys0_[si][cellI] = this->solidThermo().rho()[cellI] *Ys_[si][cellI] * V_[cellI];
                     }
                 }
 
@@ -412,7 +412,7 @@ Foam::scalarField  Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidT
                         massStream -= omegai*R.slhsSto()[s]/solidSubstrates;
                         if (updateC0)
                         {
-                    Ys0_[si][cellI] = this->solidThermo().rho()[cellI] *Ys_[si][cellI] * V_[cellI];
+                            Ys0_[si][cellI] = this->solidThermo().rho()[cellI] *Ys_[si][cellI] * V_[cellI];
                         }
                     }
 
@@ -423,7 +423,7 @@ Foam::scalarField  Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidT
 
                         if (updateC0)
                         {
-                    Ys0_[si][cellI] = this->solidThermo().rho()[cellI] *Ys_[si][cellI] * V_[cellI];
+                            Ys0_[si][cellI] = this->solidThermo().rho()[cellI] *Ys_[si][cellI] * V_[cellI];
                         }
                     }
 
@@ -466,7 +466,7 @@ Foam::scalarField  Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidT
 
                         if (updateC0)
                         {
-                    Ys0_[si][cellI] = this->solidThermo().rho()[cellI] *Ys_[si][cellI] * V_[cellI];
+                            Ys0_[si][cellI] = this->solidThermo().rho()[cellI] *Ys_[si][cellI] * V_[cellI];
                         }
                     }
                     if (not solidReactionEnergyFromEnthalpy_)
@@ -487,8 +487,7 @@ Foam::scalarField  Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidT
                         massStream -= omegai*R.slhsSto()[s]/solidSubstrates;
                         if (updateC0)
                         {
-                    Ys0_[si][cellI] = this->solidThermo().rho()[cellI] *Ys_[si][cellI] * V_[cellI];
-
+                            Ys0_[si][cellI] = this->solidThermo().rho()[cellI] *Ys_[si][cellI] * V_[cellI];
                         }
                     }
 
@@ -498,7 +497,7 @@ Foam::scalarField  Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidT
                         om[si] += omegai*R.srhsSto()[s]/solidProducts;
                         if (updateC0)
                         {
-                    Ys0_[si][cellI] = this->solidThermo().rho()[cellI] *Ys_[si][cellI] * V_[cellI];
+                            Ys0_[si][cellI] = this->solidThermo().rho()[cellI] *Ys_[si][cellI] * V_[cellI];
                         }
                     }
                     if (products > 0)
@@ -570,7 +569,7 @@ Foam::scalarField  Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidT
                     massStream -= omegai*R.slhsSto()[s]/totalSubstrates;
                     if (updateC0)
                     {
-                Ys0_[si][cellI] = this->solidThermo().rho()[cellI] *Ys_[si][cellI] * V_[cellI];
+                        Ys0_[si][cellI] = this->solidThermo().rho()[cellI] *Ys_[si][cellI] * V_[cellI];
 
                     }
                 }
@@ -695,14 +694,14 @@ void Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, Gas
     scalarField omegaPreq(omega(c,T,0,rR) * (1. - porosityF_[celli]));
     if (solidReactionEnergyFromEnthalpy_)
     {
-    dcdt = omegaPreq;
+        dcdt = omegaPreq;
     }
     else
     {
-    forAll(dcdt,i)
-    {
-        dcdt[i] = omegaPreq[i];
-    }
+        forAll(dcdt,i)
+        {
+            dcdt[i] = omegaPreq[i];
+        }
     }
 
     //Total mass concentration
@@ -727,12 +726,12 @@ void Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, Gas
     }
     else
     {
-    for (label i=0; i<nSolids_; i++)
-    {
-            scalar Yi = c[i];
-            newCp += Yi*solidThermo_[i].Cp(T);
-    }
-            newhi += omegaPreq[nEqns()];
+        for (label i=0; i<nSolids_; i++)
+        {
+                scalar Yi = c[i];
+                newCp += Yi*solidThermo_[i].Cp(T);
+        }
+        newhi += omegaPreq[nEqns()];
     }
 
 
@@ -1165,7 +1164,7 @@ void Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, Gas
                 {
                     c[i] = rhoi*Ys_[i][celli]*delta;
                 }
-        // it is not seen from outside the class so no need to wrap it
+                // it is not seen from outside the class so no need to wrap it
                 scalarField rR(nReaction_, 0.0);
                 const scalarField dcdt = omega(c, Ti, 0.0, rR, true);
                 forAll(RRs_, i)

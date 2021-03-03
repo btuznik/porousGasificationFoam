@@ -27,13 +27,6 @@ License
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-/*template<class SolidThermo>
-inline SolidThermo&
-Foam::BasicSolidChemistryModel<SolidThermo>::solidThermo()
-{
-    return solidThermo_;
-}*/
-
 template<class SolidThermo>
 inline const SolidThermo&
 Foam::BasicSolidChemistryModel<SolidThermo>::solidThermo() const

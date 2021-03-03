@@ -53,7 +53,7 @@ namespace Foam
 class fvMesh;
 
 /*---------------------------------------------------------------------------*\
-                      Class ODESolidHeterogeneousChemistryModel Declaration
+            Class ODESolidHeterogeneousChemistryModel Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class SolidThermo, class SolidThermoType, class GasThermoType>
@@ -99,7 +99,7 @@ protected:
         const PtrList<solidHeterogeneousReaction>& reactions_;
 
         //- Number of gas species
-       label nGases_;
+        label nGases_;
 
         //- Number of species
         label nSpecie_;
@@ -176,34 +176,64 @@ private:
         //- Dictionary for gasName communication
         List<label> gasDictionary_;
 
+        //- Gas density
         const volScalarField& rhoG_;
 
+        //- Solid density
         const volScalarField& rho_;
 
+        //- Porosity
         const volScalarField& porosityF_;
 
         //- Temporary concentration field
         mutable scalarField specieConcentration_;
 
+        //- Chemical time scale
         scalar tauC_;
 
+        //- Chemical time step
         scalar dt_;
 
-       // Private members
+        // Private members
 
-        //- Set reacting status of cell, cellI
-        void setCellReacting(const label cellI, const bool active);
+            //- Set reacting status of cell, cellI
+            void setCellReacting(const label cellI, const bool active);
 
-        // Resets the values of reaction rates and adjust size for the changing meshes.
-        void resetReactionRates(const volScalarField& rho);
+            //- Resets the values of reaction rates and adjust size for the changing meshes.
+            void resetReactionRates(const volScalarField& rho);
 
-        void solveOneCell(const scalar t0, const scalar deltaT, scalar& deltaTMin, const label celli, const volScalarField& rho, volScalarField& newDeltaTMin);
+            void solveOneCell
+            (
+                const scalar t0,
+                const scalar deltaT,
+                scalar& deltaTMin,
+                const label celli,
+                const volScalarField& rho,
+                volScalarField& newDeltaTMin
+            );
 
-        void calculateSourceTerms(const scalar t0, const scalar deltaT, scalar& deltaTMin, const label celli, const scalar solidRho,
-                                  scalar& Ti, const scalarField& initialSpecieConcentration,  const scalarField& omegaPreq);
+            void calculateSourceTerms
+            (
+                const scalar t0,
+                const scalar deltaT,
+                scalar& deltaTMin,
+                const label celli,
+                const scalar solidRho,
+                scalar& Ti,
+                const scalarField& initialSpecieConcentration,
+                const scalarField& omegaPreq
+            );
 
-        void updateReactionRates(const scalar deltaT, scalar& deltaTMin, const label celli, const scalar solidRho,
-                                 const scalar gasRho, const scalarField& initialSpecieConcentration, volScalarField& newDeltaTMin);
+            void updateReactionRates
+            (
+                const scalar deltaT,
+                scalar& deltaTMin,
+                const label celli,
+                const scalar solidRho,
+                const scalar gasRho,
+                const scalarField& initialSpecieConcentration,
+                volScalarField& newDeltaTMin
+            );
 
 public:
 

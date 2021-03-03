@@ -93,9 +93,6 @@ Foam::scalar Foam::solidOde<ChemistryModel>::solve
         c[i] = max(0.0, cTp_[i]);
     }
 
-   // T = cTp_[nSpecie];
-  //  p = cTp_[nSpecie+1];
-
     return dtEst;
 }
 

@@ -104,9 +104,6 @@ Foam::autoPtr<ChemistryModel> Foam::basicSolidChemistryModel::New
             << "Valid models are:" << endl
             << cstrTable->toc() << endl;
 
-//        const wordList names(cstrTable->toc());
-
-//        printTable(names, FatalErrorInFunction);
         FatalErrorInFunction << exit(FatalError);
     }
     Info << "basicSolidNew" << endl;
