@@ -189,9 +189,6 @@ protected:
         //- scalar chemistryTime
         scalar timeChem_;
 
-        //- scalar max dT in a cell
-        scalar maxDT_;
-
 
     // Protected member functions
 

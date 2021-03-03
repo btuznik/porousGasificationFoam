@@ -58,7 +58,6 @@ void volPyrolysis::readReactingOneDimControls()
     const dictionary& solution = this->solution().subDict("PIMPLE");
     solution.lookup("nNonOrthogonalCorrectors") >> nNonOrthCorr_;
     time_.controlDict().lookup("maxDi") >> maxDiff_;
-    time_.controlDict().lookup("maxdT") >> maxDT_;
     equilibrium_.readIfPresent("equilibrium",coeffs_);
 }
 
@@ -462,8 +461,7 @@ volPyrolysis::volPyrolysis
     addedGasMass_(dimensionedScalar("zero", dimMass, 0.0)),
     totalGasMassFlux_(dimensionedScalar("zero", dimMass/dimTime, 0.0)),
     totalHeatRR_(dimensionedScalar("zero", dimEnergy/dimTime, 0.0)),
-    timeChem_(1.0),
-    maxDT_(1.0)
+    timeChem_(1.0)
 {
     mesh.setFluxRequired(T_.name());
 
@@ -790,8 +788,7 @@ volPyrolysis::volPyrolysis
     addedGasMass_(dimensionedScalar("zero", dimMass, 0.0)),
     totalGasMassFlux_(dimensionedScalar("zero", dimMass/dimTime, 0.0)),
     totalHeatRR_(dimensionedScalar("zero", dimEnergy/dimTime, 0.0)),
-    timeChem_(1.0),
-    maxDT_(1.0)
+    timeChem_(1.0)
 {
     mesh.setFluxRequired(T_.name());
 
