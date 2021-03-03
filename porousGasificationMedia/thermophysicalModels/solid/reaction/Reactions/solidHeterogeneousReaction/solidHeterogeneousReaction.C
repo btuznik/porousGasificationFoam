@@ -281,19 +281,6 @@ void Foam::solidHeterogeneousReaction::setLRhs(Istream& is)
     srhsSto_ = dsrhsSto.shrink();
     glhsSto_ = dglhsSto.shrink();
     grhsSto_ = dgrhsSto.shrink();
-
-/*
-        {
-            FatalIOErrorIn("solidHeterogeneousReaction::lsrhs(Istream& is)", is)
-                << "Cannot find component in tables"
-                << exit(FatalIOError);
-        }
-    }
-
-    FatalIOErrorIn("solidHeterogeneousReaction::lsrhs(Istream& is)", is)
-        << "Cannot continue reading reaction data from stream"
-        << exit(FatalIOError);
-*/
 }
 
 // * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
@@ -351,7 +338,8 @@ void Foam::solidHeterogeneousReaction::write(Ostream& os) const
 {
     os << type() << nl << "    ";
 
-    os << "slhs " << slhs_.size() << " srhs " << srhs_.size() << " glhs " << glhs_.size() << " grhs " << grhs_.size() << nl;
+    os << "slhs " << slhs_.size() << " srhs " << srhs_.size()
+       << " glhs " << glhs_.size() << " grhs " << grhs_.size() << nl;
 
     forAll(slhs_, i)
     {
@@ -360,7 +348,7 @@ void Foam::solidHeterogeneousReaction::write(Ostream& os) const
 
     forAll(glhs_, i)
     {
-	os << " + " << glhsSto_[i]  << " " << gasPhaseGases_[glhs_[i]].name();
+        os << " + " << glhsSto_[i]  << " " << gasPhaseGases_[glhs_[i]].name();
     }
 
     os << " = ";

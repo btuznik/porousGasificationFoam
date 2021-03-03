@@ -91,9 +91,9 @@ public:
             const linearSolidTransport&
         );
 
-
         //- Construct from dictionary
         linearSolidTransport(const dictionary&);
+
     // Member functions
 
         //- Return the instantiated type name

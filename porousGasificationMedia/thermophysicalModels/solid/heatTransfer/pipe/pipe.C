@@ -39,9 +39,9 @@ namespace Foam
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-Foam::scalar Foam::pipeCONV::kf(const label cellI) const
+Foam::scalar Foam::pipeCONV::kf(const label cellI, const scalar Cp) const
 {
-    return thermop_.Cp().ref()[cellI] * alphap_[cellI] * rhop_[cellI];
+    return Cp * alphap_[cellI] * rhop_[cellI];
 }
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -105,8 +105,8 @@ Foam::tmp<Foam::volScalarField> Foam::pipeCONV::CONV() const
             )
         )
     );
-
     static const scalar Nu = 3.66;
+    const volScalarField& Cp = thermop_.Cp();
 
     forAll (CONVloc_(),cellI)
     {
@@ -114,7 +114,7 @@ Foam::tmp<Foam::volScalarField> Foam::pipeCONV::CONV() const
         scalar SAV =  2.0 * sqrt(porosity()[cellI]) * sqrt(initialPorosity()[cellI])
                      / pipeRadius_; // eqZx2uHGn007
 
-        scalar h_conv = Nu * kf(cellI) / (2 * pipeRadius_); //eqZx2uHGn020
+        scalar h_conv = Nu * kf(cellI, Cp[cellI]) / (2 * pipeRadius_); //eqZx2uHGn020
 
         CONVloc_.ref()[cellI] = SAV * h_conv;
     }
@@ -127,7 +127,7 @@ Foam::tmp<Foam::volScalarField> Foam::pipeCONV::CONV() const
 bool Foam::pipeCONV::read()
 {
 
-	IOdictionary dict
+    IOdictionary dict
         (
             IOobject
             (

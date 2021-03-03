@@ -65,7 +65,10 @@ class constSolidThermo
 {
     // Private data
 
+        //- Heat capacity at constant pressure [J/(kg K)]
         scalar Cp_;
+
+        //- Enthalpy of formation [J/kg]
         scalar Hf_;
 
 

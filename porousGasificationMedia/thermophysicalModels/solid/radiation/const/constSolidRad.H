@@ -94,7 +94,7 @@ public:
         //- Construct and return a clone
         inline autoPtr<constSolidRad> clone() const;
 
-        // Selector from Istream
+        //- Selector from Istream
         inline static autoPtr<constSolidRad> New(Istream& is);
 
 

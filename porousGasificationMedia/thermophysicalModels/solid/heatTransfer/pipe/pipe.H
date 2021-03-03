@@ -81,7 +81,7 @@ private:
     // Private member functions
 
         //- Gas thermal conductivity
-        scalar kf(const label cellI) const;
+        scalar kf(const label cellI, const scalar Cp) const;
 
 public:
 

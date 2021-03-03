@@ -48,7 +48,7 @@ constSolidRad<thermo>::constSolidRad(const dictionary& dict)
 template<class thermo>
 Ostream& operator<<(Ostream& os, const constSolidRad<thermo>& pg)
 {
-    os  << static_cast<const thermo&>(pg);
+    os << static_cast<const thermo&>(pg);
     os << tab << pg.kappa_ << tab << pg.sigmaS_ << tab << pg.emissivity_;
 
     os.check("Ostream& operator<<(Ostream& os, const constSolidRad& st)");

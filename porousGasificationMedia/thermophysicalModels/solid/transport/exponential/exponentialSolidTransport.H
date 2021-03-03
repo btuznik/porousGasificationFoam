@@ -116,13 +116,12 @@ public:
         inline scalar alpha(const scalar T) const;
 
 
-    // Ostream Operator
-
-        friend Ostream& operator<< <thermo>
-        (
-            Ostream&,
-            const exponentialSolidTransport&
-        );
+    //- Ostream Operator
+    friend Ostream& operator<< <thermo>
+    (
+        Ostream&,
+        const exponentialSolidTransport&
+    );
 };
 
 

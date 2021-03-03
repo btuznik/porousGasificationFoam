@@ -53,13 +53,13 @@ class IrreversibleSolidHeterogeneousReaction
 {
     // Private data
 
-        // Reaction rate
+        //- Reaction rate
         ReactionRate k_;
 
-        // Reaction heat
+        //- Reaction heat
         scalar heatReact_;
 
-        // Reaction order
+        //- Reaction order
         List<scalar> nReact_;
 
     // Private Member Functions

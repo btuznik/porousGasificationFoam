@@ -95,7 +95,7 @@ inline Foam::scalar Foam::constSolidThermo<rhoType>::h
 {
     scalar hOffset = Cp_ * Foam::constant::thermodynamic::Tstd;
 
-    return (Cp_*T + Hf_ - hOffset);
+    return (Cp_ * T + Hf_ - hOffset);
 }
 
 

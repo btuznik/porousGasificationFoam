@@ -46,11 +46,7 @@ namespace Foam
 template<class thermo> class constSolidTransport;
 
 template<class thermo>
-Ostream& operator<<
-(
-    Ostream&,
-    const constSolidTransport<thermo>&
-);
+Ostream& operator<<(Ostream&, const constSolidTransport<thermo>&);
 
 
 /*---------------------------------------------------------------------------*\
@@ -86,7 +82,6 @@ public:
         inline constSolidTransport(const word&, const constSolidTransport&);
 
         //- Construct from Istream
-        //constSolidTransport(Istream&);
         constSolidTransport(const dictionary&);
 
 
