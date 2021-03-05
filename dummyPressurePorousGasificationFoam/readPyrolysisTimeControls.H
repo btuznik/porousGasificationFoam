@@ -1,1 +1,0 @@
-scalar maxDi = pyrolysis->maxDiff();
