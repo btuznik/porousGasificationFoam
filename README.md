@@ -58,7 +58,7 @@ In case of errors:
     
 4. Run instalaltion script and check for errors:
 
-    `./install > log_install &`
+    `./Allwmake > log_install &`
 
 <a name="source"></a>
 
@@ -73,7 +73,7 @@ Files for installation and sourcing paths:
 * `./porousGasificationMediaDirectories` -- file with enviromental variables
                                             needed for the installation
 
-* `./install` -- installation script
+* `./Allwmake` -- installation script
 
 ###  porousGasificationFoam -- solver
 
