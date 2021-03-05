@@ -1,5 +1,3 @@
-// Flavio Galeazzo, 05.11.2018, changed the call of volScalarField to initialize the fields with the value 0.0
-
     Info<< "Reading field porosityF\n" << endl;
     volScalarField porosityF
     (

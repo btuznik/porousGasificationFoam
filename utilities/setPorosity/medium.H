@@ -90,7 +90,7 @@ forAll(Ccells,celli){
     anisotropyK_loc.yy() = 1;
     anisotropyK_loc.zz() = 1;
 
-// Transformation of porosity tensor to normal base in cartesian coordinates.
+    // Transformation of porosity tensor to normal base in cartesian coordinates.
     Df[celli] = (T_loc & D_loc & T_loc.T());
     anisotropyK[celli] = (T_loc & anisotropyK_loc & T_loc.T());
 }
