@@ -180,7 +180,7 @@ void Foam::radiationModels::heterogeneousMeanTemp::calculate()
     reduce(totVol, sumOp<scalar>());
 
     Info<< "Radiation active volume to porous media volume ratio: "
-        << totSur/max(totVol,SMALL) << " " << totSur << " " << totVol << endl;
+        << totSur/max(totVol,SMALL) << endl;
 
     dimensionedScalar boundaryMeanTemp("boundaryMeanTemp",dimless,0.0);
     dimensionedScalar boundarySurface("boundarySurface",dimless,0.0);

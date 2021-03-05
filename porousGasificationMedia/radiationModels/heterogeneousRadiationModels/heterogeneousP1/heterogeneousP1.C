@@ -268,8 +268,8 @@ void Foam::radiationModels::heterogeneousP1::calculate()
 
     reduce(totalVol, sumOp<scalar>());
 
-    Info << "Radiation active volume to porous media volume ratio: " << totalSurf/max(totalVol,SMALL)
-         <<  " " << totalSurf << " " << totalVol << endl;
+    Info << "Radiation active volume to porous media volume ratio: "
+         << totalSurf/max(totalVol,SMALL) << endl;
 
     // Construct diffusion
     const volScalarField gamma
