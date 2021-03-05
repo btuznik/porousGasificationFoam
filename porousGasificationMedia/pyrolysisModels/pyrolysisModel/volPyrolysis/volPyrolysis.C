@@ -177,8 +177,32 @@ void volPyrolysis::solveEnergy()
                 fvm::laplacian(composedK, T_)
             );
 
-            // Setting face fluxes otutside porous media to 0.
-            surfaceScalarField  whereIsPatch  = fvc::snGrad(whereIs_);
+            // Setting face fluxes on the border of porous media to 0.
+            whereIs_.correctBoundaryConditions();
+
+            surfaceScalarField  whereIsPatch  = fvc::interpolate(whereIs_);
+
+            forAll(whereIsPatch,faceI)
+            {
+               if ( (whereIsPatch[faceI] > 0) and (whereIsPatch[faceI] < 1) )
+               {
+                   TLap.upper()[faceI] = 0.;
+               }
+            }
+            forAll(whereIsPatch.boundaryField(),patchI)
+            {
+               if (isA<processorPolyPatch>(mesh_.boundaryMesh()[patchI]))
+               {
+                   forAll(whereIsPatch.boundaryField()[patchI],faceI)
+                   {
+                       if ( (whereIsPatch.boundaryField()[patchI][faceI] > 0) and (whereIsPatch.boundaryField()[patchI][faceI] < 1) )
+                       {
+                           TLap.boundaryCoeffs()[patchI][faceI] = 0;
+                           TLap.internalCoeffs()[patchI][faceI] = 0;
+                       }
+                   }
+               }
+            }
 
             forAll(whereIsPatch,faceI)
             {
@@ -195,7 +219,7 @@ void volPyrolysis::solveEnergy()
             // For non-orthogona meshes
             // TLap.source() = 0. cancels the non-orthogonal correction from the
             // divergence of composedK, which is spurious on the edges of porous
-            // media and negiligble inside porous media in most cases.
+            // media and negiligble inside porous media in relevant cases.
             TLap.source() = 0.;
 
             fvScalarMatrix TEqn
@@ -533,7 +557,6 @@ volPyrolysis::volPyrolysis
         read();
     }
 
-    surfF_ = 0;
     forAll(whereIs_,cellI)
     {
         if (whereIs_[cellI] == 1)
@@ -839,28 +862,18 @@ volPyrolysis::volPyrolysis
         read();
     }
 
-    surfF_ = 0;
-    surfaceScalarField  whereIsPatch  = fvc::interpolate(whereIs_);
-
     forAll(whereIs_, cellI)
     {
         if (whereIs_[cellI] == 1)
         {
             bool surfC = false;
-            forAll(mesh_.cells()[cellI],faceI)
+            forAll(mesh_.cellCells()[cellI],cellJ)
             {
-                label faceIl = mesh_.cells()[cellI][faceI];
-                if (mesh_.isInternalFace(faceIl))
+                if (whereIs_[mesh_.cellCells()[cellI][cellJ]] == 0)
                 {
-                    if (whereIs_[mesh_.faceOwner()[faceIl]] != whereIs_[mesh_.faceNeighbour()[faceIl]])
-                    {
-                        surfC = true;
-                    }
+                    surfC = true;
                 }
-                else
-                {}
             }
-
             if (surfC) surfF_[cellI] = 1;
         }
     }
@@ -1064,6 +1077,21 @@ void volPyrolysis::evolvePorosity()
                 whereIsNot_[cellI] = 1.0;
             }
         }
+
+        surfF_ = 0;
+        forAll(whereIs_,cellI)
+        {
+            if (whereIs_[cellI] == 1)
+            {
+                bool surfC = false;
+                forAll(mesh_.cellCells()[cellI],cellJ)
+                {
+                        if (whereIs_[mesh_.cellCells()[cellI][cellJ]] == 0) surfC = true;
+                }
+                if (surfC) surfF_[cellI] = 1;
+            }
+        }
+
     }
     else
     {}
