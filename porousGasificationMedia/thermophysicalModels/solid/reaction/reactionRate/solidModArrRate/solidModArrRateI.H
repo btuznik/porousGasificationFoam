@@ -25,7 +25,7 @@ License
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-inline Foam::solidEvaporationRate::solidEvaporationRate
+inline Foam::solidModArrRate::solidModArrRate
 (
     const scalar A,
     const scalar Ta,
@@ -38,13 +38,13 @@ inline Foam::solidEvaporationRate::solidEvaporationRate
 {}
 
 
-inline Foam::solidEvaporationRate::solidEvaporationRate
+inline Foam::solidModArrRate::solidModArrRate
 (
     const speciesTable&,
     Istream& is
 )
 :
-    A_(readScalar(is.readBegin("solidEvaporation(Istream&)"))),
+    A_(readScalar(is.readBegin("solidModArr(Istream&)"))),
     Ta_(readScalar(is)),
     Tcrit_(readScalar(is))
 {}
@@ -52,7 +52,7 @@ inline Foam::solidEvaporationRate::solidEvaporationRate
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-inline Foam::scalar Foam::solidEvaporationRate::operator()
+inline Foam::scalar Foam::solidModArrRate::operator()
 (
     const scalar T,
     const scalar,
@@ -77,7 +77,7 @@ inline Foam::scalar Foam::solidEvaporationRate::operator()
 inline Foam::Ostream& Foam::operator<<
 (
     Ostream& os,
-    const solidEvaporationRate& arr
+    const solidModArrRate& arr
 )
 {
     os  << token::BEGIN_LIST

@@ -22,18 +22,18 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::solidEvaporationRate
+    Foam::solidModArrRate
 
 Description
-    Evaporation reaction rate for solids
+    ModArr reaction rate for solids
 
 SourceFiles
-    solidEvaporationRateI.H
+    solidModArrRateI.H
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef solidEvaporationRate_H
-#define solidEvaporationRate_H
+#ifndef solidModArrRate_H
+#define solidModArrRate_H
 
 #include "scalarField.H"
 #include "typeInfo.H"
@@ -43,14 +43,14 @@ SourceFiles
 namespace Foam
 {
 // Forward declaration of friend functions and operators
-class solidEvaporationRate;
-Ostream& operator<<(Ostream&, const solidEvaporationRate&);
+class solidModArrRate;
+Ostream& operator<<(Ostream&, const solidModArrRate&);
 
 /*---------------------------------------------------------------------------*\
-                       Class solidEvaporationRate Declaration
+                       Class solidModArrRate Declaration
 \*---------------------------------------------------------------------------*/
 
-class solidEvaporationRate
+class solidModArrRate
 {
     // Private data
 
@@ -64,7 +64,7 @@ public:
     // Constructors
 
         //- Construct from components
-        inline solidEvaporationRate
+        inline solidModArrRate
         (
             const scalar A,
             const scalar Ta,
@@ -72,7 +72,7 @@ public:
         );
 
         //- Construct from Istream
-        inline solidEvaporationRate
+        inline solidModArrRate
         (
             const speciesTable& species,
             Istream& is
@@ -84,7 +84,7 @@ public:
         //- Return the type name
         static word type()
         {
-            return "SolidEvaporation";
+            return "SolidModArr";
         }
 
         inline scalar operator()
@@ -100,7 +100,7 @@ public:
         inline friend Ostream& operator<<
         (
             Ostream&,
-            const solidEvaporationRate&
+            const solidModArrRate&
         );
 };
 
@@ -111,7 +111,7 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "solidEvaporationRateI.H"
+#include "solidModArrRateI.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

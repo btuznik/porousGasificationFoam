@@ -26,7 +26,7 @@ License
 #include "makeSolidHeterogeneousReactionThermo.H"
 #include "solidArrheniusReactionRate.H"
 #include "solidTemperatureArrheniusReactionRate.H"
-#include "solidEvaporationRate.H"
+#include "solidModArrRate.H"
 #include "solidConstRate.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -38,7 +38,7 @@ namespace Foam
 
 makeIRReactions(solidArrheniusReactionRate)
 makeIRReactions(solidTemperatureArrheniusReactionRate)
-makeIRReactions(solidEvaporationRate)
+makeIRReactions(solidModArrRate)
 makeIRReactions(solidConstRate)
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
