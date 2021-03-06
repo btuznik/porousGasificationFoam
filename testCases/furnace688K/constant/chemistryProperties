@@ -1,0 +1,82 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  8
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      solidThermophysicalProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+chemistry           on;
+
+chemistryType
+{
+    solver            ode;
+}
+
+solidChemistryType
+{
+    solver              solidOde;
+    method              ODESolidHeterogeneousChemistryModel;
+    solidThermoType     const<constRad<constThermo<constRho>>>;
+}
+
+chemistrySolver     ode;
+
+solidChemistrySolver	solidOde;
+
+initialChemicalTimeStep 1e-1;
+
+turbulentReaction   off;
+solidReactionEnergyFromEnthalpy false;
+stoichiometricReactions false;
+showRelativeReactionRates false;
+
+solidChemistryTimeStepControl true;
+
+odeCoeffs
+{
+    solver          seulex;
+}
+
+solidOdeCoeffs
+{
+    solver      seulex;
+}
+
+species
+(
+    targas gas N2
+);
+
+solidReactions
+(
+/*    irreversibleSolidArrheniusHeterogeneousReaction
+    hum = H2O
+     (1.36e1 6.0e3 301 2.256e6 1)   
+*/
+    irreversibleSolidArrheniusHeterogeneousReaction
+    wood = targas 
+    (2.0e10 1.78e4 300 1.10e5 1)  //
+
+    irreversibleSolidArrheniusHeterogeneousReaction
+    wood = char1
+    (2.51e7 1.4e4 300 0e5 1)  //
+    
+    irreversibleSolidArrheniusHeterogeneousReaction
+    char1 = 0.65 char + 0.35 gas
+    (1.38e10 1.9e4 300 -2.1e5 1) //
+);
+
+
+// ************************************************************************* //
+
+
