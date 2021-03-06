@@ -1055,7 +1055,7 @@ void volPyrolysis::evolvePorosity()
         Info<< "; values min Y = " << gMin(por)
             <<" max Y = " << gMax(por) << endl;
 
-        scalar minTs = gMin(T_);
+        scalar minTs = -1.;
 
         forAll(porosity_,cellI)
         {
