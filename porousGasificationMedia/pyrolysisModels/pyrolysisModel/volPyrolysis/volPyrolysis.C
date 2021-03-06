@@ -182,39 +182,26 @@ void volPyrolysis::solveEnergy()
 
             surfaceScalarField  whereIsPatch  = fvc::interpolate(whereIs_);
 
-
             forAll(whereIsPatch,faceI)
             {
-                if ( (whereIsPatch[faceI] > 0) and (whereIsPatch[faceI] < 1) )
-                {
+               if ( (whereIsPatch[faceI] > 0) and (whereIsPatch[faceI] < 1) )
+               {
                    TLap.upper()[faceI] = 0.;
-                }
-                else
-                {
-                    TLap.upper()[faceI] = 1.;
-                }
+               }
             }
-
-            scalar mask = 0.;
-
             forAll(whereIsPatch.boundaryField(),patchI)
             {
-                if ( (whereIsPatch[patchI] > 0) and (whereIsPatch[patchI] < 1) )
-                {
-                   mask = 0.;
-                }
-                else
-                {
-                    mask = 1.;
-                }
-
-                forAll(whereIsPatch,faceI)
-                {
-
-                    TLap.boundaryCoeffs()[patchI][faceI] *= mask;
-                    TLap.internalCoeffs()[patchI][faceI] *= mask;
-                }
-
+               if (isA<processorPolyPatch>(mesh_.boundaryMesh()[patchI]))
+               {
+                   forAll(whereIsPatch.boundaryField()[patchI],faceI)
+                   {
+                       if ( (whereIsPatch.boundaryField()[patchI][faceI] > 0) and (whereIsPatch.boundaryField()[patchI][faceI] < 1) )
+                       {
+                           TLap.boundaryCoeffs()[patchI][faceI] = 0;
+                           TLap.internalCoeffs()[patchI][faceI] = 0;
+                       }
+                   }
+               }
             }
 
             forAll(whereIsPatch,faceI)
@@ -1068,12 +1055,14 @@ void volPyrolysis::evolvePorosity()
         Info<< "; values min Y = " << gMin(por)
             <<" max Y = " << gMax(por) << endl;
 
+        scalar minTs = gMin(T_);
+
         forAll(porosity_,cellI)
         {
             if (porosity_[cellI] > 0.9999)
             {
                 porosity_[cellI] = 1.0;
-                T_[cellI] = gMin(T_);
+                T_[cellI] = minTs;
             }
             if (porosity_[cellI] < 0.0001)
             {
