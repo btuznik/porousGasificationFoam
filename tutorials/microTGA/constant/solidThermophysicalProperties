@@ -1,0 +1,93 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  8
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      solidThermophysicalProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+thermoType solidMixtureThermo<constHeterogeneous>;
+
+solidComponents
+(
+    wood char1 char hum 
+);
+
+humCoeffs
+{
+    transport
+    {
+	    K           0.58;
+    }
+    thermodynamics
+    {
+        Cp          4200;
+        Hf         -15.86e6;
+    }
+    density
+    {
+        rho         1000;
+    }
+};
+
+char1Coeffs
+{
+    transport
+    {
+        K           0.156; // (0.071+0.105+0.105)/3./.6  Park2010, Asako2002
+    }
+    thermodynamics
+    {
+        Cp           1054; // Park2010 for T=300
+        Hf          -2.12e4;
+    }
+    density
+    {
+        rho         1050;
+    }
+};
+
+charCoeffs
+{
+    transport
+    {
+        K           0.156; // (0.071+0.105+0.105)/3./.6  Park2010, Asako2002
+    }
+    thermodynamics
+    {
+        Cp          1054; // Park2010 for T=300
+        Hf          -2.12e4;
+    }
+    density
+    {
+        rho           1050;
+    }
+};
+
+woodCoeffs
+{
+    transport
+    {
+        K           0.341; // (0.1046+0.255+0.255)/3./.6 Park2010, Asako2002
+    }
+    thermodynamics
+    {
+        Cp          1800;  // Park2010 for T=300
+        Hf          -1.04e6;
+    }
+    density
+    {
+        rho          1050; // 630/0.6 Park2010
+    }
+};
+
+// ************************************************************************* //

@@ -1,0 +1,262 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     |                                                 |
+|   \\  /    A nd           | Copyright (C) 2016 Ehsan Madadi-Kandjani        |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// General macros to create cylinder mesh
+
+
+
+
+
+
+
+
+
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+convertToMeters 0.001;
+
+// Inner square side half
+
+
+// Inner square side curvature
+
+
+// cylinder radius
+
+
+// Height of cylinder
+
+
+// Base z
+
+
+// Outlet z
+
+
+// Number of cells at inner square
+
+
+// Number of cells between inner square and circle
+
+
+// Number of cells in the cylinder height
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+
+
+
+// 45 degree points angle
+
+
+
+
+
+// Half of 45 degree points angle
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Inner square x and y position
+
+// x
+
+
+
+
+
+// y
+
+
+
+
+
+// Circle x and y positions
+
+// x
+
+
+
+
+
+// y
+
+
+
+
+
+// Inner square x and y position middle curvatures
+
+// x
+
+
+
+
+
+// y
+
+
+
+
+
+// Circle x and y positions middle curvatures
+
+// x
+
+
+
+
+
+// y
+
+
+
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+vertices
+(
+    (26 -26 -150) // Vertex s0b = 0 
+    (-26 -26 -150) // Vertex s1b = 1 
+    (-26 26 -150) // Vertex s2b = 2 
+    (26 26 -150) // Vertex s3b = 3 
+
+    (37.476659402887 -37.476659402887 -150) // Vertex r0b = 4 
+    (-37.476659402887 -37.476659402887 -150) // Vertex r1b = 5 
+    (-37.476659402887 37.476659402887 -150) // Vertex r2b = 6 
+    (37.476659402887 37.476659402887 -150) // Vertex r3b = 7 
+
+    (26 -26 150) // Vertex s0t = 8 
+    (-26 -26 150) // Vertex s1t = 9 
+    (-26 26 150) // Vertex s2t = 10 
+    (26 26 150) // Vertex s3t = 11 
+
+    (37.476659402887 -37.476659402887 150) // Vertex r0t = 12 
+    (-37.476659402887 -37.476659402887 150) // Vertex r1t = 13 
+    (-37.476659402887 37.476659402887 150) // Vertex r2t = 14 
+    (37.476659402887 37.476659402887 150) // Vertex r3t = 15 
+);
+
+blocks
+(
+    //block0
+    hex (1 0 3 2 9 8 11 10)
+    (12 12 60)
+    simpleGrading (1 1 1)
+
+    //block1
+    hex (0 4 7 3 8 12 15 11)
+    (5 12 60)
+    simpleGrading (1 1 1)
+
+    //block2
+    hex (3 7 6 2 11 15 14 10)
+    (5 12 60)
+    simpleGrading (1 1 1)
+
+    //block3
+    hex (2 6 5 1 10 14 13 9)
+    (5 12 60)
+    simpleGrading (1 1 1)
+
+    //block4
+    hex (1 5 4 0 9 13 12 8)
+    (5 12 60)
+    simpleGrading (1 1 1)
+);
+
+edges
+(
+    //Circle edges
+    arc 7 4 (53 0 -150)
+    arc 4 5 (3.24531401774049e-15 -53 -150)
+    arc 5 6 (-53 6.49062803548095e-15 -150)
+    arc 6 7 (3.24531401774049e-15 53 -150)
+
+    //Circle edges
+    arc 15 12 (53 0 150)
+    arc 12 13 (3.24531401774049e-15 -53 150)
+    arc 13 14 (-53 6.49062803548095e-15 150)
+    arc 14 15 (3.24531401774049e-15 53 150)
+
+    arc 3 0 (28.5 0 -150)
+    arc 0 1 (0 -28.5 -150)
+    arc 1 2 (-28.5 0 -150)
+    arc 2 3 (0 28.5 -150)
+
+    arc 11 8 (28.5 0 150)
+    arc 8 9 (0 -28.5 150)
+    arc 9 10 (-28.5 0 150)
+    arc 10 11 (0 28.5 150)
+
+);
+
+patches
+(
+    wall wall
+    (
+        (4 7 15 12)
+        (5 4 12 13)
+        (6 5 13 14)
+        (7 6 14 15)
+    )
+
+    patch inlet
+    (
+        (3 0 1 2)
+        (3 7 4 0)
+        (2 6 7 3)
+        (1 5 6 2)
+        (0 4 5 1)
+    )
+
+    patch outlet
+    (
+        (11 10 9 8)
+        (11 8 12 15)
+        (10 11 15 14)
+        (9 10 14 13)
+        (8 9 13 12)
+    )
+);
+
+mergePatchPairs
+(
+);
