@@ -49,12 +49,6 @@ interpolationSchemes
 snGradSchemes
 {
     default         limited 1;
-    snGrad(whereIs) uncorrected; // this one must be uncorr. 
 }
-
-fluxRequired
-{
-}
-
 
 // ************************************************************************* //
