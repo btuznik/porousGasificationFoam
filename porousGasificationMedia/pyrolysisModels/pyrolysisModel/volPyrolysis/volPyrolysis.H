@@ -70,6 +70,16 @@ private:
 
 protected:
 
+    //- Porosity
+    volScalarField& porosity_;
+
+    volScalarField porosityArch_;
+
+    //- Reference to specie transport model
+    autoPtr<specieTransferModel> STmodel_;
+
+    volScalarField ST_;
+
     //- Thermophysical properties of gaseous species.
     psiReactionThermo& gasThermo_;
 
@@ -129,13 +139,8 @@ protected:
 
     // Reference to main region fields
 
-        //- Porosity
-        volScalarField& porosity_;
-
         //- InitialPorosity
         volScalarField porosity0_;
-
-        volScalarField porosityArch_;
 
         volScalarField voidFraction_;
 

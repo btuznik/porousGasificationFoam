@@ -49,6 +49,7 @@ SourceFiles
 #include "psiReactionThermo.H"
 #include "HGSSolidThermo.H"
 #include "heatTransferModel.H"
+#include "specieTransferModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

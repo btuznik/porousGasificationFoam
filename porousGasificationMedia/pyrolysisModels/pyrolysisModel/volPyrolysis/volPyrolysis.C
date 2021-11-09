@@ -297,6 +297,33 @@ volPyrolysis::volPyrolysis
 )
 :
     heterogeneousPyrolysisModel(modelType, mesh),
+    porosity_(whereIs),
+    porosityArch_
+    (
+        IOobject
+        (
+            "porosityF0",
+            time_.timeName(),
+            mesh_,
+            IOobject::MUST_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh_
+    ),
+    STmodel_(specieTransferModel::New(porosity_,porosityArch_)),
+    ST_
+    (
+        IOobject
+        (
+            "STvol",
+            time_.timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        mesh_,
+        dimensionedScalar("zero",dimless/dimTime, 0.0)
+    ),
     gasThermo_(gasThermo),
     Ygas_(gasThermo.composition().Y()),
     solidThermo_(solidThermo),
@@ -345,20 +372,7 @@ volPyrolysis::volPyrolysis
     subintegrateSwitch_(false),
     nNonOrthCorr_(-1),
     maxDiff_(10),
-    porosity_(whereIs),
     porosity0_(whereIs),
-    porosityArch_
-    (
-        IOobject
-        (
-            "porosityF0",
-            time_.timeName(),
-            mesh_,
-            IOobject::MUST_READ,
-            IOobject::AUTO_WRITE
-        ),
-        mesh_
-    ),
     voidFraction_(whereIs),
     radiation_(whereIs),
     phiHsGas_
@@ -489,6 +503,7 @@ volPyrolysis::volPyrolysis
 {
     mesh.setFluxRequired(T_.name());
 
+    ST_ = STmodel_->ST()();
     CONV_ = CONV();
     rho0_.ref() = rho_.ref();
 
@@ -612,6 +627,33 @@ volPyrolysis::volPyrolysis
 )
 :
     heterogeneousPyrolysisModel(modelType, mesh),
+    porosity_(whereIs),
+    porosityArch_
+    (
+        IOobject
+        (
+            "porosityF0",
+            time_.timeName(),
+            mesh_,
+            IOobject::MUST_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh_
+    ),
+    STmodel_(specieTransferModel::New(porosity_,porosityArch_)),
+    ST_
+    (
+        IOobject
+        (
+            "STvol",
+            time_.timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        mesh_,
+        dimensionedScalar("zero",dimless/dimTime, 0.0)
+    ),
     gasThermo_(gasThermo),
     Ygas_(gasThermo.composition().Y()),
     solidThermo_(solidThermo),
@@ -660,20 +702,7 @@ volPyrolysis::volPyrolysis
     subintegrateSwitch_(false),
     nNonOrthCorr_(-1),
     maxDiff_(10),
-    porosity_(whereIs),
     porosity0_(whereIs),
-    porosityArch_
-    (
-        IOobject
-        (
-            "porosityF0",
-            time_.timeName(),
-            mesh_,
-            IOobject::MUST_READ,
-            IOobject::AUTO_WRITE
-        ),
-        mesh_
-    ),
     voidFraction_(whereIs),
     radiation_(radiation),
     phiHsGas_
@@ -815,6 +844,7 @@ volPyrolysis::volPyrolysis
 {
     mesh.setFluxRequired(T_.name());
 
+    ST_ = STmodel_->ST()();
     CONV_ = CONV();
     rho0_.ref() = rho_.ref();
     subintegrateSwitch_ = coeffs().lookupOrDefault("subintegrateHeatTransfer",false);
@@ -1000,6 +1030,8 @@ void volPyrolysis::evolveRegion()
     {
         CONV_ = CONV();
     }
+
+    ST_ = STmodel_->ST()();
 
     timeChem_ = solidChemistry_->solve
     (
