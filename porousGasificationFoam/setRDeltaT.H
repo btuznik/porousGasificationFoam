@@ -111,7 +111,7 @@ License
 
         forAll(Y, i)
         {
-            if (i != inertIndex && composition.active(i))
+            if (Y[i].name() != inertSpecie)
             {
                 volScalarField& Yi = Y[i];
 

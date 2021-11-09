@@ -17,7 +17,7 @@ tmp<fv::convectionScheme<scalar>> mvConvection
 
     forAll(Y, i)
     {
-        if (i != inertIndex && composition.active(i))
+        if (Y[i].name() != inertSpecie)
         {
             volScalarField& Yi = Y[i];
 
@@ -63,7 +63,6 @@ tmp<fv::convectionScheme<scalar>> mvConvection
             YiEqn.solve("Yi");
 
             fvOptions.correct(Yi);
-            inertIndex = i;
         }
     }
 
@@ -74,9 +73,6 @@ tmp<fv::convectionScheme<scalar>> mvConvection
             << max(pyrolysisZone.Srho(i)()).value()
             << min(Y[i]).value() <<" max Y = " << max(Y[i]).value() << endl;
 
-        if (Y[i].name() != inertSpecie)
-        {
-            Y[i] = Y[i]/(Yt+Y[inertIndex]);
-        }
+        Y[i] = Y[i] / Yt;
     }
 }

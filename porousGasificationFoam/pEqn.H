@@ -52,7 +52,6 @@ else
         "phiHbyA",
         (
             fvc::flux(rho*HbyA)
-          + MRF.zeroFilter(rhorAUf*fvc::ddtCorr(rho, U, phi))
         )
     );
 
@@ -65,7 +64,7 @@ else
     {
         fvScalarMatrix pEqn
         (
-            fvm::ddt(psi * porosityF, p)
+            fvm::ddt(psi, p)
           + fvc::div(phiHbyA)
           - fvm::laplacian(rhorAUf, p)
          ==
