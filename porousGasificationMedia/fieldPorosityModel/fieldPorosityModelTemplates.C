@@ -44,13 +44,13 @@ void Foam::fieldPorosityModel::addViscousInertialResistance
     forAll (cells, i)
     {
         // This is Darcy level only.
-        tensor dragCoeff = rho[cells[i]] * mu[cells[i]] * Df[cells[i]];
+        tensor dragCoeff = mu[cells[i]] * Df[cells[i]];
 
         // This is Darcy-Forcheimer level which can be put into use
         // tensor dragCoeff = mu[cells[i]]*Df[cells[i]] + (rho[cells[i]]*mag(U[cells[i]]))*Ff[cells[i]];
 
         // Isotropic part that goes into diagonal part of U matrix.
-        scalar isoDragCoeff = tr(dragCoeff) / 3.;
+        scalar isoDragCoeff = tr(dragCoeff);
         
         Udiag[cells[i]] += V[cells[i]]*isoDragCoeff;
 
