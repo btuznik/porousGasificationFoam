@@ -60,9 +60,6 @@ class cylinderCONV
 {
 private:
 
-    //- Convective heat transfer coefficient
-    scalar hCoeff_;
-
     scalar cylinderRadius_;
 
     //- Velocity.

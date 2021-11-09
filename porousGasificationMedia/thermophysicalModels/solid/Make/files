@@ -10,4 +10,10 @@ heatTransfer/const/const.C
 heatTransfer/pipe/pipe.C
 heatTransfer/cylinder/cylinder.C
 
+specieTransfer/specieTransferModel/specieTransferModel.C
+specieTransfer/empty/emptyST.C
+specieTransfer/const/constST.C
+specieTransfer/cylinder/cylinderST.C
+specieTransfer/pipe/pipeST.C
+
 LIB = $(FOAM_USER_LIBBIN)/libHGSsolid

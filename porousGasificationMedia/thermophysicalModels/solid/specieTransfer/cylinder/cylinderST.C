@@ -23,57 +23,36 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "cylinder.H"
+#include "cylinderST.H"
 #include "Time.H"
 #include "surfaceFields.H"
 #include "volFields.H"
 #include "addToRunTimeSelectionTable.H"
+      
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    defineTypeNameAndDebug(cylinderCONV, 0);
-    addToRunTimeSelectionTable(heatTransferModel, cylinderCONV, porosity);
-}
 
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
-Foam::scalar Foam::cylinderCONV::Re(const label cellI) const
-{
-    return 2 * cylinderRadius_ * rhop_[cellI] * mag(Up_[cellI]) / mup_[cellI];
-}
-
-Foam::scalar Foam::cylinderCONV::Pr(const label cellI) const
-{
-    return mup_[cellI] / alphap_[cellI];
-}
-
-Foam::scalar Foam::cylinderCONV::Nu(const label cellI) const //eqZx2uHGn019
-{
-    return 2. + 1.1 * pow(Re(cellI), 0.6) * cbrt(Pr(cellI));
-}
-
-Foam::scalar Foam::cylinderCONV::kf(const label cellI) const
-{
-    return thermop_.Cp().ref()[cellI] * alphap_[cellI] * rhop_[cellI];
-}
+defineTypeNameAndDebug(cylinderST, 0);
+addToRunTimeSelectionTable(specieTransferModel, cylinderST, porosity);
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::cylinderCONV::cylinderCONV
+cylinderST::cylinderST
 (
-    const volScalarField& porosity,
-    const volScalarField& initialPorosity
+    const volScalarField& por,
+    const volScalarField& por0
 )
 :
-    heatTransferModel(porosity,initialPorosity),
+    specieTransferModel(por,por0),
     cylinderRadius_(1.0),
     Up_(db().lookupObject<volVectorField>("U")),
     rhop_(db().lookupObject<volScalarField>("rho")),
-    alphap_(db().lookupObject<volScalarField>("thermo:alpha")),
-    mup_(db().lookupObject<volScalarField>("thermo:mu")),
-    thermop_(db().lookupObject<fluidThermo>("thermophysicalProperties"))
+    mup_(db().lookupObject<volScalarField>("mu"))
 {
    read();
 }
@@ -81,29 +60,31 @@ Foam::cylinderCONV::cylinderCONV
 
 // * * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * //
 
-Foam::autoPtr<Foam::cylinderCONV> Foam::cylinderCONV::New
+autoPtr<cylinderST> cylinderST::New
 (
-    const volScalarField& porosity,
-    const volScalarField& initialPorosity
+    const volScalarField& por,
+    const volScalarField& por0
 )
 {
-    return autoPtr<cylinderCONV>
+    return autoPtr<cylinderST>
     (
-        new cylinderCONV(porosity,initialPorosity)
+        new cylinderST( por,por0)
     );
 }
 
+
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-Foam::tmp<Foam::volScalarField> Foam::cylinderCONV::CONV() const
+tmp<volScalarField> cylinderST::ST() const
 {
-    Foam::tmp<Foam::volScalarField> CONVloc_ = Foam::tmp<Foam::volScalarField>
+// eqZx2uHGn007
+    Foam::tmp<Foam::volScalarField> STloc_ = Foam::tmp<Foam::volScalarField>
     (
         new volScalarField
         (
             IOobject
             (
-                "CONVloc",
+                "STloc",
                 runTime_.timeName(),
                 mesh_,
                 IOobject::NO_READ,
@@ -112,32 +93,30 @@ Foam::tmp<Foam::volScalarField> Foam::cylinderCONV::CONV() const
             mesh_,
             dimensionedScalar
             (
-                "zero", dimEnergy/dimTime/dimTemperature/dimVolume, 0.0
+                "zero", dimless/dimTime, 0.0
             )
         )
     );
 
-    forAll (CONVloc_(), cellI)
+    forAll (STloc_(),cellI)
     {
-        // Surface area to volume ratio.
-        scalar SAV = 2.0 * sqrt(1 - porosity()[cellI]) * sqrt(1 - initialPorosity()[cellI])
-                     / cylinderRadius_; // eqZx2uHGn007
-
-        scalar h_conv = Nu(cellI) * kf(cellI) / (2 * cylinderRadius_); //eqZx2uHGn020
-
-        CONVloc_.ref()[cellI] = SAV * h_conv;
+        //eqZx2uHGn019 eqZx2uHGn020
+        STloc_.ref()[cellI] = pow(1 - por()[cellI],0.5) * pow(1 - por0()[cellI], 0.5) * 2.0 / cylinderRadius_
+               * (1. + 0.55 * Foam::pow(2 * cylinderRadius_ * rhop_[cellI] * mag(Up_[cellI]) / mup_[cellI], 0.6) / cylinderRadius_);
     }
 
-    return CONVloc_;
+    return STloc_;
+
 }
 
-bool Foam::cylinderCONV::read()
+bool cylinderST::read()
 {
-    IOdictionary dict
+
+	IOdictionary dict
         (
             IOobject
             (
-                "heatTransferProperties",
+                "specieTransferProperties",
                 mesh_.time().constant(),
                 mesh_,
                 IOobject::MUST_READ,
@@ -149,9 +128,12 @@ bool Foam::cylinderCONV::read()
     const dictionary& params = dict.subDict("Parameters");
 
     params.lookup("cylinderRadius") >> cylinderRadius_;
-
+    
 
     return true;
 }
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace Foam
 
 // ************************************************************************* //

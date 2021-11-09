@@ -96,7 +96,7 @@ Foam::autoPtr<Foam::heatTransferModel> Foam::heatTransferModel::New
         FatalErrorIn
         (
             "heatTransferModel::New(const volVectorField&, "
-            "const surfaceScalarField&, transportModel&, const word&)"
+            "const surfaceScalarField&)"
         )   << "Unknown heatTransferModel type "
             << modelType << nl << nl
             << "Valid heatTransferModel types:" << endl

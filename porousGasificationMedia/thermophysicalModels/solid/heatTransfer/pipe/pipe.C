@@ -53,7 +53,6 @@ Foam::pipeCONV::pipeCONV
 )
 :
   heatTransferModel(porosity,initialPorosity),
-  hCoeff_(0.0),
   pipeRadius_(1.0),
   Up_(db().lookupObject<volVectorField>("U")),
   rhop_(db().lookupObject<volScalarField>("rho")),
@@ -142,7 +141,6 @@ bool Foam::pipeCONV::read()
 
     const dictionary& params = dict.subDict("Parameters");
 
-    params.lookup("h") >> hCoeff_;
     params.lookup("pipeRadius") >> pipeRadius_;
 
     return true;
