@@ -167,6 +167,8 @@ private:
         //- Choose source of information about solid chemistry reaction energy
         Switch stoichiometricReactions_;
 
+        Switch diffusionLimitedReactions_;
+
         //- Change of energy in time while heat of reaction approach is chosen
         scalar solidReactionDeltaEnergy_;
 
@@ -184,6 +186,9 @@ private:
 
         //- Porosity
         const volScalarField& porosityF_;
+
+        //- Specie Transfer
+        const volScalarField& ST_;
 
         //- Temporary concentration field
         mutable scalarField specieConcentration_;
