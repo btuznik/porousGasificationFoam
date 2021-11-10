@@ -63,6 +63,9 @@ tmp<fv::convectionScheme<scalar>> mvConvection
             YiEqn.solve("Yi");
 
             fvOptions.correct(Yi);
+
+            Yi.max(0.0);
+            Yt += Yi;
         }
     }
 
