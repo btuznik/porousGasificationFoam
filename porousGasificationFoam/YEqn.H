@@ -71,11 +71,25 @@ tmp<fv::convectionScheme<scalar>> mvConvection
 
     forAll(Y, i)
     {
-        Info<< " gas  "<<Y[i].name()<< " Srho min/max   = "
-            << min(pyrolysisZone.Srho(i)()).value() << ", "
-            << max(pyrolysisZone.Srho(i)()).value()
-            << min(Y[i]).value() <<" max Y = " << max(Y[i]).value() << endl;
+        if (Y[i].name() != inertSpecie)
+        {
+            Info<< " gas  " << Y[i].name() << " Srho min/max   = "
+                << min(pyrolysisZone.Srho(i)()).value() << ", "
+                << max(pyrolysisZone.Srho(i)()).value()
+                << " min Y = " << min(Y[i]).value() <<" max Y = " << max(Y[i]).value() << endl;
 
-        Y[i] = Y[i] / Yt;
+            Y[i] = Y[i] / Yt;
+
+            Info<< " min Ynorm = " << min(Y[i]).value() <<" max Ynorm = " << max(Y[i]).value() << endl;
+        }
+        else
+        {
+            Info<< " gas  " <<Y[i].name() << " is inert specie, min Y = "
+                << min(Y[i]).value() <<" max Y = " << max(Y[i]).value();
+
+            Y[i] = Y[i]/Yt;
+
+            Info<< " min Ynorm = " << min(Y[i]).value() <<" max Ynorm = " << max(Y[i]).value() << endl;
+        }
     }
 }

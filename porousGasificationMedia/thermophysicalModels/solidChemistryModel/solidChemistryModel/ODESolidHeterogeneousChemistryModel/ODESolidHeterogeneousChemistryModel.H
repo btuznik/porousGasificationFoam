@@ -169,6 +169,8 @@ private:
 
         Switch diffusionLimitedReactions_;
 
+        Switch diffusionLimitedReactionsAlpha_;
+
         //- Change of energy in time while heat of reaction approach is chosen
         scalar solidReactionDeltaEnergy_;
 
