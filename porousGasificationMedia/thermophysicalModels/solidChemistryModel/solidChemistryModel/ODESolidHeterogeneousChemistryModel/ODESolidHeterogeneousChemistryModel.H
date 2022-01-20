@@ -169,6 +169,8 @@ private:
 
         Switch diffusionLimitedReactions_;
 
+        //- choose to include diffusivities in difusion limitted reactions
+        //- this is necessary because const model should not depend on alpha of specie
         Switch diffusionLimitedReactionsAlpha_;
 
         //- Change of energy in time while heat of reaction approach is chosen
@@ -179,6 +181,9 @@ private:
 
         //- Dictionary for gasName communication
         List<label> gasDictionary_;
+
+        //- dictionary for gasPhaseGases -> pyrolysisGases
+        List<label> gasDictionaryBack_;
 
         //- Gas density
         const volScalarField& rhoG_;
