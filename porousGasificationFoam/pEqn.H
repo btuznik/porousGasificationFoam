@@ -72,7 +72,10 @@ else
           + Srho * (1.0 - porosityF)
         );
 
-        pEqn.solve();
+        pEqn.solve
+        (
+//            mesh.solutionDict().solver(p.select(pimple.finalInnerIter()))
+        );
 
         if (pimple.finalNonOrthogonalIter())
         {
@@ -86,17 +89,15 @@ else
 
 // Explicitly relax pressure for momentum corrector
 p.relax();
+rho = thermo.rho();
+rho.relax();
+
+Info<< "rho max/min : " << max(rho).value()
+    << " " << min(rho).value() << endl;
 
 U = HbyA - rAU*fvc::grad(p);
 U.correctBoundaryConditions();
 fvOptions.correct(U);
-K = 0.5*magSqr(U);
-
-if (pressureControl.limit(p))
-{
-    p.correctBoundaryConditions();
-    rho = thermo.rho();
-}
 
 if (thermo.dpdt())
 {
