@@ -125,10 +125,6 @@ Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasTherm
         mesh_.lookupObject<dictionary>
             ("chemistryProperties").lookupOrDefault("diffusionLimitedReactions",false)
     ),
-    diffusionLimitedReactionsAlpha_
-    (
-        true
-    ),
     solidReactionDeltaEnergy_(0.0),
     showRRR_
     (
@@ -291,26 +287,6 @@ Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, GasTherm
     }
 
     Info << "diffusionLimitedReactions " << diffusionLimitedReactions_ << nl;
-
-    if ( diffusionLimitedReactions_ )
-    {
-        word STmodelName
-        (
-            IOdictionary
-            (
-                IOobject
-                (
-                    "specieTransferProperties",
-                    mesh_.time().constant(),
-                    mesh_,
-                    IOobject::MUST_READ,
-                    IOobject::NO_WRITE,
-                    false
-                )
-            ).lookup("specieTransferModel")
-        );
-        diffusionLimitedReactionsAlpha_ =  !( STmodelName == "constST" );
-    }
 }
 
 
@@ -730,16 +706,7 @@ scalar Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, G
         scalar avKf = 1./kf;
         forAll(R.glhs(),i)
         {
-            scalar addAvKf = 0.;
-
-            if (diffusionLimitedReactionsAlpha_)
-            {
-                addAvKf = (ST_[cellI]*gasThermo_[R.glhs()[i]].alphah(p, T)*gasPhaseGases_[R.glhs()[i]].internalField()[cellI] * rhoG_[cellI]);
-            }
-            else
-            {
-                addAvKf = (ST_[cellI]*gasPhaseGases_[R.glhs()[i]].internalField()[cellI] * rhoG_[cellI]);
-            }
+            scalar addAvKf = (ST_[cellI]*gasPhaseGases_[R.glhs()[i]].internalField()[cellI]*rhoG_[cellI]);
 
             if (addAvKf != 0)
             {
@@ -836,7 +803,6 @@ void Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, Gas
     label cellI = cellCounter_;
 
     scalar T = c[nSpecie_];
-    scalar p = c[nSpecie_ + 1];
 
     scalarField c2(nSpecie_, 0.0);
     scalarField rR(nReaction_, 0.0);
@@ -1131,28 +1097,13 @@ void Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, Gas
 
                 for (label rSi=Ns; rSi < Ns + Ng; rSi++)
                 {
-                    if (diffusionLimitedReactionsAlpha_)
-                    {
-                        addAvKf = (ST_[cellI]*gasThermo_[R.glhs()[rSi-Ns]].alphah(p, T)*gasPhaseGases_[R.glhs()[rSi-Ns]].internalField()[cellI] * rhoG_[cellI]);
-                    }
-                    else
-                    {
-                        addAvKf = (ST_[cellI]*gasPhaseGases_[R.glhs()[rSi-Ns]].internalField()[cellI] * rhoG_[cellI]);
-                    }
+                    addAvKf = (ST_[cellI]*gasPhaseGases_[R.glhs()[rSi-Ns]].internalField()[cellI])*rhoG_[cellI];
 
                     if (addAvKf != 0)
                     {
                         avKf += 1./addAvKf;
-                        if (diffusionLimitedReactionsAlpha_)
-                        {
-                            chosenKf = ST_[cellI]*gasThermo_[R.glhs()[rSi-Ns]].alphah(p, T) * rhoG_[cellI];
-                            chosenKf0 = (ST_[cellI]*gasThermo_[R.glhs()[rSi-Ns]].alphah(p, T)*gasPhaseGases_[R.glhs()[rSi-Ns]].internalField()[cellI] * rhoG_[cellI]);
-                        }
-                        else
-                        {
-                            chosenKf = ST_[cellI] * rhoG_[cellI];
-                            chosenKf0 = (ST_[cellI]*gasPhaseGases_[R.glhs()[rSi-Ns]].internalField()[cellI] * rhoG_[cellI]);
-                        }
+                        chosenKf = ST_[cellI] * rhoG_[cellI];
+                        chosenKf0 = (ST_[cellI] * gasPhaseGases_[R.glhs()[rSi - Ns]].internalField()[cellI] * rhoG_[cellI]);
                     }
                     else
                     {

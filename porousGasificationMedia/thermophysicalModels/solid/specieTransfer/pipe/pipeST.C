@@ -52,7 +52,8 @@ pipeST::pipeST
     pipeRadius_(1.0),
     Up_(db().lookupObject<volVectorField>("U")),
     rhop_(db().lookupObject<volScalarField>("rho")),
-    mup_(db().lookupObject<volScalarField>("mu"))
+    mup_(db().lookupObject<volScalarField>("mu")),
+    alphap_(db().lookupObject<volScalarField>("alpha"))
 {
    read();
 }
@@ -93,7 +94,7 @@ tmp<volScalarField> pipeST::ST() const
             mesh_,
             dimensionedScalar
             (
-                "zero", dimEnergy/dimTime/dimTemperature/dimVolume, 0.0
+                "zero", dimless/dimTime, 0.0
             )
         )
     );
@@ -101,7 +102,7 @@ tmp<volScalarField> pipeST::ST() const
     forAll (STloc_(),cellI)
     {
         STloc_.ref()[cellI] = pow(por()[cellI], 0.5) * pow(por0()[cellI], 0.5) * 2.0 / pipeRadius_ *
-            (3.66) / pipeRadius_;  //eqZx2uHGn019 eqZx2uHGn020
+            (1.83) / pipeRadius_ * alphap_[cellI];  //eqZx2uHGn019 eqZx2uHGn020
     }
 
     return STloc_;

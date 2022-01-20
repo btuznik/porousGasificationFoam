@@ -53,6 +53,7 @@ private:
     const volVectorField& Up_;
     const volScalarField& rhop_;
     const volScalarField& mup_;
+    const volScalarField& alphap_;
 
 public:
 
