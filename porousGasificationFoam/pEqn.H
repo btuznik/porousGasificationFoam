@@ -64,7 +64,7 @@ else
     {
         fvScalarMatrix pEqn
         (
-            fvm::ddt(psi, p)
+            fvm::ddt(porosityF * psi, p)
           + fvc::div(phiHbyA)
           - fvm::laplacian(rhorAUf, p)
          ==
@@ -72,10 +72,7 @@ else
           + Srho * (1.0 - porosityF)
         );
 
-        pEqn.solve
-        (
-//            mesh.solutionDict().solver(p.select(pimple.finalInnerIter()))
-        );
+        pEqn.solve();
 
         if (pimple.finalNonOrthogonalIter())
         {
@@ -88,9 +85,11 @@ else
 #include "compressibleContinuityErrs.H"
 
 // Explicitly relax pressure for momentum corrector
-p.relax();
-rho = thermo.rho();
-rho.relax();
+if (!pimple.finalPimpleIter())
+{
+    p.relax();
+    rho.relax();
+}
 
 Info<< "rho max/min : " << max(rho).value()
     << " " << min(rho).value() << endl;

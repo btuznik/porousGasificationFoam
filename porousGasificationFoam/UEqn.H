@@ -10,7 +10,8 @@ tmp<fvVectorMatrix> tUEqn
   + MRF.DDt(rho, U)
   + turbulence->divDevTau(U)
  ==
-    fvOptions(rho, U)
+    rho*g
+  + fvOptions(rho, U)
 );
 fvVectorMatrix& UEqn = tUEqn.ref();
 
@@ -21,21 +22,17 @@ tmp<volTensorField> trTU;
 
 pZones.addResistance(UEqn,Df); // eqZx2uHGn015
 
-volScalarField rUA = 1.0 / UEqn.A();
-
 fvOptions.constrain(UEqn);
 
 if (pimple.momentumPredictor())
 {
-    solve
-    (
-        UEqn == -fvc::grad(p)
-    );
+    solve(UEqn == -fvc::grad(p));
 
     fvOptions.correct(U);
 }
 else
 {
+    volScalarField rUA = 1.0 / UEqn.A();
     U = rUA * (UEqn.H() - fvc::grad(p));
     U.correctBoundaryConditions();
 }

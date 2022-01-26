@@ -106,6 +106,8 @@ int main(int argc, char *argv[])
         #include "radiation.H"
         pyrolysisZone.evolve();
 
+        #include "rhoEqn.H"
+
         while (pimple.loop())
         {
             if (pimple.nCorrPimple() > 0)
@@ -115,10 +117,9 @@ int main(int argc, char *argv[])
                 U.storePrevIter();
             }
 
+            #include "UEqn.H"
             #include "YEqn.H"
             #include "EEqn.H"
-            #include "rhoEqn.H"
-            #include "UEqn.H"
 
             // --- Pressure corrector loop
             while (pimple.correct())
@@ -132,15 +133,18 @@ int main(int argc, char *argv[])
                     #include "pEqn.H"
                 }
             }
-
-            if (pimple.turbCorr())
-            {
-                turbulence->correct();
-                thermophysicalTransport->correct();
-            }
-
-            rho = thermo.rho();
         }
+
+        if (pimple.turbCorr())
+        {
+            turbulence->correct();
+            thermophysicalTransport->correct();
+        }
+
+        rho = thermo.rho();
+
+        Info<< "rho max/min : " << max(rho).value()
+            << " " << min(rho).value() << endl;
 
         runTime.write();
 
