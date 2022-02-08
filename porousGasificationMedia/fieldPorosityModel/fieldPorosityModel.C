@@ -55,8 +55,45 @@ Foam::fieldPorosityModel::fieldPorosityModel
     ),
     name_(),
     mesh_(mesh),
+    f_(0.),
     porosityF_(porosityF)
-{}
+{
+    IOobject porosityPropertiesHeader
+    (
+        "porosityProperties",
+        mesh_.time().constant(),
+        mesh_,
+        IOobject::MUST_READ
+    );
+
+    word modelType;
+    if (porosityPropertiesHeader.typeHeaderOk<IOdictionary>(true))
+    {
+        IOdictionary dict
+        (
+            IOobject
+            (
+                "porosityProperties",
+                mesh_.time().constant(),
+                mesh_,
+                IOobject::MUST_READ,
+                IOobject::NO_WRITE,
+                false
+            )
+        );
+        f_ = dict.lookupOrDefault("forchheimerCoeff",0.);
+        Info << "Forchheimer coefficient f = " << f_  << " specified" << nl
+             << "Darcy resistance term will be modified by + f*rho*mag(u)*sqrt(3.)*Df/|Df|"
+             << nl << endl;
+
+    }
+    else
+    {
+        Info << "no Forchheimer coefficient specified" << nl
+             << "Darcy resistance term only. For the Forchheimer term create porosityProperties dictionary."
+             << nl << endl;
+    }
+}
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 

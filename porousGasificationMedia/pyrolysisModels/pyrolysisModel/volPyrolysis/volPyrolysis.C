@@ -1112,17 +1112,37 @@ void volPyrolysis::evolvePorosity()
             }
         }
 
-        surfF_ = 0;
-        forAll(whereIs_,cellI)
+        surfF_=0;
+        whereIs_.correctBoundaryConditions();
+        surfaceScalarField  whereIsPatch  = fvc::interpolate(whereIs_);
+        forAll(whereIsPatch,faceI)
         {
-            if (whereIs_[cellI] == 1)
+            if ( (whereIsPatch[faceI] > 0) and (whereIsPatch[faceI] < 1) )
             {
-                bool surfC = false;
-                forAll(mesh_.cellCells()[cellI],cellJ)
+                if (whereIs_[mesh_.owner()[faceI]] == 1)
                 {
-                        if (whereIs_[mesh_.cellCells()[cellI][cellJ]] == 0) surfC = true;
+                    surfF_[mesh_.owner()[faceI]] = 1;
                 }
-                if (surfC) surfF_[cellI] = 1;
+                if (whereIs_[mesh_.neighbour()[faceI]] == 1)
+                {
+                    surfF_[mesh_.neighbour()[faceI]] = 1;
+                }
+            }
+        }
+        forAll(whereIsPatch.boundaryField(),patchI)
+        {
+            if (isA<processorPolyPatch>(mesh_.boundaryMesh()[patchI]))
+            {
+                forAll(whereIsPatch.boundaryField()[patchI],faceI)
+                {
+                    if ( (whereIsPatch.boundaryField()[patchI][faceI] > 0) and (whereIsPatch.boundaryField()[patchI][faceI] < 1) )
+                    {
+                        if (whereIs_[mesh_.owner()[faceI + mesh_.boundaryMesh()[patchI].start()]] == 1)
+                        {
+                            surfF_[mesh_.owner()[faceI + mesh_.boundaryMesh()[patchI].start()]] = 1;
+                        }
+                    }
+                }
             }
         }
 

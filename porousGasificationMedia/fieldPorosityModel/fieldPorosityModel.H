@@ -94,13 +94,13 @@ protected:
         //- Reference to the mesh database
         const fvMesh& mesh_;
 
+        //- Forchheimer coefficient
+        scalar f_;
+
         //- porosity Field
         volScalarField& porosityF_;
 
     // Protected Member Functions
-
-        //- Adjust negative resistance values to be multiplier of max value
-        void adjustNegativeResistance(dimensionedVector& resist);
 
         //- Df based viscous and intertial resistance
         template<class RhoFieldType>
