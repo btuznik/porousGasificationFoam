@@ -246,8 +246,51 @@ void Foam::radiationModels::heterogeneousP1::calculate()
     const volScalarField sigmaEff(scatter_->sigmaEff());
 
     volScalarField surfV = surfF_ * 0;
-    surfV.ref() = borderL_ * pow(mesh_.V(), 2. / 3.) * surfFI_.internalField() * dimensionedScalar("tmp",dimensionSet(0, -3, 0, 0, 0),1.);
-    surfF_.ref() = borderL_ / pow(mesh_.V(), 1./3.) * surfFI_.internalField();
+
+    if (((mesh_.geometricD()).x() + (mesh_.geometricD()).y() + (mesh_.geometricD()).z()) == 3)
+    {
+        surfV.ref() = borderL_ * pow(mesh_.V(), 2. / 3.) * surfFI_.internalField() * dimensionedScalar("tmp",dimensionSet(0, -3, 0, 0, 0),1.);
+        surfF_.ref() = borderL_ / pow(mesh_.V(), 1. / 3.) * surfFI_.internalField();
+    }
+    else if (((mesh_.geometricD()).x() + (mesh_.geometricD()).y() + (mesh_.geometricD()).z()) == 1)
+    {
+        vector f(0, 0, 0);
+        f.x() = -min((mesh_.geometricD()).x(), 0);
+        f.y() = -min((mesh_.geometricD()).y(), 0);
+        f.z() = -min((mesh_.geometricD()).z(), 0);
+        forAll(surfFI_,cellI)
+        {
+            if(surfFI_[cellI] > 0)
+            {
+                scalar cSurf = 0;
+                forAll(mesh_.cells()[cellI],faceI)
+                {
+                    cSurf += mag(( f & (mesh_.Sf()[mesh_.cells()[cellI][faceI]]) ));
+                }
+                surfF_[cellI] = borderL_.value() / pow(cSurf / 2., 1. / 2.);
+            }
+        }
+    }
+    else
+    {
+        vector f(0, 0 , 0);
+        f.x() = max((mesh_.geometricD()).x(), 0);
+        f.y() = max((mesh_.geometricD()).y(), 0);
+        f.z() = max((mesh_.geometricD()).z(), 0);
+        forAll(surfFI_,cellI)
+        {
+            if(surfFI_[cellI] > 0)
+            {
+                scalar cSurf = 0;
+                forAll(mesh_.cells()[cellI],faceI)
+                {
+                    cSurf += mag(( f & (mesh_.Sf()[mesh_.cells()[cellI][faceI]]) ));
+                }
+                surfF_[cellI] = borderL_.value() / (2 * mesh_.V()[cellI] / cSurf);
+            }
+        }
+    }
+
     scalar totalSurf = gSum(surfV);
 
     scalar totalVol = 0;
