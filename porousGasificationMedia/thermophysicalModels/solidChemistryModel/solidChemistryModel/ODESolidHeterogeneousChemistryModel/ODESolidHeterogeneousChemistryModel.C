@@ -701,7 +701,7 @@ scalar Foam::ODESolidHeterogeneousChemistryModel<SolidThermo, SolidThermoType, G
         kf *= rhoG_[cellI];
     }
 
-    if (diffusionLimitedReactions_ and (R.glhs().size() > 0 ) and (kf != 0))
+    if (diffusionLimitedReactions_ and (R.glhs().size() > 0 ) and (kf > VSMALL))
     {
         scalar avKf = 1./kf;
         forAll(R.glhs(),i)
