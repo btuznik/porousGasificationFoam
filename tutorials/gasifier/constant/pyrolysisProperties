@@ -7,22 +7,23 @@
 \*---------------------------------------------------------------------------*/
 FoamFile
 {
-    version     2.0;
-    format      ascii;
+    version     2.1;
+    format      binary;
     class       dictionary;
-    location    "system";
-    object      decomposeParDict;
+    location    "constant";
+    object      pyrolysisProperties;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-numberOfSubdomains 4;
+active          true;
 
-method            simple;
+heterogeneousPyrolysisModel  volPyrolysis;
 
-simpleCoeffs
+pyrolysisCoeffs
 {
-    n               (2 2 1);
-    delta           0.001;
+    subintegrateHeatTransfer false;
 }
+
+infoOutput      true;
 
 // ************************************************************************* //

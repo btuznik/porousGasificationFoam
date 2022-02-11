@@ -9,20 +9,13 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       dictionary;
-    location    "system";
-    object      decomposeParDict;
+    class       uniformDimensionedVectorField;
+    location    "constant";
+    object      g;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-numberOfSubdomains 4;
-
-method            simple;
-
-simpleCoeffs
-{
-    n               (2 2 1);
-    delta           0.001;
-}
+dimensions      [0 1 -2 0 0 0 0];
+value           (0 0 0);
 
 // ************************************************************************* //

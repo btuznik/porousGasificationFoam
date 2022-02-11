@@ -10,19 +10,11 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    location    "system";
-    object      decomposeParDict;
+    location    "constant";
+    object      porosityProperties;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-numberOfSubdomains 4;
-
-method            simple;
-
-simpleCoeffs
-{
-    n               (2 2 1);
-    delta           0.001;
-}
+forchheimerCoeff 3.21e6;
 
 // ************************************************************************* //

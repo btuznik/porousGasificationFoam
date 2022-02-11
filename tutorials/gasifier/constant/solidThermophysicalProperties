@@ -7,22 +7,53 @@
 \*---------------------------------------------------------------------------*/
 FoamFile
 {
-    version     2.0;
+    version     2.1;
     format      ascii;
     class       dictionary;
-    location    "system";
-    object      decomposeParDict;
+    object      solidThermophysicalProperties;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-numberOfSubdomains 4;
+thermoType solidMixtureThermo<constHeterogeneous>;
 
-method            simple;
+solidComponents
+(
+  ash wood
+);
 
-simpleCoeffs
+woodCoeffs
 {
-    n               (2 2 1);
-    delta           0.001;
-}
+    transport
+    {
+        K           0.15;
+    }
+    thermodynamics
+    {
+        Cp          2810;
+        Hf          -2.12e4;
+    }
+    density
+    {
+        rho           663;
+    }
+};
+
+ashCoeffs
+{
+    transport
+    {
+        K           0.15;
+    }
+    thermodynamics
+    {
+        Cp          2400;
+        Hf          -12.38e6;
+    }
+    density
+    {
+        rho           650;
+    }
+};
+
 
 // ************************************************************************* //

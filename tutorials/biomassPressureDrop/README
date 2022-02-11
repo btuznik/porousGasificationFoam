@@ -1,0 +1,14 @@
+Allclean.sh script cleans the directories of all five p?? subcases 
+(removes time folders, postProcessing and log file)
+
+Allrun_Df???_f???.sh copies Df_??? and porosityProperties_??? to 5 subcases 
+and runs all of them in the backround (porousGasificationFoam > log&) 
+with those Df_??? and f_??? set for Darcy and Forcheimer coeffs.
+
+Alllog.sh tails all 5 log files and the user can easily see the p_min and p_max. 
+Pressure drop equals almost exactly to p_max-p_min; the error can be neglected.
+
+Example exectuion:
+  ./Allclean.sh
+  ./Allrun_Df2.56e+10_f3.21e+6.sh
+  ./Alllog_pmin

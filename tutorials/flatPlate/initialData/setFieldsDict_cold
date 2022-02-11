@@ -10,19 +10,42 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    location    "system";
-    object      decomposeParDict;
+    object      setFieldsDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-numberOfSubdomains 4;
+defaultFieldValues
+(
+    volScalarFieldValue porosityF  1
+    volScalarFieldValue porosityF0 1
+    volScalarFieldValue Ts 300
+);
 
-method            simple;
+regions
+(
 
-simpleCoeffs
-{
-    n               (2 2 1);
-    delta           0.001;
-}
+  boxToCell
+  {
+      box (0 0 0) (10 0.05 0.05);
+      fieldValues
+      (
+          volScalarFieldValue porosityF  0.6
+          volScalarFieldValue porosityF0 0.6
+          volVectorFieldValue U (0 0 0)
+      );
+  }
+
+//  boxToCell
+//  {
+//      box (0.05 0 0) (0.1 0.1 0.1);
+//      fieldValues
+//      (
+//          volScalarFieldValue Ts 1850
+//      );
+//  }
+
+
+);
+
 
 // ************************************************************************* //

@@ -8,21 +8,36 @@
 FoamFile
 {
     version     2.0;
-    format      ascii;
-    class       dictionary;
-    location    "system";
-    object      decomposeParDict;
+    format      binary;
+    class       volScalarField;
+    location    "0";
+    object      alphat;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-numberOfSubdomains 4;
+dimensions      [1 -1 -1 0 0 0 0];
 
-method            simple;
+internalField   uniform 0;
 
-simpleCoeffs
+boundaryField
 {
-    n               (2 2 1);
-    delta           0.001;
+    wall
+    {
+        type            alphatWallFunction;
+        Prt             0.85;
+        value           uniform 0;
+    }
+    inlet
+    {
+        type            calculated;
+        value           uniform 0;
+    }
+    outlet
+    {
+        type            calculated;
+        value           uniform 0;
+    }
 }
+
 
 // ************************************************************************* //

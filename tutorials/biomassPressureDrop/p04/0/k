@@ -8,21 +8,38 @@
 FoamFile
 {
     version     2.0;
-    format      ascii;
-    class       dictionary;
-    location    "system";
-    object      decomposeParDict;
+    format      binary;
+    class       volScalarField;
+    location    "0";
+    object      k;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-numberOfSubdomains 4;
+dimensions      [0 2 -2 0 0 0 0];
 
-method            simple;
+internalField   uniform 0.000689;
 
-simpleCoeffs
+
+boundaryField
 {
-    n               (2 2 1);
-    delta           0.001;
+    wall
+    {
+        type            compressible::kqRWallFunction;
+        value           uniform 0.000689;
+    }
+    inlet
+    {
+        type            turbulentIntensityKineticEnergyInlet;
+        intensity       0.05;
+        U               U;
+        phi             phi;
+        value           uniform 1;
+    }
+    outlet
+    {
+        type            zeroGradient;
+    }
 }
+
 
 // ************************************************************************* //

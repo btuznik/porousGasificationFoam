@@ -9,20 +9,33 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       dictionary;
-    location    "system";
-    object      decomposeParDict;
+    class       polyBoundaryMesh;
+    location    "constant/polyMesh";
+    object      boundary;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-numberOfSubdomains 4;
-
-method            simple;
-
-simpleCoeffs
-{
-    n               (2 2 1);
-    delta           0.001;
-}
+3
+(
+    wall
+    {
+        type            wall;
+        inGroups        List<word> 1(wall);
+        nFaces          1280;
+        startFace       55180;
+    }
+    inlet
+    {
+        type            patch;
+        nFaces          160;
+        startFace       56460;
+    }
+    outlet
+    {
+        type            patch;
+        nFaces          160;
+        startFace       56620;
+    }
+)
 
 // ************************************************************************* //

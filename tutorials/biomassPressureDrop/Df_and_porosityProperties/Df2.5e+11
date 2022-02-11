@@ -9,20 +9,30 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       dictionary;
-    location    "system";
-    object      decomposeParDict;
+    class       volTensorField;
+    location    "0";
+    object      Df;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-numberOfSubdomains 4;
+dimensions      [0 -2 0 0 0 0 0];
 
-method            simple;
+internalField   uniform (2.5e+11 0 0 0 2.5e+11 0 0 0 2.5e+11);
 
-simpleCoeffs
+boundaryField
 {
-    n               (2 2 1);
-    delta           0.001;
+    wall
+    {
+        type            zeroGradient;
+    }
+    inlet
+    {
+        type            zeroGradient;
+    }
+    outlet
+    {
+        type            zeroGradient;
+    }
 }
 
 // ************************************************************************* //

@@ -7,22 +7,19 @@
 \*---------------------------------------------------------------------------*/
 FoamFile
 {
-    version     2.0;
+    version     2.1;
     format      ascii;
     class       dictionary;
-    location    "system";
-    object      decomposeParDict;
+    object      heatTransferProperties;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-numberOfSubdomains 4;
+heatTransferModel constCONV;
 
-method            simple;
-
-simpleCoeffs
+Parameters
 {
-    n               (2 2 1);
-    delta           0.001;
+	h    8;
+	SAV  468;
 }
 
 // ************************************************************************* //

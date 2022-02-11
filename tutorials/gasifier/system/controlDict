@@ -17,25 +17,25 @@ FoamFile
 
 application     porousGasificationFoam;
 
-startFrom       latestTime;
+startFrom       startTime;
 
 startTime       0; 
 
 stopAt          endTime;
 
-endTime         1200;
+endTime         4000;
 
-deltaT          .001; 
+deltaT          0.001; 
 
 writeControl    adjustableRunTime;
 
-writeInterval   5;
+writeInterval   100;
 
 purgeWrite      0;
 
-writeFormat     ascii;
+writeFormat     binary;
 
-writePrecision  10;
+writePrecision  8;
 
 writeCompression uncompressed;
 
@@ -47,16 +47,13 @@ runTimeModifiable yes;
 
 adjustTimeStep yes;
 
-maxCo       0.2; 
+maxCo      5; 
 
-maxDi       5000;
-
-maxDeltaT   0.01;
+maxDi      5000;
 
 functions
 {
-	#includeFunc residuals(p, U, Ts)
-	#includeFunc probes
+    #includeFunc  probes
 }
 
 // ************************************************************************* //

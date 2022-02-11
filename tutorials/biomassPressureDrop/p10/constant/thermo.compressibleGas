@@ -1,0 +1,25 @@
+species
+(
+    air
+);
+
+air
+{
+    specie
+    {
+        molWeight       28.9644;
+    }
+    thermodynamics
+    {
+        Tlow            200;
+        Thigh           6000;
+        Tcommon         1000;
+        highCpCoeffs    ( 3.08793 0.00124597 -4.23719e-07 6.74775e-11 -3.97077e-15 -995.263 5.95961 );
+        lowCpCoeffs     ( 3.5684 -0.000678729 1.55371e-06 -3.29937e-12 -4.66395e-13 -1062.35 3.71583 );
+    }
+    transport
+    {
+        As              1.67212e-06;
+        Ts              170.672;
+    }
+}

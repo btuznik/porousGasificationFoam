@@ -9,20 +9,15 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       dictionary;
-    location    "system";
-    object      decomposeParDict;
+    class       uniformDimensionedScalarField;
+    location    "constant/polyMesh";
+    object      level0Edge;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-numberOfSubdomains 4;
+dimensions      [0 1 0 0 0 0 0];
+value           0.00541014912;
 
-method            simple;
 
-simpleCoeffs
-{
-    n               (2 2 1);
-    delta           0.001;
-}
 
 // ************************************************************************* //

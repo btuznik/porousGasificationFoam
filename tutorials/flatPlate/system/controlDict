@@ -7,22 +7,54 @@
 \*---------------------------------------------------------------------------*/
 FoamFile
 {
-    version     2.0;
-    format      ascii;
+    version     2.1;
+    format      binary;
     class       dictionary;
     location    "system";
-    object      decomposeParDict;
+    object      controlDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-numberOfSubdomains 4;
+application     porousGasificationFoam;
 
-method            simple;
+startFrom       latestTime;
 
-simpleCoeffs
+startTime       0;
+
+stopAt          endTime;
+
+endTime         60.1;
+
+deltaT          0.0001;
+
+writeControl    adjustableRunTime;
+
+writeInterval   20;
+
+purgeWrite      0;
+
+writeFormat     binary;
+
+writePrecision  10;
+
+writeCompression uncompressed;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable yes;
+
+adjustTimeStep  yes;
+
+maxCo       0.5;
+
+maxDeltaT   0.05;
+
+maxDi   5000;
+
+functions
 {
-    n               (2 2 1);
-    delta           0.001;
+    #includeFunc  writeObjects(thermo:mu,thermo:alpha)
 }
-
 // ************************************************************************* //

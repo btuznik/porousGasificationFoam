@@ -10,19 +10,34 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    location    "system";
-    object      decomposeParDict;
+    location    "constant";
+    object      solidThermophysicalProperties;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-numberOfSubdomains 4;
+thermoType solidMixtureThermo<constHeterogeneous>;
 
-method            simple;
+solidComponents
+(
+  char 
+);
 
-simpleCoeffs
+charCoeffs
 {
-    n               (2 2 1);
-    delta           0.001;
-}
+    transport
+    {
+        K           0.156; // (0.071+0.105+0.105)/3./.6  Park2010, Asako2002
+    }
+    thermodynamics
+    {
+        Cp          1054; // Park2010 for T=300
+        Hf          -2.12e4;
+    }
+    density
+    {
+        rho           1050;
+    }
+};
 
 // ************************************************************************* //
+
