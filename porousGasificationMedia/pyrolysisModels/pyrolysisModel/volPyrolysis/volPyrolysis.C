@@ -176,12 +176,10 @@ void volPyrolysis::solveEnergy()
             (
                 fvm::laplacian(composedK, T_)
             );
-
+ 
             // Setting face fluxes on the border of porous media to 0.
             whereIs_.correctBoundaryConditions();
-
             surfaceScalarField  whereIsPatch  = fvc::interpolate(whereIs_);
-
             forAll(whereIsPatch,faceI)
             {
                if ( (whereIsPatch[faceI] > 0) and (whereIsPatch[faceI] < 1) )
@@ -204,17 +202,8 @@ void volPyrolysis::solveEnergy()
                }
             }
 
-            forAll(whereIsPatch,faceI)
-            {
-                if (whereIsPatch[faceI] != 0.)
-                {
-                    TLap.upper()[faceI] = 0.;
-                }
-            }
-
             TLap.diag() = 0;
             TLap.negSumDiag();
-
             // Correct on orthogonal meshes
             // For non-orthogona meshes
             // TLap.source() = 0. cancels the non-orthogonal correction from the
